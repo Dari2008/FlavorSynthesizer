@@ -16,11 +16,14 @@ export class FlavorFileMusic {
         [key in BPM]: Player;
     };
     public NAME: string;
+    public imageSrc: string;
     constructor(index: number, name: string) {
         this.index = index;
         this.NAME = name;
 
         this.files = {} as any;
+
+        this.imageSrc = "./flavors/images/" + encodeURIComponent(name) + "png";
 
         for (const bpm of BPM) {
             const player = new Player(ROOT_FILE_DIR + bpm + "BPM/" + index + ".wav");

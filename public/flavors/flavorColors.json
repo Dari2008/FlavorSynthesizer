@@ -1,0 +1,1077 @@
+{
+    "Vanilla": [
+        "#F3E5AB",
+        "#DCC48E",
+        "#F7E1B0"
+    ],
+    "Chocolate": [
+        "#6B4226",
+        "#8B5A2B",
+        "#3D2B1F"
+    ],
+    "Strawberry": [
+        "#FF4D6D",
+        "#FF6F91",
+        "#D7263D"
+    ],
+    "Mint": [
+        "#A8E6CF",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Lemon": [
+        "#FFE66D",
+        "#FFD24A",
+        "#F7E04A"
+    ],
+    "Orange": [
+        "#FF9F1C",
+        "#FF6F00",
+        "#FFB347"
+    ],
+    "Cherry": [
+        "#C70039",
+        "#FF2D55",
+        "#A3002A"
+    ],
+    "Blueberry": [
+        "#4B61FF",
+        "#2E4BFF",
+        "#5B7FFF"
+    ],
+    "Raspberry": [
+        "#E91E63",
+        "#D81B60",
+        "#FF3B7A"
+    ],
+    "Blackberry": [
+        "#3B0A45",
+        "#4B0082",
+        "#5B1C5A"
+    ],
+    "Peach": [
+        "#FFD2A6",
+        "#FFB07C",
+        "#FF8C6A"
+    ],
+    "Pineapple": [
+        "#FCE77D",
+        "#F7C948",
+        "#F8B400"
+    ],
+    "Coconut": [
+        "#F7F0E6",
+        "#E7D9C3",
+        "#D6C2A6"
+    ],
+    "Mango": [
+        "#FFB347",
+        "#FF7A18",
+        "#FF9F43"
+    ],
+    "Banana": [
+        "#FFE66D",
+        "#F7D64B",
+        "#FFD95A"
+    ],
+    "Apple": [
+        "#A8D96B",
+        "#5DAF3A",
+        "#E74C3C"
+    ],
+    "Grape": [
+        "#6A0DAD",
+        "#7D3C98",
+        "#9B59B6"
+    ],
+    "Watermelon": [
+        "#FF4D6D",
+        "#FF7F7F",
+        "#38B000"
+    ],
+    "Cranberry": [
+        "#D7263D",
+        "#FF2D55",
+        "#7A1F2A"
+    ],
+    "Pomegranate": [
+        "#A3002A",
+        "#D81B60",
+        "#FF4D6D"
+    ],
+    "Lime": [
+        "#C7F464",
+        "#A3D900",
+        "#7BC043"
+    ],
+    "Ginger": [
+        "#D4A373",
+        "#B86B40",
+        "#8E4B2B"
+    ],
+    "Cinnamon": [
+        "#8B5A2B",
+        "#A0522D",
+        "#C68642"
+    ],
+    "Nutmeg": [
+        "#7D4C3B",
+        "#A06E5A",
+        "#B86B40"
+    ],
+    "Clove": [
+        "#4A2C2A",
+        "#6B3B36",
+        "#8E5A4C"
+    ],
+    "Cardamom": [
+        "#9FD3C7",
+        "#6AA39E",
+        "#4B7D7B"
+    ],
+    "Pumpkin Spice": [
+        "#E27D2E",
+        "#C75C1A",
+        "#FFB347"
+    ],
+    "Caramel": [
+        "#C68642",
+        "#D4A373",
+        "#A26B2D"
+    ],
+    "Butterscotch": [
+        "#F4C06B",
+        "#D9A24B",
+        "#B57A2A"
+    ],
+    "Honey": [
+        "#F7C948",
+        "#FFB347",
+        "#D4A373"
+    ],
+    "Maple": [
+        "#A26B2D",
+        "#D4A373",
+        "#8B5A2B"
+    ],
+    "Hazelnut": [
+        "#8B5A2B",
+        "#C68642",
+        "#A26B2D"
+    ],
+    "Almond": [
+        "#E7D9C3",
+        "#D6C2A6",
+        "#B7A58B"
+    ],
+    "Peanut Butter": [
+        "#D6A15A",
+        "#B8865A",
+        "#8B5A2B"
+    ],
+    "Coffee": [
+        "#4B2E2E",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "Espresso": [
+        "#2B1B1B",
+        "#3D2B1F",
+        "#5A3A2A"
+    ],
+    "Mocha": [
+        "#6B4226",
+        "#8B5A2B",
+        "#4B2E2E"
+    ],
+    "Toffee": [
+        "#C68642",
+        "#E7B86B",
+        "#8B5A2B"
+    ],
+    "Brown Sugar": [
+        "#A26B2D",
+        "#D4A373",
+        "#8B5A2B"
+    ],
+    "Salted Caramel": [
+        "#D4A373",
+        "#B8865A",
+        "#F7C948"
+    ],
+    "Butter": [
+        "#F7E1B0",
+        "#FFD59A",
+        "#F4C06B"
+    ],
+    "Cream": [
+        "#F7F0E6",
+        "#F2E3D7",
+        "#E7D9C3"
+    ],
+    "Whipped Cream": [
+        "#FFFFFF",
+        "#F7F0E6",
+        "#F2E3D7"
+    ],
+    "Chocolate Chip": [
+        "#6B4226",
+        "#8B5A2B",
+        "#2B1B1B"
+    ],
+    "Cookies and Cream": [
+        "#FFFFFF",
+        "#D6D6D6",
+        "#6B4226"
+    ],
+    "Oreo": [
+        "#000000",
+        "#FFFFFF",
+        "#C4C4C4"
+    ],
+    "Cookie Dough": [
+        "#F4C06B",
+        "#D9A24B",
+        "#A26B2D"
+    ],
+    "Brownie": [
+        "#3D2B1F",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "Fudge": [
+        "#4B2E2E",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "S'mores": [
+        "#C68642",
+        "#6B4226",
+        "#F7E1B0"
+    ],
+    "Marshmallow": [
+        "#FFFFFF",
+        "#F7F0E6",
+        "#F2E3D7"
+    ],
+    "Vanilla Bean": [
+        "#F7E1B0",
+        "#E7D9C3",
+        "#8B5A2B"
+    ],
+    "Pistachio": [
+        "#B2D8B6",
+        "#6AA39E",
+        "#4B7D7B"
+    ],
+    "Matcha": [
+        "#8FBF8F",
+        "#6AA39E",
+        "#2E8B57"
+    ],
+    "Green Tea": [
+        "#A8D6A0",
+        "#6AA39E",
+        "#3B7D3B"
+    ],
+    "Earl Grey": [
+        "#C7B299",
+        "#8B6B4F",
+        "#6B4226"
+    ],
+    "Chai": [
+        "#C68642",
+        "#D4A373",
+        "#A26B2D"
+    ],
+    "Black Tea": [
+        "#6B4226",
+        "#8B5A2B",
+        "#3D2B1F"
+    ],
+    "Jasmine": [
+        "#F7E7B5",
+        "#F2E3D7",
+        "#D9C3A6"
+    ],
+    "Lavender": [
+        "#C8A2C8",
+        "#B39EB5",
+        "#7B68EE"
+    ],
+    "Rose": [
+        "#F7A8B8",
+        "#D7263D",
+        "#FF6F91"
+    ],
+    "Lemongrass": [
+        "#DFF2A3",
+        "#A8D96B",
+        "#7BC043"
+    ],
+    "Basil": [
+        "#6AA39E",
+        "#4B7D7B",
+        "#2E8B57"
+    ],
+    "Thyme": [
+        "#A8C9A6",
+        "#6AA39E",
+        "#4B7D7B"
+    ],
+    "Rosemary": [
+        "#6AA39E",
+        "#4B7D7B",
+        "#2E8B57"
+    ],
+    "Sage": [
+        "#A8C9A6",
+        "#6AA39E",
+        "#8FBF8F"
+    ],
+    "Oregano": [
+        "#7BC043",
+        "#4B7D7B",
+        "#2E8B57"
+    ],
+    "Parsley": [
+        "#6AA39E",
+        "#4B7D7B",
+        "#3B7D3B"
+    ],
+    "Cilantro": [
+        "#7BC043",
+        "#6AA39E",
+        "#4B7D7B"
+    ],
+    "Mint Chocolate": [
+        "#6B4226",
+        "#8B5A2B",
+        "#A8E6CF"
+    ],
+    "Peppermint": [
+        "#A8E6CF",
+        "#FFFFFF",
+        "#2E8B57"
+    ],
+    "Spearmint": [
+        "#A8E6CF",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Bubblegum": [
+        "#FF6F91",
+        "#FF4D6D",
+        "#FFC0CB"
+    ],
+    "Cotton Candy": [
+        "#FFB6C1",
+        "#FF69B4",
+        "#B19CD9"
+    ],
+    "Gummy Bear": [
+        "#FF4D6D",
+        "#FFB347",
+        "#7BC043"
+    ],
+    "Sour Apple": [
+        "#C7F464",
+        "#A3D900",
+        "#7BC043"
+    ],
+    "Sour Cherry": [
+        "#D7263D",
+        "#FF2D55",
+        "#7A1F2A"
+    ],
+    "Sour Strawberry": [
+        "#FF4D6D",
+        "#FF6F91",
+        "#D7263D"
+    ],
+    "Sour Watermelon": [
+        "#FF4D6D",
+        "#38B000",
+        "#A8E6CF"
+    ],
+    "Sour Blue Raspberry": [
+        "#4B61FF",
+        "#2E4BFF",
+        "#A8E6CF"
+    ],
+    "Sour Grape": [
+        "#6A0DAD",
+        "#7D3C98",
+        "#C7F464"
+    ],
+    "Sour Lemon": [
+        "#FFE66D",
+        "#FFD24A",
+        "#C7F464"
+    ],
+    "Sour Lime": [
+        "#C7F464",
+        "#A3D900",
+        "#FFE66D"
+    ],
+    "Sour Peach": [
+        "#FFD2A6",
+        "#FFB07C",
+        "#FF4D6D"
+    ],
+    "Sour Mango": [
+        "#FFB347",
+        "#FF7A18",
+        "#C7F464"
+    ],
+    "Sour Pineapple": [
+        "#FCE77D",
+        "#F7C948",
+        "#FFB347"
+    ],
+    "Sour Orange": [
+        "#FF9F1C",
+        "#FF6F00",
+        "#FFD24A"
+    ],
+    "Sour Candy": [
+        "#FF4D6D",
+        "#FFB347",
+        "#4B61FF"
+    ],
+    "Grape Soda": [
+        "#6A0DAD",
+        "#7D3C98",
+        "#5B7FFF"
+    ],
+    "Cola": [
+        "#3D2B1F",
+        "#6B4226",
+        "#C4C4C4"
+    ],
+    "Root Beer": [
+        "#4B2E2E",
+        "#6B4226",
+        "#A26B2D"
+    ],
+    "Cream Soda": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C4C4C4"
+    ],
+    "Orange Soda": [
+        "#FF9F1C",
+        "#FF6F00",
+        "#FFD24A"
+    ],
+    "Lemonade": [
+        "#FFE66D",
+        "#FFD24A",
+        "#F7E1B0"
+    ],
+    "Iced Tea": [
+        "#6B4226",
+        "#C68642",
+        "#F7E1B0"
+    ],
+    "Fruit Punch": [
+        "#FF4D6D",
+        "#FF6F91",
+        "#FF9F1C"
+    ],
+    "Cherry Cola": [
+        "#C70039",
+        "#3D2B1F",
+        "#FF6F91"
+    ],
+    "Ginger Ale": [
+        "#F7E1B0",
+        "#C68642",
+        "#A8E6CF"
+    ],
+    "Mango Tango": [
+        "#FF7A18",
+        "#FFB347",
+        "#FF4D6D"
+    ],
+    "Tropical Punch": [
+        "#FF4D6D",
+        "#FFB347",
+        "#38B000"
+    ],
+    "Pina Colada": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#A8E6CF"
+    ],
+    "Strawberry Banana": [
+        "#FF4D6D",
+        "#FFE66D",
+        "#FFB347"
+    ],
+    "Raspberry Lemonade": [
+        "#E91E63",
+        "#FFE66D",
+        "#FFD24A"
+    ],
+    "Peach Mango": [
+        "#FFD2A6",
+        "#FFB347",
+        "#FF7A18"
+    ],
+    "Black Cherry": [
+        "#C70039",
+        "#8B1A1A",
+        "#5B1C5A"
+    ],
+    "Vanilla Latte": [
+        "#F7E1B0",
+        "#C68642",
+        "#6B4226"
+    ],
+    "Caramel Latte": [
+        "#C68642",
+        "#A26B2D",
+        "#F7E1B0"
+    ],
+    "Hazelnut Latte": [
+        "#8B5A2B",
+        "#C68642",
+        "#F2E3D7"
+    ],
+    "Mocha Latte": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Pumpkin Spice Latte": [
+        "#E27D2E",
+        "#C75C1A",
+        "#F7E1B0"
+    ],
+    "Chai Latte": [
+        "#C68642",
+        "#D4A373",
+        "#F7E1B0"
+    ],
+    "Hot Chocolate": [
+        "#4B2E2E",
+        "#6B4226",
+        "#F7E1B0"
+    ],
+    "White Chocolate": [
+        "#F7F0E6",
+        "#F7E1B0",
+        "#E7D9C3"
+    ],
+    "Dark Chocolate": [
+        "#2B1B1B",
+        "#4B2E2E",
+        "#6B4226"
+    ],
+    "Milk Chocolate": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Cocoa": [
+        "#4B2E2E",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "Chocolate Fudge": [
+        "#3D2B1F",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "Chocolate Hazelnut": [
+        "#8B5A2B",
+        "#6B4226",
+        "#C68642"
+    ],
+    "Chocolate Almond": [
+        "#D6C2A6",
+        "#6B4226",
+        "#8B5A2B"
+    ],
+    "Chocolate Mint": [
+        "#6B4226",
+        "#A8E6CF",
+        "#4BBF7B"
+    ],
+    "Chocolate Strawberry": [
+        "#6B4226",
+        "#FF4D6D",
+        "#F7E1B0"
+    ],
+    "Chocolate Orange": [
+        "#6B4226",
+        "#FF9F1C",
+        "#FFD24A"
+    ],
+    "Chocolate Banana": [
+        "#6B4226",
+        "#FFE66D",
+        "#F7E1B0"
+    ],
+    "Chocolate Peanut Butter": [
+        "#6B4226",
+        "#D6A15A",
+        "#F7E1B0"
+    ],
+    "Cinnamon Roll": [
+        "#E27D2E",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Apple Pie": [
+        "#D7263D",
+        "#A26B2D",
+        "#F7E1B0"
+    ],
+    "Pumpkin Pie": [
+        "#E27D2E",
+        "#C75C1A",
+        "#F7E1B0"
+    ],
+    "Pecan Pie": [
+        "#A26B2D",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Cherry Pie": [
+        "#C70039",
+        "#F7E1B0",
+        "#8B5A2B"
+    ],
+    "Blueberry Pie": [
+        "#4B61FF",
+        "#2E4BFF",
+        "#F7E1B0"
+    ],
+    "Lemon Pie": [
+        "#FFE66D",
+        "#FFD24A",
+        "#F7E1B0"
+    ],
+    "Key Lime Pie": [
+        "#C7F464",
+        "#A3D900",
+        "#F7E1B0"
+    ],
+    "Banana Cream Pie": [
+        "#FFE66D",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Strawberry Shortcake": [
+        "#FF4D6D",
+        "#F7E1B0",
+        "#A26B2D"
+    ],
+    "Cheesecake": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C68642"
+    ],
+    "New York Cheesecake": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C4C4C4"
+    ],
+    "Blueberry Cheesecake": [
+        "#4B61FF",
+        "#2E4BFF",
+        "#F7E1B0"
+    ],
+    "Strawberry Cheesecake": [
+        "#FF4D6D",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Chocolate Cheesecake": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Carrot Cake": [
+        "#E27D2E",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Red Velvet": [
+        "#C70039",
+        "#8B1A1A",
+        "#F7E1B0"
+    ],
+    "Vanilla Cake": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C68642"
+    ],
+    "Chocolate Cake": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Black Forest": [
+        "#3D2B1F",
+        "#C70039",
+        "#F7E1B0"
+    ],
+    "Tiramisu": [
+        "#F7E1B0",
+        "#C68642",
+        "#6B4226"
+    ],
+    "Cannoli": [
+        "#F7E1B0",
+        "#C4C4C4",
+        "#8B5A2B"
+    ],
+    "Macaron": [
+        "#FFB6C1",
+        "#B19CD9",
+        "#A8E6CF"
+    ],
+    "Cupcake": [
+        "#FFB6C1",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Donut": [
+        "#F7E1B0",
+        "#FFB6C1",
+        "#C68642"
+    ],
+    "Glazed Donut": [
+        "#F7E1B0",
+        "#FFE66D",
+        "#C68642"
+    ],
+    "Chocolate Donut": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Strawberry Donut": [
+        "#FF4D6D",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Maple Donut": [
+        "#A26B2D",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Cinnamon Donut": [
+        "#E27D2E",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Sugar Cookie": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C68642"
+    ],
+    "Chocolate Chip Cookie": [
+        "#6B4226",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Oatmeal Cookie": [
+        "#D4A373",
+        "#A26B2D",
+        "#F7E1B0"
+    ],
+    "Peanut Butter Cookie": [
+        "#D6A15A",
+        "#B8865A",
+        "#8B5A2B"
+    ],
+    "Snickerdoodle": [
+        "#E27D2E",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Gingerbread": [
+        "#A26B2D",
+        "#8B5A2B",
+        "#6B4226"
+    ],
+    "Molasses": [
+        "#5A3A2A",
+        "#8B5A2B",
+        "#C68642"
+    ],
+    "Butter Cookie": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C68642"
+    ],
+    "Shortbread": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#D4A373"
+    ],
+    "Almond Cookie": [
+        "#E7D9C3",
+        "#D6C2A6",
+        "#A26B2D"
+    ],
+    "Macadamia Nut Cookie": [
+        "#F2E3D7",
+        "#E7D9C3",
+        "#D4A373"
+    ],
+    "White Chocolate Macadamia": [
+        "#F7F0E6",
+        "#F7E1B0",
+        "#D4A373"
+    ],
+    "Pistachio Cookie": [
+        "#B2D8B6",
+        "#6AA39E",
+        "#4B7D7B"
+    ],
+    "Lemon Cookie": [
+        "#FFE66D",
+        "#FFD24A",
+        "#F7E1B0"
+    ],
+    "Orange Cookie": [
+        "#FF9F1C",
+        "#FF6F00",
+        "#FFD24A"
+    ],
+    "Raspberry Cookie": [
+        "#E91E63",
+        "#FF4D6D",
+        "#F7E1B0"
+    ],
+    "Blueberry Muffin": [
+        "#4B61FF",
+        "#2E4BFF",
+        "#F7E1B0"
+    ],
+    "Banana Muffin": [
+        "#FFE66D",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Chocolate Muffin": [
+        "#6B4226",
+        "#8B5A2B",
+        "#F7E1B0"
+    ],
+    "Cornbread": [
+        "#F7E1B0",
+        "#D4A373",
+        "#C68642"
+    ],
+    "Cinnamon Toast": [
+        "#E27D2E",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Honey Toast": [
+        "#F7C948",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Avocado": [
+        "#A8D96B",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Guacamole": [
+        "#A8D96B",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Salsa": [
+        "#C70039",
+        "#FF6F91",
+        "#A26B2D"
+    ],
+    "Barbecue": [
+        "#6B4226",
+        "#8B5A2B",
+        "#A26B2D"
+    ],
+    "Buffalo": [
+        "#FF6F91",
+        "#C70039",
+        "#F7E1B0"
+    ],
+    "Teriyaki": [
+        "#6B4226",
+        "#8B5A2B",
+        "#C68642"
+    ],
+    "Soy Sauce": [
+        "#3D2B1F",
+        "#6B4226",
+        "#A26B2D"
+    ],
+    "Wasabi": [
+        "#A8E6CF",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Sriracha": [
+        "#FF4D6D",
+        "#C70039",
+        "#A26B2D"
+    ],
+    "Hot Sauce": [
+        "#C70039",
+        "#FF6F91",
+        "#F7E1B0"
+    ],
+    "Jalapeno": [
+        "#7BC043",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Habanero": [
+        "#FF6F91",
+        "#FF9F1C",
+        "#C70039"
+    ],
+    "Chipotle": [
+        "#A26B2D",
+        "#8B5A2B",
+        "#C68642"
+    ],
+    "Smoky BBQ": [
+        "#6B4226",
+        "#8B5A2B",
+        "#4B2E2E"
+    ],
+    "Garlic": [
+        "#F7F0E6",
+        "#F7E1B0",
+        "#D4A373"
+    ],
+    "Onion": [
+        "#F7E1B0",
+        "#C68642",
+        "#A26B2D"
+    ],
+    "Cheddar": [
+        "#FFB347",
+        "#FF9F1C",
+        "#F7E1B0"
+    ],
+    "Parmesan": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C4C4C4"
+    ],
+    "Mozzarella": [
+        "#FFFFFF",
+        "#F7F0E6",
+        "#F2E3D7"
+    ],
+    "Blue Cheese": [
+        "#A8E6CF",
+        "#F7E1B0",
+        "#4B61FF"
+    ],
+    "Brie": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#D4A373"
+    ],
+    "Swiss": [
+        "#F7E1B0",
+        "#F2E3D7",
+        "#C68642"
+    ],
+    "Pepper Jack": [
+        "#FFB347",
+        "#FF9F1C",
+        "#C70039"
+    ],
+    "Cream Cheese": [
+        "#FFFFFF",
+        "#F7F0E6",
+        "#F2E3D7"
+    ],
+    "Ranch": [
+        "#F7F0E6",
+        "#F2E3D7",
+        "#A8D96B"
+    ],
+    "Caesar": [
+        "#F7E1B0",
+        "#C4C4C4",
+        "#A8D96B"
+    ],
+    "Italian Dressing": [
+        "#A8D96B",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Thousand Island": [
+        "#FFB6C1",
+        "#F7E1B0",
+        "#C68642"
+    ],
+    "Balsamic": [
+        "#3D2B1F",
+        "#6B4226",
+        "#A26B2D"
+    ],
+    "Vinegar": [
+        "#F7E1B0",
+        "#C4C4C4",
+        "#A26B2D"
+    ],
+    "Olive Oil": [
+        "#D4A373",
+        "#F7E1B0",
+        "#A8D96B"
+    ],
+    "Lime Cilantro": [
+        "#C7F464",
+        "#61C9A8",
+        "#4BBF7B"
+    ],
+    "Honey Mustard": [
+        "#F7C948",
+        "#D9A24B",
+        "#F7E1B0"
+    ],
+    "Dill Pickle": [
+        "#7BC043",
+        "#A8D96B",
+        "#4BBF7B"
+    ],
+    "Pickle": [
+        "#7BC043",
+        "#A8D96B",
+        "#4BBF7B"
+    ],
+    "Ketchup": [
+        "#C70039",
+        "#FF4D6D",
+        "#A26B2D"
+    ],
+    "Mustard": [
+        "#F7C948",
+        "#FFD24A",
+        "#D9A24B"
+    ],
+    "Mayonnaise": [
+        "#FFFFFF",
+        "#F7F0E6",
+        "#F2E3D7"
+    ],
+    "BBQ Sauce": [
+        "#6B4226",
+        "#8B5A2B",
+        "#C68642"
+    ]
+}
