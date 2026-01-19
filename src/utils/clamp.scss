@@ -1,0 +1,22 @@
+@use "sass:math";
+@use "sass:meta";
+
+@function clampW($minFontSize, $maxFontSize, $minViewportWidth, $maxViewportWidth) {
+
+    $minFontSize: math.div($minFontSize, 1em);
+    $maxFontSize: math.div($maxFontSize, 1em);
+    $minViewportWidth: math.div($minViewportWidth, 1px);
+    $maxViewportWidth: math.div($maxViewportWidth, 1px);
+    $minViewportWidth: if(sass($minViewportWidth < 0): 0; else: $minViewportWidth);
+    $maxViewportWidth: if(sass($maxViewportWidth < 0): 0; else: $maxViewportWidth);
+
+    $minViewportWidth: math.div($minViewportWidth, 16);
+    $maxViewportWidth: math.div($maxViewportWidth, 16);
+
+    $gradient: math.div(($maxFontSize - $minFontSize), ($maxViewportWidth - $minViewportWidth));
+    $intersection: $minViewportWidth * $gradient + $minFontSize;
+    $min: $minFontSize + "em";
+    $max: $maxFontSize + "em";
+    $preffered: $intersection + "em + " + ($gradient * 100) + "vw";
+    @return clamp(#{$min}, #{$preffered}, #{$max});
+}

@@ -1,0 +1,5 @@
+[...document.querySelectorAll("script")].map(e => {
+    return (/wavesurfer(.*?)\.load\(("|`|')(.*?)\2/gm).exec(e.innerHTML);
+}).filter(e => !!e).map(e => {
+    return e[3].replace(/wavesurfer(.*?)\.load\(("|`|')(.*?)\2/g, "$2");
+})

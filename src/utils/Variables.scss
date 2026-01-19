@@ -1,0 +1,136 @@
+@use "sass:color";
+$white: #FFFFFF;
+$black: #000000;
+$gray-50: #f9f9f9; //$gray-950
+$gray-100: #ececec; //$gray-900
+$gray-200: #cdcdcd; //$gray-800
+$gray-300: #b4b4b4; //$gray-700
+$gray-400: #9b9b9b; //$gray-600
+$gray-500: #676767; //$gray-500
+$gray-600: #424242; //$gray-400
+$gray-700: #2f2f2f; //$gray-300
+$gray-800: #212121; //$gray-200
+$gray-900: #171717; //$gray-100
+$gray-950: #0d0d0d; //$gray-50
+
+
+$backgroundColor: $gray-800;
+$themeColorLightBg: #ffe7e8;
+
+$successColor: #019225;
+$errorColor: #830000;
+
+$deleteBtnColor: #4e1919;
+
+$themeColor1: #2f0140;
+$themeColor2: #540863;
+$themeColor3: #92487A;
+$themeColor4: #E49BA6;
+$themeColor5: #FFD3D5;
+
+$textColor: color.adjust($themeColor5, $lightness: 2.5%);
+
+
+$themeColor: $themeColor1;
+$themeColor-10-Dark: color.adjust($themeColor, $lightness: -10%);
+$themeColor-20-Dark: color.adjust($themeColor, $lightness: -20%);
+$themeColor-30-Dark: color.adjust($themeColor, $lightness: -30%);
+$themeColor-40-Dark: color.adjust($themeColor, $lightness: -40%);
+$themeColor-50-Dark: color.adjust($themeColor, $lightness: -50%);
+$themeColor-60-Dark: color.adjust($themeColor, $lightness: -60%);
+$themeColor-70-Dark: color.adjust($themeColor, $lightness: -70%);
+$themeColor-80-Dark: color.adjust($themeColor, $lightness: -80%);
+$themeColor-90-Dark: color.adjust($themeColor, $lightness: -90%);
+
+$themeColor-10-Light: color.adjust($themeColor, $lightness: 10%);
+$themeColor-20-Light: color.adjust($themeColor, $lightness: 20%);
+$themeColor-30-Light: color.adjust($themeColor, $lightness: 30%);
+$themeColor-40-Light: color.adjust($themeColor, $lightness: 40%);
+$themeColor-50-Light: color.adjust($themeColor, $lightness: 50%);
+$themeColor-60-Light: color.adjust($themeColor, $lightness: 60%);
+$themeColor-70-Light: color.adjust($themeColor, $lightness: 70%);
+$themeColor-80-Light: color.adjust($themeColor, $lightness: 80%);
+$themeColor-90-Light: color.adjust($themeColor, $lightness: 90%);
+
+$maxContentWidth: 90vw;
+
+
+@mixin glass-themeColor-opacity-w-color($color, $strength) {
+    backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    background-color: rgba($color, $strength * 0.01);
+    border-radius: 24px;
+}
+
+@mixin glass-themeColor-opacity($strength) {
+    backdrop-filter: blur(16px) saturate(160%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+    background: rgba($themeColor2, $strength * 0.01);
+    border-radius: 24px;
+}
+
+@mixin glass-gray-opacity() {
+    background: linear-gradient(-45deg, rgba(255, 255, 255, 0.06), rgba($themeColor5, 0.06));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    // backdrop-filter: blur(8px);
+
+    &:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        background: linear-gradient(-45deg, rgba(255, 255, 255, 0.06), rgba($themeColor3, 0.06));
+    }
+}
+
+@mixin glass-gray-opacity-without-hover() {
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.06), rgba($themeColor5, 0.06));
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    // backdrop-filter: blur(8px);
+}
+
+
+// @mixin glass-themeColor-opacity-w-color($color, $strength) {
+//     // backdrop-filter: blur(10px);
+//     // box-shadow:
+//     //     0 0 15px 2px rgba($themeColor1, 0.5),
+//     // inset 0 0 15px 2px rgba($themeColor2, 0.5);
+//     backdrop-filter: blur(16px) saturate(160%);
+//     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+//     // background-color: rgba($color, $strength * 0.01);
+//     background-color: rgba($color, $strength * 0.01);
+//     border-radius: 24px;
+// }
+
+// @mixin glass-themeColor-opacity($strength) {
+//     // backdrop-filter: blur(10px);
+//     // box-shadow:
+//     //     0 0 15px 2px rgba($themeColor1, 0.5),
+//     //     inset 0 0 15px 2px rgba($themeColor2, 0.5);
+//     // background-color: rgba($themeColor1, $strength * 0.01);
+//     backdrop-filter: blur(16px) saturate(160%);
+//     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+
+//     background-color: rgba($themeColor1, $strength * 0.01);
+//     border-radius: 24px;
+// }
+
+// @mixin glass-gray-opacity() {
+//     background: rgba(255, 255, 255, 0.06);
+//     border: 1px solid rgba(255, 255, 255, 0.15);
+//     border-radius: 20px;
+//     backdrop-filter: blur(8px);
+
+//     &:hover {
+//         transform: translateY(-4px) scale(1.02);
+//         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+//     }
+// }
+
+// @mixin glass-gray-opacity-without-hover() {
+//     background: rgba(255, 255, 255, 0.06);
+//     border: 1px solid rgba(255, 255, 255, 0.15);
+//     border-radius: 20px;
+//     backdrop-filter: blur(8px);
+// }
