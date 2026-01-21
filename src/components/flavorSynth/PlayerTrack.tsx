@@ -1,19 +1,18 @@
 import { useEffect, useRef, useState } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
-import type { CurrentSpan } from "./FlavorSynth";
+import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
+import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 
-export default function PlayerTrack({ width, currentScrolledRef }: { width: number, currentScrolledRef: React.RefObject<CurrentSpan> }) {
+
+export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine }: { width: number, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
     const synthLines = useSynthLines();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
-    const height = 85;
+    const currentDraggingElementRef = useRef<null | FlavorElement>(null);
 
-    const elements = useRef<FlavorElement[]>([
-        createElementForFlavor("Almond", 0, 10),
-        createElementForFlavor("Mango", 10, 20)
-    ]);
+
 
     useEffect(() => {
         if (!canvasRef.current) return;
@@ -24,17 +23,13 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
         const onMouseMoveUpdate = (e: MouseEvent) => {
             const span = currentScrolledRef.current;
             if (!span) return;
-            const secondsBetween = span.to - span.from;
-            const pixelsPerSecond = width / secondsBetween;
-
-            const offsetX = span.from * pixelsPerSecond;
             const mouse = mousePosRef.current;
 
 
             let foundOneWhereMouseOver = false;
-            for (const element of elements.current) {
-                const fromPos = element.from * pixelsPerSecond;
-                const toPos = element.to * pixelsPerSecond;
+            for (const element of flavorSynthLine.elements) {
+                const fromPos = element.from * getPixelsPerSecond();
+                const toPos = element.to * getPixelsPerSecond();
 
 
                 foundOneWhereMouseOver = foundOneWhereMouseOver || updateCursorForElement();
@@ -43,9 +38,9 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
                     if (!(mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(toPos))) return false;
                     const TOLERANCE = 5;
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
-                        canvas.style.cursor = "w-resize";
+                        canvas.style.cursor = "ew-resize";
                     } else if (mouse.x >= convertTimelineXToScreen(toPos) - TOLERANCE && mouse.x <= convertTimelineXToScreen(toPos)) {
-                        canvas.style.cursor = "w-resize";
+                        canvas.style.cursor = "ew-resize";
                     } else {
                         canvas.style.cursor = "move";
                     }
@@ -57,9 +52,6 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
                 canvas.style.cursor = "default";
             }
 
-            function convertTimelineXToScreen(x: number) {
-                return x - offsetX;
-            }
         };
 
         let currentlyResizing: null | FlavorElement = null;
@@ -71,17 +63,14 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
         const onDragStart = (e: MouseEvent) => {
             const span = currentScrolledRef.current;
             if (!span) return;
-            const secondsBetween = span.to - span.from;
-            const pixelsPerSecond = width / secondsBetween;
 
-            const offsetX = span.from * pixelsPerSecond;
             const mouse = mousePosRef.current;
 
 
             let foundOneWhereMouseOver = false;
-            for (const element of elements.current) {
-                const fromPos = element.from * pixelsPerSecond;
-                const toPos = element.to * pixelsPerSecond;
+            for (const element of flavorSynthLine.elements) {
+                const fromPos = element.from * getPixelsPerSecond();
+                const toPos = element.to * getPixelsPerSecond();
 
 
                 foundOneWhereMouseOver = foundOneWhereMouseOver || updateCursorForElement();
@@ -110,64 +99,42 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
             if (!foundOneWhereMouseOver) {
                 canvas.style.cursor = "default";
             }
-
-
-            function calculateCurrentPosSeconds(x: number) {
-                const timelineX = convertScreenXToTimeline(x);
-                const seconds = timelineX / pixelsPerSecond;
-                return Math.round(seconds);
-            }
-
-            function convertScreenXToTimeline(x: number) {
-                return x + offsetX;
-            }
-
-            function convertTimelineXToScreen(x: number) {
-                return x - offsetX;
-            }
         };
 
         const onDrag = (e: MouseEvent) => {
-            console.log(e);
             if (!currentlyResizing) return;
             if (action == "move" && startPosition == -1) return;
             const span = currentScrolledRef.current;
             if (!span) return;
-            const secondsBetween = span.to - span.from;
-            const pixelsPerSecond = width / secondsBetween;
-
-            const offsetX = span.from * pixelsPerSecond;
             const mouse = mousePosRef.current;
 
-            const fromPos = currentlyResizing.from * pixelsPerSecond;
-            const toPos = currentlyResizing.to * pixelsPerSecond;
-
             const currentPos = calculateCurrentPosSeconds(mouse.x);
-            console.log(currentPos);
 
             switch (action) {
                 case "move":
                     const delta = (currentPos - moveStartOffsetToEnd) - startPositionOfElement;
                     const size = currentlyResizing.to - currentlyResizing.from;
+                    const fromNew = startPositionOfElement + delta;
+                    if (!isEmpty(currentlyResizing, startPositionOfElement + delta, fromNew + size)) return;
                     currentlyResizing.from = startPositionOfElement + delta;
-                    currentlyResizing.to = currentlyResizing.from + size;
+                    currentlyResizing.to = fromNew + size;
                     break;
                 case "resizeL":
+                    if (currentPos >= currentlyResizing.to) {
+                        if (!isEmpty(currentlyResizing, currentPos + 1)) return;
+                        currentlyResizing.to = currentPos + 1;
+                    }
+                    if (!isEmpty(currentlyResizing, currentPos, currentlyResizing.to)) return;
                     currentlyResizing.from = currentPos;
                     break;
                 case "resizeR":
+                    if (currentPos <= currentlyResizing.from) {
+                        if (!isEmpty(currentlyResizing, currentPos - 1)) return;
+                        currentlyResizing.from = currentPos - 1;
+                    }
+                    if (!isEmpty(currentlyResizing, currentlyResizing.from, currentPos)) return;
                     currentlyResizing.to = currentPos;
                     break;
-            }
-
-            function calculateCurrentPosSeconds(x: number) {
-                const timelineX = convertScreenXToTimeline(x);
-                const seconds = timelineX / pixelsPerSecond;
-                return Math.round(seconds);
-            }
-
-            function convertScreenXToTimeline(x: number) {
-                return x + offsetX;
             }
 
         };
@@ -219,11 +186,6 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
         const mouse = mousePosRef.current;
 
 
-        const STROKES_COLORS = "white";
-        const UNIT = "s";
-
-        const LINE_MARKER_HEIGHT = 10;
-        const LINE_Y = 30;
 
         const offsetX = span.from * pixelsPerSecond;
 
@@ -261,38 +223,13 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
 
         }
 
-        for (const element of elements.current) {
-            const fromPos = element.from * pixelsPerSecond;
-            const toPos = element.to * pixelsPerSecond;
-            const width = toPos - fromPos;
-            const marginBetween = 10;
-            const imageMargin = 10;
-            const rectHeight = height - LINE_Y - marginBetween
-            const y = LINE_Y + 10;
-            const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
-            fillRoundedRect(fromPos, y, width, rectHeight, 10, element.flavor.bgColor);
-
-            fillRoundedRect(fromPos + imageMargin / 2, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10, "rgb(40, 40, 40)");
-
-            ctx.drawImage(element.flavor.imageObj, fromPos + imageMargin, y + imageMargin, imageSize, imageSize);
-
-            const textX = imageSize + imageMargin * 2 + fromPos;
-            ctx.textBaseline = "middle";
-            ctx.textAlign = "left";
-            ctx.font = "15px Arial";
-            ctx.fillStyle = element.flavor.contrastColor;
-            ctx.fillText(element.flavor.name, textX + 5, y + rectHeight / 2);
-
-
-        }
-
-        function convertTimelineXToScreen(x: number) {
-            return x - offsetX;
+        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null) as FlavorElement[]) {
+            drawElement(element, ctx, LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS);
         }
 
         function clearCanvas() {
             if (ctx) {
-                ctx.clearRect(0, 0, width, height);
+                ctx.clearRect(0, 0, width, TOTAL_SYNTH_HEIGHT);
             }
         }
 
@@ -376,7 +313,7 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
         function fillCanvas(color: string = "white") {
             if (ctx) {
                 ctx.fillStyle = color;
-                ctx.fillRect(0, 0, width, height);
+                ctx.fillRect(0, 0, width, TOTAL_SYNTH_HEIGHT);
             }
         }
 
@@ -404,44 +341,93 @@ export default function PlayerTrack({ width, currentScrolledRef }: { width: numb
         synthLines.onWheel(e);
     };
 
-    return <canvas style={{ touchAction: "none" }} width={width} height={height} ref={canvasRef} onWheel={e => onWheel(e)}></canvas>
-}
-
-function createElementForFlavor(flavor: Flavor, from: number, to: number): FlavorElement {
-    const d: FlavorElement = {
-        from: from,
-        to: to,
-        flavor: {
-            colors: FLAVOR_COLOR[flavor],
-            imageObj: loadImage(FLAVOR_IMAGES[flavor]),
-            image: FLAVOR_IMAGES[flavor],
-            name: flavor,
-            contrastColor: contrastColor(darkenIfBright(FLAVOR_COLOR[flavor][0])),
-            bgColor: darkenIfBright(FLAVOR_COLOR[flavor][0])
+    function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {
+        if (from < 0) return false;
+        const toCheck = flavorSynthLine.elements.filter(e => e !== element);
+        for (const element of toCheck) {
+            if (to == undefined) {
+                // For resizing
+                if (from > element.from && from < element.to) return false;
+            } else {
+                if (from > element.from && from < element.to || to > element.from && to < element.to) return false;
+                if (element.from > from && element.from < to || element.to > from && element.to < to) return false;
+                if (element.from == from && element.to == to) return false;
+            }
         }
+        return true;
     }
-    return d;
+
+
+    const onDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
+        const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
+        const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
+        const flavorNameRaw = e.dataTransfer.getData("text/plain");
+
+
+        if (!offsetImageRaw || !elementLengthRaw) {
+            return;
+        }
+        const offsetImage = JSON.parse(offsetImageRaw);
+        const elementLength = parseInt(elementLengthRaw, 10);
+        const flavorName = flavorNameRaw as Flavor;
+        const x = e.clientX;
+        const y = e.clientY;
+
+        const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
+
+        if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
+            return;
+        }
+
+        flavorSynthLine.elements.push(createElementForFlavor(flavorName, currentPos, currentPos + elementLength));
+        console.log("Dropped at seconds:", currentPos, flavorSynthLine.elements);
+        synthLines.setSynthLines([...synthLines.synthLines]);
+        currentDraggingElementRef.current = null;
+    };
+
+    const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
+        const resetImage = () => {
+            const flavorNameRaw = e.dataTransfer.getData("text/plain");
+            currentDraggingElementRef.current = null;
+            e.dataTransfer.setDragImage(new Image(), 0, 0);
+        };
+        try {
+            const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
+            const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
+            const flavorNameRaw = e.dataTransfer.getData("text/plain");
+
+
+            if (!offsetImageRaw || !elementLengthRaw) {
+                resetImage();
+                return;
+            }
+            const offsetImage = JSON.parse(offsetImageRaw);
+            const elementLength = parseInt(elementLengthRaw, 10);
+            const flavorName = flavorNameRaw as Flavor;
+            const x = e.clientX;
+            const y = e.clientY;
+
+            const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
+
+            if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
+                resetImage();
+                return;
+            }
+
+            currentDraggingElementRef.current = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
+
+            e.dataTransfer.setDragImage(new Image(), 0, 0);
+            console.log("Dragging over at seconds:", currentPos);
+            e.preventDefault();
+        } catch (ex) {
+            resetImage();
+        }
+    };
+
+    return <canvas onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={width} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef} onWheel={e => onWheel(e)}></canvas>
 }
 
-function loadImage(src: string): HTMLImageElement {
-    const img = new Image();
-    img.src = src;
-    return img
-}
-
-function parseTime(time: string): number {
-    const parts = time.split(":");
-    console.log(parts);
-    switch (parts.length) {
-        case 1:
-            return parseInt(parts[0]);
-        case 2:
-            return parseInt(parts[1]) + parseInt(parts[0]) * 60;
-        case 3:
-            return parseInt(parts[2]) + parseInt(parts[1]) * 60 + parseInt(parts[0]) * 60 * 60;
-    }
-    return -1;
-}
 
 export type FlavorElement = {
     from: number;
@@ -456,58 +442,4 @@ export type FlavorData = {
     colors: string[];
     contrastColor: string;
     bgColor: string;
-}
-
-function contrastColor(hex: string): string {
-    // Remove leading '#'
-    hex = hex.replace("#", "");
-
-    // Support shorthand #RGB
-    if (hex.length === 3) {
-        hex = hex.split("").map(ch => ch + ch).join("");
-    }
-
-    const r = parseInt(hex.slice(0, 2), 16) / 255;
-    const g = parseInt(hex.slice(2, 4), 16) / 255;
-    const b = parseInt(hex.slice(4, 6), 16) / 255;
-
-    const srgb = [r, g, b].map((c) => {
-        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-    });
-
-    // Relative luminance
-    const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
-
-    // If luminance is high, use dark text; otherwise light text
-    return luminance > 0.179 ? "#000000" : "#FFFFFF";
-}
-
-
-function darkenIfBright(hex: string, amount: number = 0.6): string {
-    hex = hex.replace("#", "");
-
-    if (hex.length === 3) {
-        hex = hex.split("").map(c => c + c).join("");
-    }
-
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-
-    // brightness formula (0 - 255)
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-
-    if (brightness <= 125) {
-        return `#${hex}`;
-    }
-
-    const darken = (v: number) => Math.max(0, Math.round(v * (1 - amount)));
-
-    const newR = darken(r);
-    const newG = darken(g);
-    const newB = darken(b);
-
-    const toHex = (v: number) => v.toString(16).padStart(2, "0");
-
-    return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
 }

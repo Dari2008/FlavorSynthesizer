@@ -1,6 +1,8 @@
 import { createContext, useContext, useRef, useState, type ReactNode } from "react"
 import SynthLine from "./SynthLine";
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
+import { setPixelsPerSecond } from "../FlavorUtils";
+import type { FlavorElement } from "./PlayerTrack";
 
 
 export default function FlavorSynth() {
@@ -11,7 +13,8 @@ export default function FlavorSynth() {
     const addSynth = () => {
         const uuid = crypto.randomUUID();
         const synthLine: FlavorSynthLine = {
-            uuid: uuid
+            uuid: uuid,
+            elements: []
         };
         synthLines.push(synthLine)
         setSynthLines([...synthLines]);
@@ -33,8 +36,11 @@ export default function FlavorSynth() {
         }
     };
 
+    const pixelsPerSecond = width / (currentSpanRef.current.to - currentSpanRef.current.from);
+    setPixelsPerSecond(pixelsPerSecond);
+
     return <SynthLinesContext.Provider value={{ synthLines: synthLines, setSynthLines: setSynthLines, delete: deleteSynth, onWheel }}>
-        <div className="flavor-synth" >
+        <div className="flavor-synth">
             <button className="addLine" onClick={() => addSynth()}>+</button>
             <div className="lines">
                 {
@@ -47,6 +53,7 @@ export default function FlavorSynth() {
 
 export type FlavorSynthLine = {
     uuid: string;
+    elements: FlavorElement[];
 }
 
 export type CurrentSpan = {
