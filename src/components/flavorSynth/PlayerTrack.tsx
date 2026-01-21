@@ -4,17 +4,27 @@ import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { useTooltip } from "./TooltipContext";
+import { useSynthSelector } from "./SynthSelectorContext";
 
 
 export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine }: { width: number, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
     const synthLines = useSynthLines();
     const tooltip = useTooltip();
+    const synthSelector = useSynthSelector();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
     const currentDraggingElementRef = useRef<null | FlavorElement>(null);
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
+    const selectedElementRef = useRef<null | FlavorElement>(null);
 
+    const repaint = () => {
+        requestAnimationFrame(render);
+    };
+
+    synthSelector.addSynthSelectionChange(() => {
+        repaint();
+    });
 
 
     useEffect(() => {
@@ -117,6 +127,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             if (!foundOneWhereMouseOver) {
                 canvas.style.cursor = "default";
             }
+            repaint();
         };
 
         const onDrag = (e: MouseEvent) => {
@@ -154,6 +165,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
                     currentlyResizing.to = currentPos;
                     break;
             }
+            repaint();
 
         };
 
@@ -178,8 +190,43 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             isMouseDown = false;
         };
 
+        const onClick = (e: MouseEvent) => {
+            synthSelector.setSelectedSynthLine(flavorSynthLine.uuid);
+            const currentSecondClicked = calculateCurrentPosSeconds(e.x);
+            let foundElement = null;
+            for (const element of flavorSynthLine.elements) {
+                if (currentSecondClicked >= element.from && currentSecondClicked <= element.to) {
+                    foundElement = element;
+                    break;
+                }
+            }
+            selectedElementRef.current = foundElement;
+            repaint();
+        };
+
+        const onKeyPress = (e: KeyboardEvent) => {
+            if (synthSelector.focusedSynthRef.current != flavorSynthLine.uuid) return;
+            switch (e.key) {
+                case "Delete":
+                    if (selectedElementRef.current) {
+                        const idx = flavorSynthLine.elements.findIndex(el => el.uuid == selectedElementRef.current?.uuid);
+                        if (idx != -1) {
+                            flavorSynthLine.elements.splice(idx, 1);
+                        }
+                    }
+                    selectedElementRef.current = null;
+                    break;
+                case "Escape":
+                    selectedElementRef.current = null;
+                    break;
+            }
+            console.log("Key pressed:", e.key);
+            repaint();
+        };
+
         const onWheel = (e: WheelEvent) => {
             synthLines.onWheel(e);
+            repaint();
         };
 
         const wheelArgs = {
@@ -190,14 +237,18 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp, wheelArgs);
-
         canvas.addEventListener("wheel", onWheel);
+        canvas.addEventListener("click", onClick);
+        window.addEventListener("keydown", onKeyPress);
+        repaint();
 
         return () => {
             canvas.removeEventListener("mousemove", onMouseMove);
             canvas.removeEventListener("mousedown", onMouseDown);
             canvas.removeEventListener("mouseup", onMouseUp);
             canvas.removeEventListener("wheel", onWheel, wheelArgs);
+            canvas.removeEventListener("click", onClick);
+            window.removeEventListener("keydown", onKeyPress);
         };
 
     }, [canvasRef.current]);
@@ -250,7 +301,8 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         }
 
         for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
-            const drewTitle = drawElement(element, ctx, getOffsetX(), LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT);
+            const isSelected = selectedElementRef.current?.uuid == element!.uuid && synthSelector.focusedSynthRef.current == flavorSynthLine.uuid;
+            const drewTitle = drawElement(element, ctx, getOffsetX(), LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT, isSelected);
             if (!drewTitle) {
                 if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
                     tooSmallToDisplayUUIDs.current.push(element.uuid);
@@ -357,21 +409,21 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
     };
 
 
-    useEffect(() => {
-        let running = true;
+    // useEffect(() => {
+    //     let running = true;
 
-        const loop = () => {
-            if (!running) return;
-            render();
-            requestAnimationFrame(loop);
-        };
+    //     const loop = () => {
+    //         if (!running) return;
+    //         render();
+    //         requestAnimationFrame(loop);
+    //     };
 
-        requestAnimationFrame(loop);
+    //     requestAnimationFrame(loop);
 
-        return () => {
-            running = false;
-        };
-    }, [width]);
+    //     return () => {
+    //         running = false;
+    //     };
+    // }, [width]);
 
     function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {
         if (from < 0) return false;
@@ -409,6 +461,27 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
         if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
+            let startPos = -1;
+            let endPos = -1;
+            for (let start = 0; start <= elementLength; start++) {
+                if (isEmpty(null, currentPos + start)) {
+                    console.log("Found possible position at:", currentPos + start);
+                    startPos = startPos == -1 ? currentPos + start : Math.min(startPos, currentPos + start);
+                    endPos = Math.max(endPos, currentPos + start);
+                } else {
+                    if (startPos != -1) break;
+                }
+            }
+
+            console.log("Suggested position at:", startPos, endPos);
+
+            if (startPos != -1 && endPos != -1) {
+                flavorSynthLine.elements.push(createElementForFlavor(flavorName, startPos, endPos));
+                console.log("Dropped at seconds:", startPos, flavorSynthLine.elements);
+                synthLines.setSynthLines([...synthLines.synthLines]);
+            }
+            currentDraggingElementRef.current = null;
+            repaint();
             return;
         }
 
@@ -416,6 +489,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         console.log("Dropped at seconds:", currentPos, flavorSynthLine.elements);
         synthLines.setSynthLines([...synthLines.synthLines]);
         currentDraggingElementRef.current = null;
+        repaint();
     };
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
@@ -438,6 +512,28 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
             if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
+                let startPos = -1;
+                let endPos = -1;
+                for (let start = 0; start <= elementLength; start++) {
+                    if (isEmpty(null, currentPos + start)) {
+                        console.log("Found possible position at:", currentPos + start);
+                        startPos = startPos == -1 ? currentPos + start : Math.min(startPos, currentPos + start);
+                        endPos = Math.max(endPos, currentPos + start);
+                    } else {
+                        if (startPos != -1) break;
+                    }
+                }
+
+                console.log("Suggested position at:", startPos, endPos);
+
+                if (startPos != -1 && endPos != -1) {
+                    currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
+                    console.log("Dragging over at seconds (adjusted):", startPos);
+                    e.preventDefault();
+                    repaint();
+                    return;
+                }
+
                 currentDraggingElementRef.current = null;
                 return;
             }
@@ -447,16 +543,25 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             e.dataTransfer.setDragImage(new Image(), 0, 0);
             console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
+            repaint();
         } catch (ex) {
             currentDraggingElementRef.current = null;
+            repaint();
         }
+    };
+
+    const onDragLeave = () => {
+        currentDraggingElementRef.current = null;
+        repaint();
     };
 
     const onLeave = () => {
         tooltip.current!.style.display = "none";
+        currentDraggingElementRef.current = null;
+        repaint();
     };
 
-    return <canvas onMouseLeave={onLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={width} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
+    return <canvas onMouseLeave={onLeave} onDragExit={onDragLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={width} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
 }
 
 

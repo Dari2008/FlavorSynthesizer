@@ -92,7 +92,7 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number)
 }
 
 
-export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0): boolean {
+export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false): boolean {
     const fromPos = element.from * pixelsPerSecond;
     const toPos = element.to * pixelsPerSecond;
     const width = toPos - fromPos;
@@ -101,6 +101,11 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     const y = offsetY;
     const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
     fillRoundedRect(fromPos - xOffset, y, width, rectHeight, 10, element.flavor.bgColor);
+
+    if (isSelected) {
+        ctx.lineWidth = 4;
+        drawRoundedRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10, "rgb(0, 255, 149)");
+    }
 
     fillRoundedRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10, "rgb(40, 40, 40)");
 
@@ -117,6 +122,23 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.fillStyle = element.flavor.contrastColor;
     ctx.fillText(element.flavor.name, textX + 5 - xOffset, y + rectHeight / 2);
     return true;
+
+    function drawRoundedRect(x: number, y: number, width: number, height: number, radius: number, color: string = "black") {
+        if (ctx) {
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.stroke();
+        }
+    }
 
     function fillRoundedRect(x: number, y: number, width: number, height: number, radius: number, color: string = "black") {
         if (ctx) {

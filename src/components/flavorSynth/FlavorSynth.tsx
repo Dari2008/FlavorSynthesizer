@@ -3,6 +3,7 @@ import SynthLine from "./SynthLine";
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
 import { calculateCurrentPosSeconds, constrainSpan, convertScreenXToTimeline, getOffsetX, getPixelsPerSecond, setPixelsPerSecond, setSpan } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
+import { SynthSelectorContext } from "./SynthSelectorContext";
 
 
 export default function FlavorSynth() {
@@ -10,6 +11,11 @@ export default function FlavorSynth() {
     const [width, setWidth] = useState(window.innerWidth - 300);
     const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
+    const focusedSynthRef = useRef<string | null>(null);
+
+    window.onresize = () => {
+        setWidth(window.innerWidth - 300);
+    };
 
     const addSynth = () => {
         const uuid = crypto.randomUUID();
@@ -70,15 +76,29 @@ export default function FlavorSynth() {
 
     setSpan(width, currentSpanRef.current);
 
+    let synthSelectionChangeCallbacks: (() => void)[] = [];
+
+    const setSelectedSynthLine = (uuid: string | null) => {
+        focusedSynthRef.current = uuid;
+        synthSelectionChangeCallbacks.forEach(cb => cb());
+    }
+
+    const addSynthSelectionChange = (cb: () => void) => {
+        synthSelectionChangeCallbacks.push(cb);
+    }
+
+
     return <SynthLinesContext.Provider value={{ synthLines: synthLines, setSynthLines: setSynthLines, delete: deleteSynth, onWheel }}>
-        <div className="flavor-synth">
-            <button className="addLine" onClick={() => addSynth()}>+</button>
-            <div className="lines">
-                {
-                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} width={width} currentScrolledRef={currentSpanRef}></SynthLine>)
-                }
+        <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, addSynthSelectionChange }}>
+            <div className="flavor-synth">
+                <button className="addLine" onClick={() => addSynth()}>+</button>
+                <div className="lines">
+                    {
+                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} width={width} currentScrolledRef={currentSpanRef}></SynthLine>)
+                    }
+                </div>
             </div>
-        </div>
+        </SynthSelectorContext.Provider>
     </SynthLinesContext.Provider>
 }
 
