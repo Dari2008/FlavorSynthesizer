@@ -2,15 +2,18 @@ import { useEffect, useRef, useState } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { useTooltip } from "./TooltipContext";
 
 
 export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine }: { width: number, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
     const synthLines = useSynthLines();
+    const tooltip = useTooltip();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
     const currentDraggingElementRef = useRef<null | FlavorElement>(null);
+    const tooSmallToDisplayUUIDs = useRef<string[]>([]);
 
 
 
@@ -31,8 +34,8 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
                 const fromPos = element.from * getPixelsPerSecond();
                 const toPos = element.to * getPixelsPerSecond();
 
-
-                foundOneWhereMouseOver = foundOneWhereMouseOver || updateCursorForElement();
+                const isAbove = updateCursorForElement();
+                foundOneWhereMouseOver = foundOneWhereMouseOver || isAbove;
 
                 function updateCursorForElement() {
                     if (!(mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(toPos))) return false;
@@ -47,9 +50,24 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
                     return true;
                 }
 
+                if (isAbove) {
+                    if (tooltip.current && tooSmallToDisplayUUIDs.current.indexOf(element.uuid) != -1) {
+                        const xOfElement = element.from * getPixelsPerSecond() - getOffsetX();
+                        const yOfElement = LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS;
+
+                        const width = (element.to - element.from) * getPixelsPerSecond();
+
+                        tooltip.current.textContent = element.flavor.name;
+                        tooltip.current.style.left = (xOfElement + width / 2) + "px";
+                        // tooltip.current.style.setProperty("--offset-y",)
+                        tooltip.current.style.display = "block";
+                    }
+                }
+
             }
             if (!foundOneWhereMouseOver) {
                 canvas.style.cursor = "default";
+                if (tooltip.current) tooltip.current.style.display = "none";
             }
 
         };
@@ -160,14 +178,26 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             isMouseDown = false;
         };
 
+        const onWheel = (e: WheelEvent) => {
+            synthLines.onWheel(e);
+        };
+
+        const wheelArgs = {
+            passive: true,
+            capture: true
+        };
+
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
-        canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("mouseup", onMouseUp, wheelArgs);
+
+        canvas.addEventListener("wheel", onWheel);
 
         return () => {
             canvas.removeEventListener("mousemove", onMouseMove);
             canvas.removeEventListener("mousedown", onMouseDown);
             canvas.removeEventListener("mouseup", onMouseUp);
+            canvas.removeEventListener("wheel", onWheel, wheelArgs);
         };
 
     }, [canvasRef.current]);
@@ -185,10 +215,6 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         clearCanvas();
         const mouse = mousePosRef.current;
 
-
-
-        const offsetX = span.from * pixelsPerSecond;
-
         ctx.strokeStyle = STROKES_COLORS;
         ctx.lineWidth = 1;
         // ctx.beginPath();
@@ -198,7 +224,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         // ctx.stroke();
 
         for (let i = Math.floor(span.from); i <= span.to; i++) {
-            const x = i * pixelsPerSecond - offsetX;
+            const x = i * pixelsPerSecond - getOffsetX();
             const time = Math.floor(i);
             ctx.beginPath();
             const extrSize = time % 10 == 0 ? 8 : 0;
@@ -223,8 +249,18 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
 
         }
 
-        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null) as FlavorElement[]) {
-            drawElement(element, ctx, LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS);
+        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
+            const drewTitle = drawElement(element, ctx, getOffsetX(), LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT);
+            if (!drewTitle) {
+                if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
+                    tooSmallToDisplayUUIDs.current.push(element.uuid);
+                }
+            } else {
+                const idx = tooSmallToDisplayUUIDs.current.indexOf(element.uuid);
+                if (idx != -1) {
+                    tooSmallToDisplayUUIDs.current.splice(idx, 1);
+                }
+            }
         }
 
         function clearCanvas() {
@@ -337,10 +373,6 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         };
     }, [width]);
 
-    const onWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
-        synthLines.onWheel(e);
-    };
-
     function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {
         if (from < 0) return false;
         const toCheck = flavorSynthLine.elements.filter(e => e !== element);
@@ -387,11 +419,6 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
     };
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
-        const resetImage = () => {
-            const flavorNameRaw = e.dataTransfer.getData("text/plain");
-            currentDraggingElementRef.current = null;
-            e.dataTransfer.setDragImage(new Image(), 0, 0);
-        };
         try {
             const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
             const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
@@ -399,7 +426,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
 
 
             if (!offsetImageRaw || !elementLengthRaw) {
-                resetImage();
+                currentDraggingElementRef.current = null;
                 return;
             }
             const offsetImage = JSON.parse(offsetImageRaw);
@@ -411,7 +438,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
             if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
-                resetImage();
+                currentDraggingElementRef.current = null;
                 return;
             }
 
@@ -421,17 +448,22 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
         } catch (ex) {
-            resetImage();
+            currentDraggingElementRef.current = null;
         }
     };
 
-    return <canvas onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={width} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef} onWheel={e => onWheel(e)}></canvas>
+    const onLeave = () => {
+        tooltip.current!.style.display = "none";
+    };
+
+    return <canvas onMouseLeave={onLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={width} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
 }
 
 
 export type FlavorElement = {
     from: number;
     to: number;
+    uuid: string;
     flavor: FlavorData;
 }
 

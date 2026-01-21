@@ -5,7 +5,7 @@ type SynthLines = {
     synthLines: FlavorSynthLine[];
     setSynthLines: (synthLines: FlavorSynthLine[]) => void;
     delete: (uuid: string) => void;
-    onWheel: (e: React.WheelEvent<HTMLCanvasElement>) => void;
+    onWheel: (e: WheelEvent) => void;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

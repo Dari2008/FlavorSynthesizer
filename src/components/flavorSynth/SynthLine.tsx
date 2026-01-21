@@ -1,19 +1,24 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./SynthLine.scss";
 import PlayerTrack from "./PlayerTrack";
 import { type CurrentSpan, type FlavorSynthLine } from "./FlavorSynth";
 import { useSynthLines } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds } from "../FlavorUtils";
+import { TooltipContext } from "./TooltipContext";
 
 export default function SynthLine({ width, flavorSynthLine, currentScrolledRef }: { width: number; flavorSynthLine: FlavorSynthLine, currentScrolledRef: React.RefObject<CurrentSpan> }) {
     const [isMuted, setMuted] = useState<boolean>(false);
     const synthLines = useSynthLines();
+    const tooltipRef = useRef<HTMLParagraphElement>(null);
 
-    return <div {...{ "data-muted": isMuted ? "" : undefined }} className="line">
-        <button className="delete" onClick={() => synthLines.delete(flavorSynthLine.uuid)}>x</button>
-        <button className="mute" onClick={() => setMuted(!isMuted)}>{!isMuted ? "\uf028" : "\uf6a9"}</button>
-        <div className="playerTrack">
-            <PlayerTrack width={width} currentScrolledRef={currentScrolledRef} flavorSynthLine={flavorSynthLine}></PlayerTrack>
+
+    return <TooltipContext.Provider value={tooltipRef}>
+        <div {...{ "data-muted": isMuted ? "" : undefined }} className="line">
+            <button className="delete" onClick={() => synthLines.delete(flavorSynthLine.uuid)}>x</button>
+            <button className="mute" onClick={() => setMuted(!isMuted)}>{!isMuted ? "\uf028" : "\uf6a9"}</button>
+            <div className="playerTrack">
+                <p className="tooltip" ref={tooltipRef}></p>
+                <PlayerTrack width={width} currentScrolledRef={currentScrolledRef} flavorSynthLine={flavorSynthLine}></PlayerTrack>
+            </div>
         </div>
-    </div>
+    </TooltipContext.Provider>
 }

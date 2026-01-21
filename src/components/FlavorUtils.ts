@@ -30,7 +30,8 @@ export function getOffsetX() {
     return offsetX;
 }
 
-export function setSpan(s: { from: number; to: number; }) {
+export function setSpan(width: number, s: { from: number; to: number; }) {
+    pixelsPerSecond = width / (span.to - span.from);
     span = s;
     offsetX = span.from * pixelsPerSecond;
 }
@@ -53,11 +54,31 @@ export function convertScreenXToTimeline(x: number) {
     return x + offsetX;
 }
 
+export function constrainSpan(s: { from: number; to: number; }): { from: number; to: number; } {
+    const minSpan = 0;
+    const maxSpan = 10 * 60;
+
+    s.from = Math.max(minSpan, s.from);
+
+    if (s.to > maxSpan) {
+        const dist = s.to - s.from;
+        s.to = maxSpan;
+        s.from = maxSpan - dist;
+    }
+
+    if (s.to - s.from < 1) {
+        s.to = s.from + 1;
+    }
+
+    return s;
+}
+
 
 export function createElementForFlavor(flavor: Flavor, from: number, to: number): FlavorElement {
     const d: FlavorElement = {
         from: from,
         to: to,
+        uuid: crypto.randomUUID(),
         flavor: {
             colors: FLAVOR_COLOR[flavor],
             imageObj: loadImage(FLAVOR_IMAGES[flavor]),
@@ -71,27 +92,31 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number)
 }
 
 
-export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D, offsetY: number) {
+export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0): boolean {
     const fromPos = element.from * pixelsPerSecond;
     const toPos = element.to * pixelsPerSecond;
     const width = toPos - fromPos;
     const imageMargin = 10;
     const rectHeight = FLAVOR_HEIGHT;
-    const y = offsetY + 10;
+    const y = offsetY;
     const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
-    fillRoundedRect(fromPos, y, width, rectHeight, 10, element.flavor.bgColor);
+    fillRoundedRect(fromPos - xOffset, y, width, rectHeight, 10, element.flavor.bgColor);
 
-    fillRoundedRect(fromPos + imageMargin / 2, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10, "rgb(40, 40, 40)");
+    fillRoundedRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10, "rgb(40, 40, 40)");
 
-    ctx.drawImage(element.flavor.imageObj, fromPos + imageMargin, y + imageMargin, imageSize, imageSize);
+    ctx.drawImage(element.flavor.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
+
+    if (ctx.measureText(element.flavor.name).width + imageSize + imageMargin * 2 + 10 > width) {
+        return false;
+    }
 
     const textX = imageSize + imageMargin * 2 + fromPos;
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = "15px Arial";
     ctx.fillStyle = element.flavor.contrastColor;
-    ctx.fillText(element.flavor.name, textX + 5, y + rectHeight / 2);
-
+    ctx.fillText(element.flavor.name, textX + 5 - xOffset, y + rectHeight / 2);
+    return true;
 
     function fillRoundedRect(x: number, y: number, width: number, height: number, radius: number, color: string = "black") {
         if (ctx) {

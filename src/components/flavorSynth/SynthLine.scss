@@ -1,3 +1,5 @@
+@use "../../utils/Variables.scss" as *;
+
 .mute,
 .delete {
     font-family: Fontawesome;
@@ -5,4 +7,33 @@
     border: none;
     padding: 5px;
     margin: 0;
+}
+
+.playerTrack {
+    position: relative;
+
+    .tooltip {
+        position: absolute;
+        background-color: $gray-600;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: none;
+        pointer-events: none;
+        z-index: 10;
+        transform: translateX(-50%);
+        margin: 0;
+        top: calc(100% + 5px);
+
+        &::before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent transparent $gray-600 transparent;
+        }
+    }
 }
