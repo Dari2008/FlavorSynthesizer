@@ -16,15 +16,105 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
     const currentDraggingElementRef = useRef<null | FlavorElement>(null);
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
-    const selectedElementRef = useRef<null | FlavorElement>(null);
+    // const selectedElementsRef = useRef<FlavorElement[]>([]);
 
     const repaint = () => {
         requestAnimationFrame(render);
     };
 
-    synthSelector.addSynthSelectionChange(() => {
+    synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
         repaint();
     });
+
+
+    synthLines.addSynthRepainter(flavorSynthLine.uuid, () => {
+        repaint();
+    });
+
+    synthLines.addCollisionCheckerCallback(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
+        let canMove = true;
+        synthSelector.selectedElementsRef.current?.forEach(el => {
+            if (!canMove) return;
+            const element = flavorSynthLine.elements.find(e => e.uuid == el.uuid);
+            if (element) {
+                let newFrom = element.from + fromOffset;
+                let newTo = element.to + toOffset;
+
+                if (fromOffset == 0) {
+                    console.log(newFrom, newTo);
+                    if (newTo <= newFrom) {
+                        newTo = newFrom;
+                        newFrom = newTo - 1;
+                    }
+                    if (newFrom < 0) newFrom = 0;
+
+                } else if (toOffset == 0) {
+                    if (newTo <= newFrom + 1) newTo = newFrom + 1;
+                    if (newFrom < 0) newFrom = 0;
+
+                } else {
+
+                    canMove = canMove && isEmpty(element, newFrom, newTo);
+                }
+                canMove = canMove && isEmpty(element, newFrom, newTo);
+
+            }
+        });
+        return canMove;
+    });
+
+    synthLines.addOnElementMove(flavorSynthLine.uuid, (secondsOffset: number) => {
+        synthSelector.selectedElementsRef.current?.forEach(el => {
+            const element = flavorSynthLine.elements.find(e => e.uuid == el.uuid);
+            if (element) {
+                element.from += secondsOffset;
+                element.to += secondsOffset;
+            }
+        });
+        repaint();
+    });
+
+    synthLines.addOnElementResize(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
+        const MIN_WIDTH = 1;
+
+        synthSelector.selectedElementsRef.current?.forEach(el => {
+            const element = flavorSynthLine.elements.find(e => e.uuid === el.uuid);
+            if (!element) return;
+
+            if (fromOffset !== 0 && toOffset === 0) {
+                const newFrom = element.from + fromOffset;
+                const newTo = element.to;
+
+                if (newTo - newFrom < MIN_WIDTH) {
+                    element.from = newFrom;
+                    element.to = newFrom + MIN_WIDTH;
+                } else {
+                    element.from = newFrom;
+                }
+            }
+
+            else if (toOffset !== 0 && fromOffset === 0) {
+                const newFrom = element.from;
+                const newTo = element.to + toOffset;
+
+                if (newTo - newFrom < MIN_WIDTH) {
+                    element.to = newTo;
+                    element.from = newTo - MIN_WIDTH;
+                } else {
+                    element.to = newTo;
+                }
+            }
+
+            if (element.from < 0) {
+                const diff = -element.from;
+                element.from = 0;
+                element.to += diff;
+            }
+        });
+
+        repaint();
+    });
+
 
 
     useEffect(() => {
@@ -32,6 +122,8 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
 
         const canvas = canvasRef.current;
         let isMouseDown = false;
+
+        let didDrag = false;
 
         const onMouseMoveUpdate = (e: MouseEvent) => {
             const span = currentScrolledRef.current;
@@ -110,15 +202,22 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
                         action = "resizeL";
                         currentlyResizing = element;
+                        startPositionOfElement = element.from;
+                        moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
+                        lastPos = calculateCurrentPosSeconds(mouse.x);
                     } else if (mouse.x >= convertTimelineXToScreen(toPos) - TOLERANCE && mouse.x <= convertTimelineXToScreen(toPos)) {
                         action = "resizeR";
                         currentlyResizing = element;
+                        startPositionOfElement = element.from;
+                        moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
+                        lastPos = calculateCurrentPosSeconds(mouse.x);
                     } else {
                         action = "move";
                         currentlyResizing = element;
                         startPosition = mouse.x;
                         startPositionOfElement = element.from;
                         moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
+                        lastPos = calculateCurrentPosSeconds(mouse.x);
                     }
                     return true;
                 }
@@ -130,42 +229,83 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             repaint();
         };
 
+        let lastPos = -1;
+
         const onDrag = (e: MouseEvent) => {
             if (!currentlyResizing) return;
             if (action == "move" && startPosition == -1) return;
             const span = currentScrolledRef.current;
             if (!span) return;
             const mouse = mousePosRef.current;
+            didDrag = true;
 
             const currentPos = calculateCurrentPosSeconds(mouse.x);
+            const selectedCount = synthSelector.selectedElementsRef.current.length;
 
-            switch (action) {
-                case "move":
-                    const delta = (currentPos - moveStartOffsetToEnd) - startPositionOfElement;
-                    const size = currentlyResizing.to - currentlyResizing.from;
-                    const fromNew = startPositionOfElement + delta;
-                    if (!isEmpty(currentlyResizing, startPositionOfElement + delta, fromNew + size)) return;
-                    currentlyResizing.from = startPositionOfElement + delta;
-                    currentlyResizing.to = fromNew + size;
-                    break;
-                case "resizeL":
-                    if (currentPos >= currentlyResizing.to) {
-                        if (!isEmpty(currentlyResizing, currentPos + 1)) return;
-                        currentlyResizing.to = currentPos + 1;
-                    }
-                    if (!isEmpty(currentlyResizing, currentPos, currentlyResizing.to)) return;
-                    currentlyResizing.from = currentPos;
-                    break;
-                case "resizeR":
-                    if (currentPos <= currentlyResizing.from) {
-                        if (!isEmpty(currentlyResizing, currentPos - 1)) return;
-                        currentlyResizing.from = currentPos - 1;
-                    }
-                    if (!isEmpty(currentlyResizing, currentlyResizing.from, currentPos)) return;
-                    currentlyResizing.to = currentPos;
-                    break;
+            if (selectedCount <= 1) {
+                switch (action) {
+                    case "move":
+                        const delta = (currentPos - moveStartOffsetToEnd) - startPositionOfElement;
+                        const size = currentlyResizing.to - currentlyResizing.from;
+                        const fromNew = startPositionOfElement + delta;
+                        if (!isEmpty(currentlyResizing, startPositionOfElement + delta, fromNew + size)) return;
+                        currentlyResizing.from = startPositionOfElement + delta;
+                        currentlyResizing.to = fromNew + size;
+                        break;
+                    case "resizeL":
+                        if (currentPos >= currentlyResizing.to) {
+                            if (!isEmpty(currentlyResizing, currentPos + 1)) return;
+                            currentlyResizing.to = currentPos + 1;
+                        }
+                        if (!isEmpty(currentlyResizing, currentPos, currentlyResizing.to)) return;
+                        currentlyResizing.from = currentPos;
+                        break;
+                    case "resizeR":
+                        if (currentPos <= currentlyResizing.from) {
+                            if (!isEmpty(currentlyResizing, currentPos - 1)) return;
+                            currentlyResizing.from = currentPos - 1;
+                        }
+                        if (!isEmpty(currentlyResizing, currentlyResizing.from, currentPos)) return;
+                        currentlyResizing.to = currentPos;
+                        break;
+                }
+                repaint();
+            } else {
+                switch (action) {
+                    case "move":
+                        {
+                            console.log(currentPos, lastPos);
+                            const delta = currentPos - lastPos;
+                            lastPos = currentPos;
+                            if (delta == 0) return;
+                            if (synthLines.canOffsetAll(delta, delta)) {
+                                console.log("Moving all by", delta, flavorSynthLine.uuid);
+                                synthLines.moveAll(delta);
+                            }
+                            break;
+                        }
+                    case "resizeL":
+                        {
+                            const delta = currentPos - lastPos;
+                            lastPos = currentPos;
+                            if (delta == 0) return;
+                            if (synthLines.canOffsetAll(delta, 0)) {
+                                synthLines.resizeAll(delta, 0);
+                            }
+                            break;
+                        }
+                    case "resizeR":
+                        {
+                            const delta = currentPos - lastPos;
+                            lastPos = currentPos;
+                            if (delta == 0) return;
+                            if (synthLines.canOffsetAll(0, delta)) {
+                                synthLines.resizeAll(0, delta);
+                            }
+                            break;
+                        }
+                }
             }
-            repaint();
 
         };
 
@@ -190,7 +330,14 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             isMouseDown = false;
         };
 
-        const onClick = (e: MouseEvent) => {
+        const onRelease = (e: MouseEvent) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (didDrag) {
+                didDrag = false;
+                return;
+            }
+
             synthSelector.setSelectedSynthLine(flavorSynthLine.uuid);
             const currentSecondClicked = calculateCurrentPosSeconds(e.x);
             let foundElement = null;
@@ -200,7 +347,24 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
                     break;
                 }
             }
-            selectedElementRef.current = foundElement;
+            if (e.shiftKey || e.ctrlKey) {
+                if (foundElement == null) return;
+                if (synthSelector.selectedElementsRef.current == null) {
+                    synthSelector.selectedElementsRef.current = [];
+                }
+                if (synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == foundElement!.uuid) == -1) {
+                    synthSelector.selectedElementsRef.current.push(foundElement!);
+                }
+                synthLines.repaintAll();
+            } else {
+                if (foundElement == null) {
+                    synthSelector.selectedElementsRef.current = [];
+                    synthLines.repaintAll();
+                } else {
+                    synthSelector.selectedElementsRef.current = [foundElement];
+                    synthLines.repaintAll();
+                }
+            }
             repaint();
         };
 
@@ -208,16 +372,19 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             if (synthSelector.focusedSynthRef.current != flavorSynthLine.uuid) return;
             switch (e.key) {
                 case "Delete":
-                    if (selectedElementRef.current) {
-                        const idx = flavorSynthLine.elements.findIndex(el => el.uuid == selectedElementRef.current?.uuid);
-                        if (idx != -1) {
-                            flavorSynthLine.elements.splice(idx, 1);
-                        }
-                    }
-                    selectedElementRef.current = null;
+                    // if (synthSelector.selectedElementsRef.current) {
+                    //     const idx = flavorSynthLine.elements.findIndex(el => synthSelector.selectedElementsRef.current.findIndex(sel => sel.uuid == el.uuid) != -1);
+                    //     if (idx != -1) {
+                    //         flavorSynthLine.elements.splice(idx, 1);
+                    //     }
+                    // }
+                    // synthSelector.selectedElementsRef.current = [];
+                    synthLines.deleteSelectedElements();
+                    synthLines.repaintAll();
                     break;
                 case "Escape":
-                    selectedElementRef.current = null;
+                    synthSelector.selectedElementsRef.current = [];
+                    synthLines.repaintAll();
                     break;
             }
             console.log("Key pressed:", e.key);
@@ -236,9 +403,9 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
 
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
-        canvas.addEventListener("mouseup", onMouseUp, wheelArgs);
-        canvas.addEventListener("wheel", onWheel);
-        canvas.addEventListener("click", onClick);
+        canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("wheel", onWheel, wheelArgs);
+        canvas.addEventListener("click", onRelease);
         window.addEventListener("keydown", onKeyPress);
         repaint();
 
@@ -247,7 +414,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
             canvas.removeEventListener("mousedown", onMouseDown);
             canvas.removeEventListener("mouseup", onMouseUp);
             canvas.removeEventListener("wheel", onWheel, wheelArgs);
-            canvas.removeEventListener("click", onClick);
+            canvas.removeEventListener("click", onRelease);
             window.removeEventListener("keydown", onKeyPress);
         };
 
@@ -301,7 +468,7 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
         }
 
         for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
-            const isSelected = selectedElementRef.current?.uuid == element!.uuid && synthSelector.focusedSynthRef.current == flavorSynthLine.uuid;
+            const isSelected = synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == element.uuid) != -1;
             const drewTitle = drawElement(element, ctx, getOffsetX(), LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT, isSelected);
             if (!drewTitle) {
                 if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
@@ -540,7 +707,6 @@ export default function PlayerTrack({ width, currentScrolledRef, flavorSynthLine
 
             currentDraggingElementRef.current = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
 
-            e.dataTransfer.setDragImage(new Image(), 0, 0);
             console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
             repaint();

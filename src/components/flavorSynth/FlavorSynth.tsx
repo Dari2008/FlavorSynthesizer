@@ -6,12 +6,22 @@ import type { FlavorElement } from "./PlayerTrack";
 import { SynthSelectorContext } from "./SynthSelectorContext";
 
 
+type EventListWithUUID<T> = {
+    [uuid: string]: T;
+};
+
 export default function FlavorSynth() {
     const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>([]);
     const [width, setWidth] = useState(window.innerWidth - 300);
     const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
+    const selectedElementsRef = useRef<{ uuid: string }[]>([]);
+    let synthSelectionChangeCallbacks: EventListWithUUID<() => void> = {};
+    let synthRepaintCallbacks: EventListWithUUID<() => void> = {};
+    let collisionCheckerCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => boolean)> = {};
+    let onElementMoveCallbacks: EventListWithUUID<((secondsOffset: number) => void)> = {};
+    let resizeCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => void)> = {};
 
     window.onresize = () => {
         setWidth(window.innerWidth - 300);
@@ -72,24 +82,83 @@ export default function FlavorSynth() {
             currentSpanRef.current = constrainSpan(currentSpanRef.current);
             setSpan(width, currentSpanRef.current);
         }
+        Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
     setSpan(width, currentSpanRef.current);
 
-    let synthSelectionChangeCallbacks: (() => void)[] = [];
 
     const setSelectedSynthLine = (uuid: string | null) => {
         focusedSynthRef.current = uuid;
-        synthSelectionChangeCallbacks.forEach(cb => cb());
+        Object.values(synthSelectionChangeCallbacks).forEach(cb => cb());
     }
 
-    const addSynthSelectionChange = (cb: () => void) => {
-        synthSelectionChangeCallbacks.push(cb);
+    const addSynthSelectionChange = (uuid: string, cb: () => void) => {
+        synthSelectionChangeCallbacks[uuid] = cb;
     }
 
+    const addSynthRepainter = (uuid: string, sr: () => void) => {
+        synthRepaintCallbacks[uuid] = sr;
+    };
 
-    return <SynthLinesContext.Provider value={{ synthLines: synthLines, setSynthLines: setSynthLines, delete: deleteSynth, onWheel }}>
-        <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, addSynthSelectionChange }}>
+    const repaintAll = () => {
+        Object.values(synthRepaintCallbacks).forEach(cb => cb());
+    };
+
+    const deleteSelectedElements = () => {
+        const selectedUUIDs = selectedElementsRef.current.map(e => e.uuid);
+        synthLines.forEach(synthLine => {
+            synthLine.elements = synthLine.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1);
+        });
+        setSynthLines([...synthLines]);
+    };
+
+    const addCollisionCheckerCallback = (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => {
+        collisionCheckerCallbacks[uuid] = cb;
+    };
+
+    const addOnElementMove = (uuid: string, cb: (secondsOffset: number) => void) => {
+        onElementMoveCallbacks[uuid] = cb;
+    };
+
+    const addOnElementResize = (uuid: string, cb: (fromOffset: number, toOffset: number) => void) => {
+        resizeCallbacks[uuid] = cb;
+    }
+
+    const moveAll = (secondsOffset: number) => {
+        console.log(onElementMoveCallbacks);
+        Object.values(onElementMoveCallbacks).forEach(cb => cb(secondsOffset));
+    };
+
+    const resizeAll = (fromOffset: number, toOffset: number) => {
+        Object.values(resizeCallbacks).forEach(cb => cb(fromOffset, toOffset));
+    };
+
+
+    const canOffsetAll = (fromOffset: number, toOffset: number): boolean => {
+        for (const cb of Object.values(collisionCheckerCallbacks)) {
+            if (!cb(fromOffset, toOffset)) return false;
+        }
+        return true;
+    };
+
+
+    return <SynthLinesContext.Provider value={{
+        synthLines,
+        setSynthLines,
+        delete: deleteSynth,
+        onWheel,
+        addSynthRepainter,
+        repaintAll,
+        deleteSelectedElements,
+        addCollisionCheckerCallback,
+        addOnElementMove,
+        addOnElementResize,
+        moveAll,
+        resizeAll,
+        canOffsetAll
+    }}>
+        <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
             <div className="flavor-synth">
                 <button className="addLine" onClick={() => addSynth()}>+</button>
                 <div className="lines">
