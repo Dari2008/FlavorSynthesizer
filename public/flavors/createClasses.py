@@ -12,10 +12,10 @@ bpms = [
 ]
 
 folders = [
-    "./out/81BPM",
-    "./out/110BPM",
-    "./out/124BPM",
-    "./out/130BPM"
+    "./audio/out/81BPM",
+    "./audio/out/110BPM",
+    "./audio/out/124BPM",
+    "./audio/out/130BPM"
 ]
 
 folderContents = [os.listdir(folder) for folder in folders]

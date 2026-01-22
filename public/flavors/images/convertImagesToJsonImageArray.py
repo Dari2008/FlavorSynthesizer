@@ -4,7 +4,7 @@ import json
 import mimetypes
 
 INPUT_DIR = "./images/"
-OUTPUT_FILE = "flavorImages.json"
+OUTPUT_FILE = "../flavorImages.json"
 
 def image_files_in_dir(directory):
     supported_exts = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".svg"}

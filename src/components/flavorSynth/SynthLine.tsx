@@ -5,7 +5,7 @@ import { type CurrentSpan, type FlavorSynthLine } from "./FlavorSynth";
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import { TooltipContext } from "./TooltipContext";
 
-export default function SynthLine({ width, flavorSynthLine, currentScrolledRef }: { width: number; flavorSynthLine: FlavorSynthLine, currentScrolledRef: React.RefObject<CurrentSpan> }) {
+export default function SynthLine({ widthRef, flavorSynthLine, currentScrolledRef }: { widthRef: React.RefObject<number>, flavorSynthLine: FlavorSynthLine, currentScrolledRef: React.RefObject<CurrentSpan> }) {
     const [isMuted, setMuted] = useState<boolean>(false);
     const synthLines = useSynthLines();
     const tooltipRef = useRef<HTMLParagraphElement>(null);
@@ -17,7 +17,7 @@ export default function SynthLine({ width, flavorSynthLine, currentScrolledRef }
             <button className="mute" onClick={() => setMuted(!isMuted)}>{!isMuted ? "\uf028" : "\uf6a9"}</button>
             <div className="playerTrack">
                 <p className="tooltip" ref={tooltipRef}></p>
-                <PlayerTrack width={width} currentScrolledRef={currentScrolledRef} flavorSynthLine={flavorSynthLine}></PlayerTrack>
+                <PlayerTrack widthRef={widthRef} currentScrolledRef={currentScrolledRef} flavorSynthLine={flavorSynthLine}></PlayerTrack>
             </div>
         </div>
     </TooltipContext.Provider>

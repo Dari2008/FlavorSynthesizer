@@ -3,7 +3,7 @@ from PIL import Image
 import os
 
 # Load flavors JSON
-flavors: dict[str, list[str]] = json.load(open("./flavorColors.json"))
+flavors: dict[str, list[str]] = json.load(open("../flavorColors.json"))
 
 # Paths
 mask_paths = [

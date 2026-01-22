@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { FlavorFileMusic } from "../../audio/FlavorMusic"
-import type { Flavor } from "../../@types/Flavors";
+import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
 
 type Props = {
@@ -58,10 +58,17 @@ export default function FlavorDragNDropListItem({ player }: Props) {
         e.dataTransfer.setData("text/elementLength", DRAG_DEFAULT_LENGTH.toString());
     };
 
-    return <li draggable onDragStart={onDragStart} key={player.NAME} ref={itemRef} className="flavor-drag-n-drop-list-item">
-        <img src={player.imageSrc} alt={"heap of " + player.NAME} />
-        <span className="name">{player.NAME}</span>
+    return <li draggable onDragStart={onDragStart} key={player.NAME} ref={itemRef} className="flavor-drag-n-drop-list-item" style={{
+        "--border-color-1": (FLAVOR_COLOR[player.NAME][0]),
+        "--border-color-2": (FLAVOR_COLOR[player.NAME][1])
+    } as any}>
         <button className="play" onClick={() => setPlaying(!isPlaying)} data-content={isPlaying ? "\uf04c" : "\uf04b"}>{isPlaying ? <>&#61516;</> : <>&#61515;</>}</button>
+        <div className="wrapper">
+            <div className="border-wrapper">
+                <img src={player.imageSrc} alt={"heap of " + player.NAME} />
+                <span className="name">{player.NAME}</span>
+            </div>
+        </div>
     </li>
 }
 
@@ -73,4 +80,21 @@ function createDragImageFor(flavorName: Flavor): HTMLCanvasElement {
     }
     drawElement(createElementForFlavor(flavorName, 0, 10), ctx, 0);
     return canvas;
+}
+
+function hexToRgbValues(hex: string): string {
+    // Remove leading '#'
+    const cleanHex = hex.replace('#', '');
+
+    // Convert shorthand (#RGB) to full form (#RRGGBB)
+    const fullHex = cleanHex.length === 3
+        ? cleanHex.split('').map(ch => ch + ch).join('')
+        : cleanHex;
+
+    // Parse the values
+    const r = parseInt(fullHex.slice(0, 2), 16);
+    const g = parseInt(fullHex.slice(2, 4), 16);
+    const b = parseInt(fullHex.slice(4, 6), 16);
+
+    return `${r}, ${g}, ${b}`;
 }

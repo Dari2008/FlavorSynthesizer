@@ -2,7 +2,9 @@ import { Player, } from "tone";
 import * as Tone from "tone";
 import type { Flavor } from "../@types/Flavors";
 
-const ROOT_FILE_DIR = "./flavors/out/"
+const ROOT_FILE_DIR = "./flavors/audio/out/"
+
+const FADE_TIME = 0.1;
 
 var FILES_CACHE: {
     [key: string]: {
@@ -35,7 +37,11 @@ export class FlavorFileMusic {
         this.NAME = name;
 
         this.files = {} as any;
-        this.imageSrc = "./flavors/images/" + encodeURIComponent(name) + ".png";
+        if (name == "Cookies & Cream") {
+            this.imageSrc = "./flavors/images/images/" + encodeURIComponent("Cookies_Cream") + ".png";
+        } else {
+            this.imageSrc = "./flavors/images/images/" + encodeURIComponent(name) + ".png";
+        }
 
         if (load) {
             for (const bpm of BPM_VALS) {
@@ -63,6 +69,8 @@ export class FlavorFileMusic {
                 FILES_CACHE[name][bpm as BPM].then((base64) => {
                     this.files[bpm as BPM] = new Player();
                     this.promises.push(this.files[bpm as BPM].load(base64));
+                    this.files[bpm as BPM].fadeIn = FADE_TIME;
+                    this.files[bpm as BPM].fadeOut = FADE_TIME;
                     this.files[bpm as BPM].autostart = false;
                     this.files[bpm as BPM].toDestination();
                     this.loadedAllPromise = Promise.all(this.promises);
@@ -91,7 +99,10 @@ export class FlavorFileMusic {
 
         for (const bpm of BPM_VALS) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
-            const player = new Player(base64);
+            const player = new Player();
+            await player.load(base64);
+            player.fadeIn = FADE_TIME;
+            player.fadeOut = FADE_TIME;
             player.toDestination();
             player.autostart = false;
             player.loop = loop;
@@ -104,11 +115,25 @@ export class FlavorFileMusic {
         return clone;
     }
 
+    public playSegment(from: number, to: number, bpm: BPM) {
+        this.stopAllBpms();
+        Tone.Transport.stop();
+        Tone.Transport.bpm.value = bpm;
+        Tone.Transport.start();
+        this.files[bpm].loop = true;
+        this.files[bpm].start(from);
+        this.files[bpm].stop(to);
+        MUSIC_PLAYERS.push(this.files[bpm]);
+    }
+
 
     public getPlayers(): Player[] {
         return Object.values(this.files);
     }
 
+    public getPlayer(bpm: BPM): Player {
+        return this.files[bpm];
+    }
 
     public stopAllBpms() {
         for (const file of Object.values(this.files)) {

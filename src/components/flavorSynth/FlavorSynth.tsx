@@ -4,6 +4,9 @@ import { SynthLinesContext } from "../../contexts/SynthLinesContext";
 import { calculateCurrentPosSeconds, constrainSpan, convertScreenXToTimeline, getOffsetX, getPixelsPerSecond, setPixelsPerSecond, setSpan } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { SynthSelectorContext } from "./SynthSelectorContext";
+import { ElementPlayer } from "./ElementPlayer";
+import { CurrentlyPlayingContext } from "./CurrentlyPlayingContext";
+import * as Tone from "tone";
 
 
 type EventListWithUUID<T> = {
@@ -12,11 +15,17 @@ type EventListWithUUID<T> = {
 
 export default function FlavorSynth() {
     const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>([]);
-    const [width, setWidth] = useState(window.innerWidth - 300);
+    const widthRef = useRef<number>(window.innerWidth - 300);
     const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
     const selectedElementsRef = useRef<{ uuid: string }[]>([]);
+    const playerRef = useRef<ElementPlayer>(new ElementPlayer());
+    const [isPlaying, setPlaying] = useState<boolean>(false);
+    const isPlayingRef = useRef<boolean>(false);
+    const currentPositionRef = useRef<number>(0);
+    const currentPlayingOffsetRef = useRef<number>(0);
+
     let synthSelectionChangeCallbacks: EventListWithUUID<() => void> = {};
     let synthRepaintCallbacks: EventListWithUUID<() => void> = {};
     let collisionCheckerCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => boolean)> = {};
@@ -24,7 +33,12 @@ export default function FlavorSynth() {
     let resizeCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => void)> = {};
 
     window.onresize = () => {
-        setWidth(window.innerWidth - 300);
+        widthRef.current = window.innerWidth - 300;
+    };
+
+    playerRef.current.onStop = () => {
+        setPlaying(false);
+        isPlayingRef.current = false;
     };
 
     const addSynth = () => {
@@ -65,7 +79,7 @@ export default function FlavorSynth() {
 
             currentSpanRef.current = constrainSpan(currentSpanRef.current);
 
-            setSpan(width, currentSpanRef.current);
+            setSpan(widthRef.current, currentSpanRef.current);
 
             currentZoomRef.current *= zoomFactor;
 
@@ -80,12 +94,12 @@ export default function FlavorSynth() {
                 currentSpanRef.current.to += offsetSeconds;
             }
             currentSpanRef.current = constrainSpan(currentSpanRef.current);
-            setSpan(width, currentSpanRef.current);
+            setSpan(widthRef.current, currentSpanRef.current);
         }
         Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
-    setSpan(width, currentSpanRef.current);
+    setSpan(widthRef.current, currentSpanRef.current);
 
 
     const setSelectedSynthLine = (uuid: string | null) => {
@@ -142,6 +156,34 @@ export default function FlavorSynth() {
         return true;
     };
 
+    const play = () => {
+        const elements = synthLines.flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
+
+        playerRef.current.stop();
+        playerRef.current.loadElements(elements);
+        playerRef.current.play();
+        setPlaying(true);
+        isPlayingRef.current = true;
+        currentPlayingOffsetRef.current = Tone.now();
+    };
+
+    const stop = () => {
+        playerRef.current.stop();
+        setPlaying(false);
+        isPlayingRef.current = false;
+    }
+
+    const currentPlayChanged = () => {
+        currentPositionRef.current = Tone.now() - currentPlayingOffsetRef.current;
+        if (!isPlaying) return;
+        repaintAll();
+    };
+
+    const clock = new Tone.Clock(() => {
+        currentPlayChanged();
+    }, 100)
+    clock.start();
+
 
     return <SynthLinesContext.Provider value={{
         synthLines,
@@ -159,14 +201,17 @@ export default function FlavorSynth() {
         canOffsetAll
     }}>
         <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-            <div className="flavor-synth">
-                <button className="addLine" onClick={() => addSynth()}>+</button>
-                <div className="lines">
-                    {
-                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} width={width} currentScrolledRef={currentSpanRef}></SynthLine>)
-                    }
+            <CurrentlyPlayingContext.Provider value={{ isPlayingRef, currentPositionRef }}>
+                <div className="flavor-synth">
+                    <button className="addLine" onClick={() => addSynth()}>+</button>
+                    <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "Stop" : "Play"}</button>
+                    <div className="lines">
+                        {
+                            Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                        }
+                    </div>
                 </div>
-            </div>
+            </CurrentlyPlayingContext.Provider>
         </SynthSelectorContext.Provider>
     </SynthLinesContext.Provider>
 }
