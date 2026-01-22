@@ -541,39 +541,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             }
         }
 
-        function drawRoundedRect(x: number, y: number, width: number, height: number, radius: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + width - radius, y);
-                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                ctx.lineTo(x + width, y + height - radius);
-                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                ctx.lineTo(x + radius, y + height);
-                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                ctx.lineTo(x, y + radius);
-                ctx.quadraticCurveTo(x, y, x + radius, y);
-                ctx.stroke();
-            }
-        }
-
-        function fillRoundedRect(x: number, y: number, width: number, height: number, radius: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.moveTo(x + radius, y);
-                ctx.lineTo(x + width - radius, y);
-                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-                ctx.lineTo(x + width, y + height - radius);
-                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-                ctx.lineTo(x + radius, y + height);
-                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-                ctx.lineTo(x, y + radius);
-                ctx.quadraticCurveTo(x, y, x + radius, y);
-                ctx.fill();
-            }
-        }
 
         function fillCanvas(color: string = "white") {
             if (ctx) {
@@ -755,4 +722,5 @@ export type FlavorData = {
     colors: string[];
     contrastColor: string;
     bgColor: string;
+    renderBackgroundMask: (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
 }
