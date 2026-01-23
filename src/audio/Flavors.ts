@@ -5,6 +5,7 @@ import Sour from "./main/Sour";
 import Spicy from "./main/Spicy";
 import Sweet from "./main/Sweet";
 import FlavorMusic, { FlavorFileMusic } from "./FlavorMusic";
+import type { MainFlavor } from "../@types/Flavors";
 
 const FLAVORS: FlavorFileMusic[] = [
     new FlavorFileMusic(0, "Apple"),
@@ -59,7 +60,7 @@ export function getFlavorByName(name: string) {
     return FLAVORS.find(e => e.NAME == name);
 }
 
-export function getMainFlavorByName(name: string) {
+export function getMainFlavorByName(name: MainFlavor) {
     return MAIN_FLAVORS.find(e => e.FLAVOR_NAME == name);
 }
 

@@ -1,8 +1,10 @@
 import * as Tone from "tone";
 import FlavorMusic from "../FlavorMusic";
+import { MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors";
 
 export default class Salty extends FlavorMusic {
-    public FLAVOR_NAME = "Salty";
+    public FLAVOR_NAME: MainFlavor = "Salty";
+    public IMAGE: string = MAIN_FLAVOR_IMAGES["Salty"];
 
     private kick: Tone.MembraneSynth;
     private clap: Tone.NoiseSynth;

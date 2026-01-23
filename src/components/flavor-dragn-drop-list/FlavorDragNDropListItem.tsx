@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FlavorFileMusic } from "../../audio/FlavorMusic"
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
@@ -13,6 +13,8 @@ export default function FlavorDragNDropListItem({ player }: Props) {
     const playerRef = useRef<FlavorFileMusic>(null);
     const responseWaitRef = useRef<Promise<void | FlavorFileMusic>>(null);
     const itemRef = useRef<HTMLLIElement>(null);
+    const flavorImage = useRef<HTMLImageElement>(null);
+
     if (playerRef.current == null && responseWaitRef.current == null) responseWaitRef.current = player.clone().then(c => {
         playerRef.current = c;
         playerRef.current.getPlayers().forEach(pl => {
@@ -65,7 +67,7 @@ export default function FlavorDragNDropListItem({ player }: Props) {
         <button className="play" onClick={() => setPlaying(!isPlaying)} data-content={isPlaying ? "\uf04c" : "\uf04b"}>{isPlaying ? <>&#61516;</> : <>&#61515;</>}</button>
         <div className="wrapper">
             <div className="border-wrapper">
-                <img src={player.imageSrc} alt={"heap of " + player.NAME} />
+                <img src={player.imageSrc} ref={flavorImage} />
                 <span className="name">{player.NAME}</span>
             </div>
         </div>

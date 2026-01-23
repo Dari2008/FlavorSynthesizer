@@ -134,6 +134,7 @@
                     width: 25px;
                     filter: drop-shadow(3px 3px 7px #000000);
                     z-index: 100;
+                    padding-left: 5px;
                 }
 
                 span {
@@ -142,6 +143,8 @@
                     z-index: 100;
                     text-transform: uppercase;
                     font-weight: 600;
+                    font-family: PixelFont;
+                    font-size: 20px;
                 }
             }
 

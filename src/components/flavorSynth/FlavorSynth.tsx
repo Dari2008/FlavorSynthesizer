@@ -1,4 +1,4 @@
-import { createContext, useContext, useRef, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
 import SynthLine from "./SynthLine";
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
 import { calculateCurrentPosSeconds, constrainSpan, convertScreenXToTimeline, getOffsetX, getPixelsPerSecond, setPixelsPerSecond, setSpan } from "../FlavorUtils";
@@ -25,12 +25,14 @@ export default function FlavorSynth() {
     const isPlayingRef = useRef<boolean>(false);
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
+    const currentFrameId = useRef<number>(-1);
 
-    let synthSelectionChangeCallbacks: EventListWithUUID<() => void> = {};
-    let synthRepaintCallbacks: EventListWithUUID<() => void> = {};
-    let collisionCheckerCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => boolean)> = {};
-    let onElementMoveCallbacks: EventListWithUUID<((secondsOffset: number) => void)> = {};
-    let resizeCallbacks: EventListWithUUID<((fromOffset: number, toOffset: number) => void)> = {};
+    const synthSelectionChangeCallbacks = useRef<EventListWithUUID<() => void>>({});
+    const synthRepaintCallbacks = useRef<EventListWithUUID<() => void>>({});
+    const collisionCheckerCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => boolean>>({});
+    const onElementMoveCallbacks = useRef<EventListWithUUID<(secondsOffset: number) => void>>({});
+    const resizeCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => void>>({});
+
 
     window.onresize = () => {
         widthRef.current = window.innerWidth - 300;
@@ -96,7 +98,7 @@ export default function FlavorSynth() {
             currentSpanRef.current = constrainSpan(currentSpanRef.current);
             setSpan(widthRef.current, currentSpanRef.current);
         }
-        Object.values(synthRepaintCallbacks).forEach(cb => cb());
+        // Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
     setSpan(widthRef.current, currentSpanRef.current);
@@ -104,19 +106,19 @@ export default function FlavorSynth() {
 
     const setSelectedSynthLine = (uuid: string | null) => {
         focusedSynthRef.current = uuid;
-        Object.values(synthSelectionChangeCallbacks).forEach(cb => cb());
+        Object.values(synthSelectionChangeCallbacks.current).forEach(cb => cb());
     }
 
     const addSynthSelectionChange = (uuid: string, cb: () => void) => {
-        synthSelectionChangeCallbacks[uuid] = cb;
+        synthSelectionChangeCallbacks.current[uuid] = cb;
     }
 
     const addSynthRepainter = (uuid: string, sr: () => void) => {
-        synthRepaintCallbacks[uuid] = sr;
+        synthRepaintCallbacks.current[uuid] = sr;
     };
 
     const repaintAll = () => {
-        Object.values(synthRepaintCallbacks).forEach(cb => cb());
+        Object.values(synthRepaintCallbacks.current).forEach(cb => cb());
     };
 
     const deleteSelectedElements = () => {
@@ -128,33 +130,44 @@ export default function FlavorSynth() {
     };
 
     const addCollisionCheckerCallback = (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => {
-        collisionCheckerCallbacks[uuid] = cb;
+        collisionCheckerCallbacks.current[uuid] = cb;
     };
 
     const addOnElementMove = (uuid: string, cb: (secondsOffset: number) => void) => {
-        onElementMoveCallbacks[uuid] = cb;
+        onElementMoveCallbacks.current[uuid] = cb;
     };
 
     const addOnElementResize = (uuid: string, cb: (fromOffset: number, toOffset: number) => void) => {
-        resizeCallbacks[uuid] = cb;
+        resizeCallbacks.current[uuid] = cb;
     }
 
     const moveAll = (secondsOffset: number) => {
-        console.log(onElementMoveCallbacks);
-        Object.values(onElementMoveCallbacks).forEach(cb => cb(secondsOffset));
+        Object.values(onElementMoveCallbacks.current).forEach(cb => cb(secondsOffset));
     };
 
     const resizeAll = (fromOffset: number, toOffset: number) => {
-        Object.values(resizeCallbacks).forEach(cb => cb(fromOffset, toOffset));
+        Object.values(resizeCallbacks.current).forEach(cb => cb(fromOffset, toOffset));
     };
 
 
     const canOffsetAll = (fromOffset: number, toOffset: number): boolean => {
-        for (const cb of Object.values(collisionCheckerCallbacks)) {
+        for (const cb of Object.values(collisionCheckerCallbacks.current)) {
             if (!cb(fromOffset, toOffset)) return false;
         }
         return true;
     };
+
+    useEffect(() => {
+        const render = () => {
+            repaintAll();
+            currentFrameId.current = requestAnimationFrame(render);
+        };
+        currentFrameId.current = requestAnimationFrame(render);
+
+        return () => {
+            cancelAnimationFrame(currentFrameId.current);
+        };
+    }, []);
 
     const play = () => {
         const elements = synthLines.flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
@@ -185,35 +198,42 @@ export default function FlavorSynth() {
     clock.start();
 
 
-    return <SynthLinesContext.Provider value={{
-        synthLines,
-        setSynthLines,
-        delete: deleteSynth,
-        onWheel,
-        addSynthRepainter,
-        repaintAll,
-        deleteSelectedElements,
-        addCollisionCheckerCallback,
-        addOnElementMove,
-        addOnElementResize,
-        moveAll,
-        resizeAll,
-        canOffsetAll
-    }}>
-        <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-            <CurrentlyPlayingContext.Provider value={{ isPlayingRef, currentPositionRef }}>
-                <div className="flavor-synth">
-                    <button className="addLine" onClick={() => addSynth()}>+</button>
-                    <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "Stop" : "Play"}</button>
-                    <div className="lines">
-                        {
-                            Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
-                        }
+
+
+    return <>
+        <SynthLinesContext.Provider value={{
+            synthLines,
+            setSynthLines,
+            delete: deleteSynth,
+            onWheel,
+            addSynthRepainter,
+            repaintAll,
+            deleteSelectedElements,
+            addCollisionCheckerCallback,
+            addOnElementMove,
+            addOnElementResize,
+            moveAll,
+            resizeAll,
+            canOffsetAll
+        }}>
+            <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
+                <CurrentlyPlayingContext.Provider value={{ isPlayingRef, currentPositionRef }}>
+                    <div className="flavor-synth">
+                        <div className="lines">
+                            {
+                                Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                            }
+                        </div>
                     </div>
-                </div>
-            </CurrentlyPlayingContext.Provider>
-        </SynthSelectorContext.Provider>
-    </SynthLinesContext.Provider>
+                </CurrentlyPlayingContext.Provider>
+            </SynthSelectorContext.Provider>
+        </SynthLinesContext.Provider>
+        <div className="flavor-synth-controls">
+            <button className="addLine" onClick={() => addSynth()}>+</button>
+            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "Stop" : "Play"}</button>
+        </div>
+
+    </>
 }
 
 export type FlavorSynthLine = {

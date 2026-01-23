@@ -1,8 +1,10 @@
 import * as Tone from "tone";
 import FlavorMusic from "../FlavorMusic";
+import { MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors";
 
 export default class Spicy extends FlavorMusic {
-    public FLAVOR_NAME = "Spicy";
+    public FLAVOR_NAME: MainFlavor = "Spicy";
+    public IMAGE: string = MAIN_FLAVOR_IMAGES["Spicy"];
 
     private lead: Tone.Synth;
     private kick: Tone.MembraneSynth;

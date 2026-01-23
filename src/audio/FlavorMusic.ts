@@ -1,6 +1,7 @@
 import { Player, } from "tone";
 import * as Tone from "tone";
-import type { Flavor } from "../@types/Flavors";
+import { FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
+import { getResourceByName, hasResource, loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
 
 const ROOT_FILE_DIR = "./flavors/audio/out/"
 
@@ -13,7 +14,8 @@ var FILES_CACHE: {
 } = {};
 
 export default abstract class FlavorMusic {
-    public FLAVOR_NAME: string = "";
+    public FLAVOR_NAME: MainFlavor | undefined;
+    public IMAGE: string | undefined;
     public abstract play(): void;
     public abstract stop(): void;
     public abstract reset(): void;
@@ -37,11 +39,7 @@ export class FlavorFileMusic {
         this.NAME = name;
 
         this.files = {} as any;
-        if (name == "Cookies & Cream") {
-            this.imageSrc = "./flavors/images/images/" + encodeURIComponent("Cookies_Cream") + ".png";
-        } else {
-            this.imageSrc = "./flavors/images/images/" + encodeURIComponent(name) + ".png";
-        }
+        this.imageSrc = FLAVOR_IMAGES[name];
 
         if (load) {
             for (const bpm of BPM_VALS) {
@@ -51,17 +49,25 @@ export class FlavorFileMusic {
                 if (!FILES_CACHE[name][bpm as BPM]) {
                     FILES_CACHE[name][bpm as BPM] = (async () => {
                         const file = ROOT_FILE_DIR + bpm + "BPM/" + index + ".wav";
-                        const response = await fetch(file);
-                        const blob = await response.blob();
+                        const dbPath = "bpm_" + bpm + "_index_" + index;
+                        return loadAndSaveResource("audio", dbPath, file);
+                        // if (await hasResource("audio", dbPath)) {
+                        //     const base64 = getResourceByName("audio", dbPath);
+                        //     return base64;
+                        // } else {
+                        //     const response = await fetch(file);
+                        //     const blob = await response.blob();
 
-                        const base64 = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () => resolve(reader.result as string);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(blob);
-                        });
+                        //     const base64 = await new Promise<string>((resolve, reject) => {
+                        //         const reader = new FileReader();
+                        //         reader.onloadend = () => resolve(reader.result as string);
+                        //         reader.onerror = reject;
+                        //         reader.readAsDataURL(blob);
+                        //     });
+                        //     saveResourceWithName("audio", dbPath, base64);
+                        //     return base64;
+                        // }
 
-                        return base64;
                     })();
                 }
 

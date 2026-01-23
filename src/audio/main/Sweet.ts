@@ -1,8 +1,10 @@
 import * as Tone from "tone";
 import FlavorMusic from "../FlavorMusic";
+import { MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors";
 
 export default class Sweet extends FlavorMusic {
-    public FLAVOR_NAME = "Sweet";
+    public FLAVOR_NAME: MainFlavor = "Sweet";
+    public IMAGE: string = MAIN_FLAVOR_IMAGES["Sweet"];
 
     private pad: Tone.PolySynth;
     private bell: Tone.Synth;

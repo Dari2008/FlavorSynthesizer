@@ -6,7 +6,41 @@ import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForF
 import { useTooltip } from "./TooltipContext";
 import { useSynthSelector } from "./SynthSelectorContext";
 import { useCurrentlyPlaying } from "./CurrentlyPlayingContext";
+import { SuperGif } from "@wizpanda/super-gif";
+import { loadAndSaveResource } from "../ResourceSaver";
 
+var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
+var imageCount = 99;
+var ROOT_PATH = "./public/blender/outputs/CurrentPositionPlayer/";
+var currentAnimationPosition = 0;
+
+if (!currentPosAnimationImages) {
+    currentPosAnimationImages = [];
+
+    (async () => {
+        const promises = [];
+        for (let i = 0; i < imageCount; i++) {
+            promises.push(new Promise<void>(async (resolve) => {
+                const img = new Image();
+                img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
+                img.onload = () => {
+                    currentPosAnimationImages[i] = img;
+                    resolve()
+                };
+            }));
+        }
+        await Promise.all(promises);
+        console.log("Loaded all");
+
+    })();
+
+    setInterval(() => {
+        currentAnimationPosition++;
+        currentAnimationPosition = currentAnimationPosition % 100;
+    }, 20);
+
+    (window as any).CURRENT_ANIMATIONS_IMAGES = currentPosAnimationImages;
+}
 
 export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthLine }: { widthRef: React.RefObject<number>, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
     const synthLines = useSynthLines();
@@ -20,17 +54,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
     // const selectedElementsRef = useRef<FlavorElement[]>([]);
 
-    const repaint = () => {
-        requestAnimationFrame(render);
-    };
-
-    synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
-        repaint();
-    });
+    // synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
+    // });
 
 
     synthLines.addSynthRepainter(flavorSynthLine.uuid, () => {
-        repaint();
+        render();
     });
 
     synthLines.addCollisionCheckerCallback(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
@@ -73,7 +102,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 element.to += secondsOffset;
             }
         });
-        repaint();
+        // repaint();
     });
 
     synthLines.addOnElementResize(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
@@ -114,7 +143,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             }
         });
 
-        repaint();
+        // repaint();
     });
 
 
@@ -228,7 +257,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             if (!foundOneWhereMouseOver) {
                 canvas.style.cursor = "default";
             }
-            repaint();
+            // repaint();
         };
 
         let lastPos = -1;
@@ -271,7 +300,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                         currentlyResizing.to = currentPos;
                         break;
                 }
-                repaint();
+                // repaint();
             } else {
                 switch (action) {
                     case "move":
@@ -357,17 +386,17 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 if (synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == foundElement!.uuid) == -1) {
                     synthSelector.selectedElementsRef.current.push(foundElement!);
                 }
-                synthLines.repaintAll();
+                // synthLines.repaintAll();
             } else {
                 if (foundElement == null) {
                     synthSelector.selectedElementsRef.current = [];
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                 } else {
                     synthSelector.selectedElementsRef.current = [foundElement];
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                 }
             }
-            repaint();
+            // repaint();
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
@@ -382,20 +411,20 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     // }
                     // synthSelector.selectedElementsRef.current = [];
                     synthLines.deleteSelectedElements();
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                     break;
                 case "Escape":
                     synthSelector.selectedElementsRef.current = [];
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                     break;
             }
             console.log("Key pressed:", e.key);
-            repaint();
+            // repaint();
         };
 
         const onWheel = (e: WheelEvent) => {
             synthLines.onWheel(e);
-            repaint();
+            // repaint();
         };
 
         const wheelArgs = {
@@ -409,7 +438,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         canvas.addEventListener("wheel", onWheel);
         canvas.addEventListener("click", onRelease);
         window.addEventListener("keydown", onKeyPress);
-        repaint();
+        // repaint();
 
         return () => {
             canvas.removeEventListener("mousemove", onMouseMove);
@@ -455,14 +484,14 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
             if (time % 10 == 0) {
                 ctx.fillStyle = "white";
-                ctx.font = "14px Arial";
+                ctx.font = "20px PixelFont";
                 ctx.textAlign = "center";
                 ctx.fillText(time + UNIT, x, LINE_Y / 2);
             }
 
             if (time % 5 == 0 && time % 10 != 0) {
                 ctx.fillStyle = "rgb(125, 125, 125)";
-                ctx.font = "10px Arial";
+                ctx.font = "17px PixelFont";
                 ctx.textAlign = "center";
                 ctx.fillText(time + UNIT, x, LINE_Y / 2);
             }
@@ -489,7 +518,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         // Draw playhead
         if (currentPlaying.isPlayingRef.current) {
-            drawLine(xOfPlayhead, 0, xOfPlayhead, TOTAL_SYNTH_HEIGHT, "red", 2);
+            drawCurrentPos(xOfPlayhead, 0, xOfPlayhead, TOTAL_SYNTH_HEIGHT);
+            // drawLine(, "red", 2);
+        }
+
+        function drawCurrentPos(x: number, y: number, xEnd: number, yEnd: number) {
+            if (currentPosAnimationImages[currentAnimationPosition]) ctx?.drawImage(currentPosAnimationImages[currentAnimationPosition], x - 20, y, 40, yEnd);
         }
 
         function clearCanvas() {
@@ -625,7 +659,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 synthLines.setSynthLines([...synthLines.synthLines]);
             }
             currentDraggingElementRef.current = null;
-            repaint();
+            // repaint();
             return;
         }
 
@@ -633,7 +667,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         console.log("Dropped at seconds:", currentPos, flavorSynthLine.elements);
         synthLines.setSynthLines([...synthLines.synthLines]);
         currentDraggingElementRef.current = null;
-        repaint();
+        // repaint();
     };
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
@@ -674,7 +708,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
                     console.log("Dragging over at seconds (adjusted):", startPos);
                     e.preventDefault();
-                    repaint();
+                    // repaint();
                     return;
                 }
 
@@ -686,22 +720,22 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
             console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
-            repaint();
+            // repaint();
         } catch (ex) {
             currentDraggingElementRef.current = null;
-            repaint();
+            // repaint();
         }
     };
 
     const onDragLeave = () => {
         currentDraggingElementRef.current = null;
-        repaint();
+        // repaint();
     };
 
     const onLeave = () => {
         tooltip.current!.style.display = "none";
         currentDraggingElementRef.current = null;
-        repaint();
+        // repaint();
     };
 
     return <canvas onMouseLeave={onLeave} onDragExit={onDragLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={widthRef.current} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>

@@ -1,8 +1,10 @@
 import * as Tone from "tone";
 import FlavorMusic from "../FlavorMusic";
+import { MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors";
 
 export default class Sour extends FlavorMusic {
-    public FLAVOR_NAME = "Sour";
+    public FLAVOR_NAME: MainFlavor = "Sour";
+    public IMAGE: string = MAIN_FLAVOR_IMAGES["Sour"];
 
     private lead: Tone.Synth;
     private arp: Tone.Synth;

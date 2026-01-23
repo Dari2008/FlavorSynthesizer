@@ -30,6 +30,7 @@
             transform: translateX(-50%);
             margin: 0;
             top: calc(100% + 5px);
+            font-family: PixelFont;
 
             &::before {
                 content: "";
