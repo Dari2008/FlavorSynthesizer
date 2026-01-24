@@ -1,0 +1,79 @@
+.flavor-synth-controls {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: repeat(7, auto);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+
+    .skip-prev {
+        grid-area: 1 / 3 / 3 / 4;
+    }
+
+    .play {
+        grid-area: 1 / 4 / 3 / 5;
+        font-family: Fontawesome;
+        font-size: 25px;
+        aspect-ratio: 1 / 1;
+        padding: 0px;
+        margin: 0;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        justify-self: center;
+        align-self: center;
+    }
+
+
+    .skip-next {
+        grid-area: 1 / 5 / 3 / 6;
+    }
+
+
+    .activeFlavorsPlaying {
+        grid-area: 1 / 1 / 2 / 3;
+    }
+
+    .totalFlavorsUsed {
+        grid-area: 2 / 1 / 3 / 3;
+    }
+
+    .volume {
+        grid-area: 1 / 6 / 3 / 7;
+    }
+
+    .mainFlavorVolume {
+        grid-area: 1 / 7 / 3 / 8;
+    }
+
+}
+
+.div1 {
+    grid-area: 1 / 3 / 3 / 4;
+}
+
+.div2 {
+    grid-area: 1 / 4 / 3 / 5;
+}
+
+.div3 {
+    grid-area: 1 / 5 / 3 / 6;
+}
+
+.div4 {
+    grid-area: 1 / 1 / 2 / 3;
+}
+
+.div5 {
+    grid-area: 2 / 1 / 3 / 3;
+}
+
+.div6 {
+    grid-area: 1 / 6 / 3 / 7;
+}
+
+.div7 {
+    grid-area: 1 / 7 / 3 / 8;
+}

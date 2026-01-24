@@ -143,15 +143,6 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
 
     drawBorder();
 
-    if (isSelected) {
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
-        ctx.fillStyle = "rgb(0, 255, 149)";
-        ctx.fill();
-        ctx.closePath();
-    }
-
     ctx.beginPath();
     ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
     ctx.fillStyle = "rgb(40, 40, 40)";
@@ -159,6 +150,15 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.closePath();
     ctx.drawImage(element.flavor.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
 
+
+    if (isSelected) {
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
+        ctx.strokeStyle = "rgb(0, 255, 149)";
+        ctx.stroke();
+        ctx.closePath();
+    }
 
     if (ctx.measureText(element.flavor.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
         return false;

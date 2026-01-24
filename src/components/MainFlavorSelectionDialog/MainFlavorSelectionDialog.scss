@@ -99,7 +99,7 @@
                 &.main-color {
 
                     background-color: var(--main-color);
-                    mask-image: url("./public/masks/background-main-flavor-main-mask_alpha.png");
+                    mask-image: url("./masks/background-main-flavor-main-mask_alpha.png");
                     // mask-image: linear-gradient(to bottom, black, white);
                     mask-position: 50% 50%;
                     mask-repeat: no-repeat;
@@ -110,7 +110,7 @@
                 &.main-color-2 {
                     background-color: var(--vine-color);
 
-                    mask-image: url("./public/masks/background-main-flavor-vines-mask_alpha.png");
+                    mask-image: url("./masks/background-main-flavor-vines-mask_alpha.png");
                     mask-position: 50% 50%;
                     mask-repeat: no-repeat;
                     mask-size: cover;

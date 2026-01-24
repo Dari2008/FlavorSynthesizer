@@ -19,7 +19,9 @@ export default function App() {
 
     const openSelectMainFlavor = () => {
         setHasSelectedNewMainFlavor(false);
-        reselectMainFlavorRef.current();
+        setTimeout(() => {
+            reselectMainFlavorRef.current();
+        }, 300);
     };
 
     return <>
@@ -35,7 +37,7 @@ export default function App() {
                     <span className="subtitle">Cook Up a Beat</span>
                 </div>
 
-                <CurrentMainThemeSelector mainFlavor={mainFlavor}></CurrentMainThemeSelector>
+                <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
 
                 <FlavorSynth></FlavorSynth>
                 <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>

@@ -45,6 +45,7 @@ body {
 
 #root {
     min-height: 100vh;
+    max-height: 100vh;
 }
 
 button {
@@ -239,7 +240,7 @@ a:not([role]):focus-visible {
 
 @font-face {
     font-family: "PixelFont";
-    src: url("./public/fonts/pixelfont.woff") format('woff'), url("./public/fonts/pixelfont.ttf") format('truetype');
+    src: url("./fonts/pixelfont.woff") format('woff'), url("./fonts/pixelfont.ttf") format('truetype');
 }
 
 * {

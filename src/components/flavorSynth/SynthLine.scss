@@ -9,38 +9,44 @@
     margin: 0;
 }
 
-.line {
+.lines {
+    display: grid;
+    grid-template-columns: clamp(50px, 10%, 100px) 1fr;
 
-    &[data-muted] {
-        opacity: 0.5;
-    }
 
-    .playerTrack {
-        position: relative;
+    .line {
 
-        .tooltip {
-            position: absolute;
-            background-color: $gray-600;
-            color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            display: none;
-            pointer-events: none;
-            z-index: 10;
-            transform: translateX(-50%);
-            margin: 0;
-            top: calc(100% + 5px);
-            font-family: PixelFont;
+        &[data-muted] {
+            opacity: 0.5;
+        }
 
-            &::before {
-                content: "";
+        .playerTrack {
+            position: relative;
+
+            .tooltip {
                 position: absolute;
-                bottom: 100%;
-                left: 50%;
+                background-color: $gray-600;
+                color: white;
+                padding: 5px 10px;
+                border-radius: 5px;
+                display: none;
+                pointer-events: none;
+                z-index: 10;
                 transform: translateX(-50%);
-                border-width: 10px;
-                border-style: solid;
-                border-color: transparent transparent $gray-600 transparent;
+                margin: 0;
+                top: calc(100% + 5px);
+                font-family: PixelFont;
+
+                &::before {
+                    content: "";
+                    position: absolute;
+                    bottom: 100%;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    border-width: 10px;
+                    border-style: solid;
+                    border-color: transparent transparent $gray-600 transparent;
+                }
             }
         }
     }

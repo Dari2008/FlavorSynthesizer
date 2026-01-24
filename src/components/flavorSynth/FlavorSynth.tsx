@@ -7,6 +7,8 @@ import { SynthSelectorContext } from "./SynthSelectorContext";
 import { ElementPlayer } from "./ElementPlayer";
 import { CurrentlyPlayingContext } from "./CurrentlyPlayingContext";
 import * as Tone from "tone";
+import "./FlavorSynth.scss"
+import "./FlavorSynthControls.scss";
 
 
 type EventListWithUUID<T> = {
@@ -15,7 +17,7 @@ type EventListWithUUID<T> = {
 
 export default function FlavorSynth() {
     const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>([]);
-    const widthRef = useRef<number>(window.innerWidth - 300);
+    const widthRef = useRef<number>(getCurrentTrackWidth());
     const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
@@ -35,7 +37,7 @@ export default function FlavorSynth() {
 
 
     window.onresize = () => {
-        widthRef.current = window.innerWidth - 300;
+        widthRef.current = getCurrentTrackWidth();
     };
 
     playerRef.current.onStop = () => {
@@ -224,13 +226,13 @@ export default function FlavorSynth() {
                                 Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
                             }
                         </div>
+                        <button className="addLine" onClick={() => addSynth()}>+</button>
                     </div>
                 </CurrentlyPlayingContext.Provider>
             </SynthSelectorContext.Provider>
         </SynthLinesContext.Provider>
         <div className="flavor-synth-controls">
-            <button className="addLine" onClick={() => addSynth()}>+</button>
-            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "Stop" : "Play"}</button>
+            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "\uf04d" : "\uf04b"}</button>
         </div>
 
     </>
@@ -244,4 +246,12 @@ export type FlavorSynthLine = {
 export type CurrentSpan = {
     from: number;
     to: number;
+}
+
+function getCurrentTrackWidth() {
+    let controlsWidth = (window.innerWidth - 300) * 0.1;
+    if (controlsWidth > 100) controlsWidth = 100;
+    if (controlsWidth < 50) controlsWidth = 50;
+    let restWidth = window.innerWidth - 300 - controlsWidth;
+    return restWidth;
 }

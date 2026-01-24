@@ -1,17 +1,16 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
-import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
+import { type Flavor } from "../../@types/Flavors";
 import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { useTooltip } from "./TooltipContext";
 import { useSynthSelector } from "./SynthSelectorContext";
 import { useCurrentlyPlaying } from "./CurrentlyPlayingContext";
-import { SuperGif } from "@wizpanda/super-gif";
 import { loadAndSaveResource } from "../ResourceSaver";
 
 var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
 var imageCount = 99;
-var ROOT_PATH = "./public/blender/outputs/CurrentPositionPlayer/";
+var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
 var currentAnimationPosition = 0;
 
 if (!currentPosAnimationImages) {
@@ -341,9 +340,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         };
 
         const onMouseMove = (e: MouseEvent) => {
+            const box = canvasRef.current?.getBoundingClientRect();
+            const x = e.clientX - (box?.left ?? 0);
+            const y = e.clientY - (box?.top ?? 0);
             mousePosRef.current = {
-                x: e.x,
-                y: e.y
+                x: x,
+                y: y
             };
             if (isMouseDown) {
                 onDrag(e);
@@ -368,9 +370,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 didDrag = false;
                 return;
             }
+            const box = canvasRef.current?.getBoundingClientRect();
+            const x = e.clientX - (box?.left ?? 0);
+            const y = e.clientY - (box?.top ?? 0);
 
             synthSelector.setSelectedSynthLine(flavorSynthLine.uuid);
-            const currentSecondClicked = calculateCurrentPosSeconds(e.x);
+            const currentSecondClicked = calculateCurrentPosSeconds(x);
             let foundElement = null;
             for (const element of flavorSynthLine.elements) {
                 if (currentSecondClicked >= element.from && currentSecondClicked <= element.to) {
@@ -633,8 +638,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         const offsetImage = JSON.parse(offsetImageRaw);
         const elementLength = parseInt(elementLengthRaw, 10);
         const flavorName = flavorNameRaw as Flavor;
-        const x = e.clientX;
-        const y = e.clientY;
+        const box = canvasRef.current?.getBoundingClientRect();
+        const x = e.clientX - (box?.left ?? 0);
+        const y = e.clientY - (box?.top ?? 0);
 
         const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
@@ -684,8 +690,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             const offsetImage = JSON.parse(offsetImageRaw);
             const elementLength = parseInt(elementLengthRaw, 10);
             const flavorName = flavorNameRaw as Flavor;
-            const x = e.clientX;
-            const y = e.clientY;
+            const box = canvasRef.current?.getBoundingClientRect();
+            const x = e.clientX - (box?.left ?? 0);
+            const y = e.clientY - (box?.top ?? 0);
 
             const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 

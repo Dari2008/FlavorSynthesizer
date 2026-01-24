@@ -15,16 +15,21 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
     const isFirstOpen = useRef<boolean>(true);
 
     const reselect = () => {
+        if (dialogRef.current?.open) return;
         dialogRef.current?.showModal();
     };
 
     const close = () => {
+        if (!dialogRef.current?.open) return;
         dialogRef.current?.close();
     };
 
     const selectedFlavor = (flavor: MainFlavor) => {
         close();
-        setSelectedMainFlavor(flavor);
+        isFirstOpen.current = false;
+        setTimeout(() => {
+            setSelectedMainFlavor(flavor);
+        }, 300);
     };
 
     reselectMainFlavorRef.current = reselect;
