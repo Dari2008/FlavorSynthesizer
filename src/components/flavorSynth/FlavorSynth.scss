@@ -5,10 +5,20 @@
     scrollbar-width: thin;
 
     .addLine {
-        width: 100%;
+        // width: 100%;
         padding: 0px;
         font-size: 4em;
         line-height: 0.7em;
-        margin-top: 10px;
+        // margin-top: 10px;
+        box-sizing: border-box;
+        color: var(--main-color);
+        background-color: transparent;
+        border: none;
+        transition: color 0.3s ease-in-out;
+        margin-inline: 50%;
+
+        &:hover {
+            color: var(--secondary-color);
+        }
     }
 }

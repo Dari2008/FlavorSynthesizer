@@ -13,6 +13,8 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
     const isEditingRef = useRef<boolean>(false);
     const currentValueRef = useRef<number>(100);
     const currentRotation = useRef<number>(0);
+    const isMouseDown = useRef<boolean>(false);
+    const isMouseWithin = useRef<boolean>(false);
 
     const setEditing = (is: boolean) => {
         isEditingRef.current = is;
@@ -32,14 +34,8 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
         ticks.forEach((tick, index) => {
             if (index < activeTicks) {
                 tick.classList.add("active");
-                // tick.style.opacity = 1;
-                // tick.style.background = '#00ffff';
             } else {
                 tick.classList.remove("active");
-                // tick.style.opacity = 0.3;
-                // tick.style.background = tick.classList.contains('major')
-                //     ? '#777' : tick.classList.contains('secondary')
-                //         ? '#555' : '#444';
             }
         });
 
@@ -65,8 +61,6 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
         updateVisuals(currentValueRef.current);
     }, []);
 
-    let isMouseDown = false;
-    let isMouseWithin = false;
 
     const mouseDraged = (e: MouseEvent) => {
         if (!volumeControlRef.current) return;
@@ -102,26 +96,26 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
 
     };
     const mouseMoved = (e: MouseEvent) => {
-        if (isMouseDown && !isEditingRef.current) {
+        if (isMouseDown.current && !isEditingRef.current) {
             mouseDraged(e);
         }
     };
 
     const mouseDown = () => {
-        if (!isMouseWithin) return;
-        isMouseDown = true;
+        if (!isMouseWithin.current) return;
+        isMouseDown.current = true;
     };
 
     const mouseUp = () => {
-        isMouseDown = false;
+        isMouseDown.current = false;
     };
 
     const mouseLeave = () => {
-        isMouseWithin = false;
+        isMouseWithin.current = false;
     };
 
     const mousEntered = () => {
-        isMouseWithin = true;
+        isMouseWithin.current = true;
     };
 
     useEffect(() => {

@@ -10,6 +10,7 @@ import * as Tone from "tone";
 import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
 import ControlKnob from "./ControlKnob";
+import FlavorStatistic from "./FlavorStatistic";
 
 
 type EventListWithUUID<T> = {
@@ -280,19 +281,27 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
             </SynthSelectorContext.Provider>
         </SynthLinesContext.Provider>
         <div className="flavor-synth-controls">
-            <div className="activeFlavorsPlaying"></div>
-            <div className="totalFlavorsUsed"></div>
+            <div className="statistics">
+                <div className="activeFlavorsPlaying">
+                    <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors"></FlavorStatistic>
+                </div>
+                <div className="totalFlavorsUsed">
+                    <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={0} desc="The number of total flavors used"></FlavorStatistic>
+                </div>
+            </div>
             <button className="skip-prev">{"\uf04a"}</button>
             <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "\uf04d" : "\uf04b"}</button>
             <button className="skip-next">{"\uf04e"}</button>
-            <div className="volume">
-                <ControlKnob classNames="flavors" label="Flavors"></ControlKnob>
-            </div>
-            <div className="mainFlavorVolume">
-                <ControlKnob classNames="main-flavors" label="Main Flavor"></ControlKnob>
-            </div>
-            <div className="masterVolume">
-                <ControlKnob classNames="master-flavors" label="Master"></ControlKnob>
+            <div className="volumes">
+                <div className="volume">
+                    <ControlKnob classNames="flavors" label="Flavors"></ControlKnob>
+                </div>
+                <div className="mainFlavorVolume">
+                    <ControlKnob classNames="main-flavors" label="Main Flavor"></ControlKnob>
+                </div>
+                <div className="masterVolume">
+                    <ControlKnob classNames="master-flavors" label="Master"></ControlKnob>
+                </div>
             </div>
         </div>
 
