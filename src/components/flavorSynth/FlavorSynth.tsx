@@ -9,14 +9,16 @@ import { CurrentlyPlayingContext } from "./CurrentlyPlayingContext";
 import * as Tone from "tone";
 import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
+import ControlKnob from "./ControlKnob";
 
 
 type EventListWithUUID<T> = {
     [uuid: string]: T;
 };
 
-export default function FlavorSynth() {
-    const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>([]);
+export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>] }) {
+    // const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>(synthLinesPres);
+    const [synthLines, setSynthLines] = synthLinesWrapped;
     const widthRef = useRef<number>(getCurrentTrackWidth());
     const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
@@ -25,12 +27,16 @@ export default function FlavorSynth() {
     const playerRef = useRef<ElementPlayer>(new ElementPlayer());
     const [isPlaying, setPlaying] = useState<boolean>(false);
     const isPlayingRef = useRef<boolean>(false);
+    const isSoloPlay = useRef<boolean>(false);
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
     const currentFrameId = useRef<number>(-1);
 
     const synthSelectionChangeCallbacks = useRef<EventListWithUUID<() => void>>({});
     const synthRepaintCallbacks = useRef<EventListWithUUID<() => void>>({});
+    const currentPosRepainters = useRef<EventListWithUUID<() => void>>({});
+    const timelineRepainters = useRef<EventListWithUUID<() => void>>({});
+    const elementsRepainters = useRef<EventListWithUUID<() => void>>({});
     const collisionCheckerCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => boolean>>({});
     const onElementMoveCallbacks = useRef<EventListWithUUID<(secondsOffset: number) => void>>({});
     const resizeCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => void>>({});
@@ -49,7 +55,10 @@ export default function FlavorSynth() {
         const uuid = crypto.randomUUID();
         const synthLine: FlavorSynthLine = {
             uuid: uuid,
-            elements: []
+            elements: [],
+            muted: false,
+            volume: 1,
+            solo: false
         };
         synthLines.push(synthLine)
         setSynthLines([...synthLines]);
@@ -60,16 +69,17 @@ export default function FlavorSynth() {
     }
 
     const onWheel = (e: WheelEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
         if (e.ctrlKey) {
+            e.preventDefault();
+            e.stopPropagation();
+
             const zoomFactor = 1 + (e.deltaY * 0.001);
 
             let newSpanWidth = (currentSpanRef.current.to - currentSpanRef.current.from) * zoomFactor;
             if (newSpanWidth < 10) return;
             if (newSpanWidth > 300) return;
-
-            const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX);
+            console.log(getCurrentControlsWidth());
+            const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX - getCurrentControlsWidth());
             const distanceLeftSeconds = zoomInOnSecond - currentSpanRef.current.from;
             const distanceRightSeconds = currentSpanRef.current.to - zoomInOnSecond;
             const distanceLeftPercent = distanceLeftSeconds / (distanceLeftSeconds + distanceRightSeconds);
@@ -87,7 +97,12 @@ export default function FlavorSynth() {
 
             currentZoomRef.current *= zoomFactor;
 
-        } else {
+            repaintAllTimelines();
+            repaintAllElements();
+        } else if (e.shiftKey) {
+            e.preventDefault();
+            e.stopPropagation();
+
             const offsetSeconds = e.deltaY * 0.002 * currentZoomRef.current;
             if (currentSpanRef.current.from + offsetSeconds < 0) {
                 const dist = currentSpanRef.current.to - currentSpanRef.current.from;
@@ -99,12 +114,22 @@ export default function FlavorSynth() {
             }
             currentSpanRef.current = constrainSpan(currentSpanRef.current);
             setSpan(widthRef.current, currentSpanRef.current);
+
+            repaintAllTimelines();
+            repaintAllElements();
         }
         // Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
     setSpan(widthRef.current, currentSpanRef.current);
 
+    const repaintAllTimelines = () => {
+        Object.values(timelineRepainters.current).forEach(e => e());
+    }
+
+    const repaintAllElements = () => {
+        Object.values(elementsRepainters.current).forEach(e => e());
+    };
 
     const setSelectedSynthLine = (uuid: string | null) => {
         focusedSynthRef.current = uuid;
@@ -143,6 +168,22 @@ export default function FlavorSynth() {
         resizeCallbacks.current[uuid] = cb;
     }
 
+    const addCurrentPisitionRepainter = (uuid: string, cb: () => void) => {
+        currentPosRepainters.current[uuid] = cb;
+    };
+
+    const addTimelineRepainter = (uuid: string, cb: () => void) => {
+        timelineRepainters.current[uuid] = cb;
+    };
+
+    const addElementsRepainter = (uuid: string, cb: () => void) => {
+        elementsRepainters.current[uuid] = cb;
+    };
+
+    const repaintAllCurrentPositions = () => {
+        Object.values(currentPosRepainters.current).forEach(e => e());
+    }
+
     const moveAll = (secondsOffset: number) => {
         Object.values(onElementMoveCallbacks.current).forEach(cb => cb(secondsOffset));
     };
@@ -172,26 +213,30 @@ export default function FlavorSynth() {
     }, []);
 
     const play = () => {
-        const elements = synthLines.flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
 
+        const containsSolo = synthLines.filter(e => e.solo).length > 0;
+        isSoloPlay.current = containsSolo;
+        const elements = synthLines.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
         playerRef.current.stop();
         playerRef.current.loadElements(elements);
         playerRef.current.play();
         setPlaying(true);
         isPlayingRef.current = true;
         currentPlayingOffsetRef.current = Tone.now();
+        repaintAllCurrentPositions();
     };
 
     const stop = () => {
         playerRef.current.stop();
         setPlaying(false);
         isPlayingRef.current = false;
+        repaintAllCurrentPositions();
     }
 
     const currentPlayChanged = () => {
         currentPositionRef.current = Tone.now() - currentPlayingOffsetRef.current;
         if (!isPlaying) return;
-        repaintAll();
+        repaintAllCurrentPositions();
     };
 
     const clock = new Tone.Clock(() => {
@@ -216,10 +261,13 @@ export default function FlavorSynth() {
             addOnElementResize,
             moveAll,
             resizeAll,
-            canOffsetAll
+            canOffsetAll,
+            addCurrentPisitionRepainter,
+            addTimelineRepainter,
+            addElementsRepainter
         }}>
             <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-                <CurrentlyPlayingContext.Provider value={{ isPlayingRef, currentPositionRef }}>
+                <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef }}>
                     <div className="flavor-synth">
                         <div className="lines">
                             {
@@ -232,7 +280,20 @@ export default function FlavorSynth() {
             </SynthSelectorContext.Provider>
         </SynthLinesContext.Provider>
         <div className="flavor-synth-controls">
+            <div className="activeFlavorsPlaying"></div>
+            <div className="totalFlavorsUsed"></div>
+            <button className="skip-prev">{"\uf04a"}</button>
             <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "\uf04d" : "\uf04b"}</button>
+            <button className="skip-next">{"\uf04e"}</button>
+            <div className="volume">
+                <ControlKnob classNames="flavors" label="Flavors"></ControlKnob>
+            </div>
+            <div className="mainFlavorVolume">
+                <ControlKnob classNames="main-flavors" label="Main Flavor"></ControlKnob>
+            </div>
+            <div className="masterVolume">
+                <ControlKnob classNames="master-flavors" label="Master"></ControlKnob>
+            </div>
         </div>
 
     </>
@@ -241,6 +302,9 @@ export default function FlavorSynth() {
 export type FlavorSynthLine = {
     uuid: string;
     elements: FlavorElement[];
+    volume: number;
+    muted: boolean;
+    solo: boolean;
 }
 
 export type CurrentSpan = {
@@ -252,6 +316,13 @@ function getCurrentTrackWidth() {
     let controlsWidth = (window.innerWidth - 300) * 0.1;
     if (controlsWidth > 100) controlsWidth = 100;
     if (controlsWidth < 50) controlsWidth = 50;
-    let restWidth = window.innerWidth - 300 - controlsWidth;
+    let restWidth = window.innerWidth - 300 - controlsWidth - 20;
     return restWidth;
+}
+
+function getCurrentControlsWidth() {
+    let controlsWidth = (window.innerWidth - 300) * 0.1;
+    if (controlsWidth > 100) controlsWidth = 100;
+    if (controlsWidth < 50) controlsWidth = 50;
+    return controlsWidth;
 }

@@ -8,6 +8,7 @@ export const UNIT = "s";
 
 export const FLAVOR_HEIGHT = 45;
 export const LINE_MARKER_HEIGHT = 10;
+export const MARKER_EXTRA_SIZE = 8;
 export const LINE_Y = 30;
 export const MARGIN_BETWEEN_SCALE_AND_FLAVORS = 10;
 export const TOTAL_SYNTH_HEIGHT = FLAVOR_HEIGHT + LINE_MARKER_HEIGHT + LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS;
@@ -92,7 +93,7 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number)
             name: flavor,
             contrastColor: contrastColor(darkenIfBright(FLAVOR_COLOR[flavor][0])),
             bgColor: darkenIfBright(FLAVOR_COLOR[flavor][0]),
-            renderBackgroundMask: (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+            renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
                 if (!starMask.complete) return;
 
 
@@ -131,7 +132,7 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number)
     return d;
 }
 
-export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false): boolean {
+export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false): boolean {
     const fromPos = element.from * pixelsPerSecond;
     const toPos = element.to * pixelsPerSecond;
     const width = toPos - fromPos;

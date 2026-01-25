@@ -14,6 +14,8 @@ export class ElementPlayer {
     }
 
     public loadElements(elements: (FlavorElement & { lineUuid: string })[]) {
+        this.stop();
+        this.players = [];
         this.elements = elements;
         this.cloningPromise = Promise.all(this.elements.map(async el => {
             const flavor = getFlavorByName(el.flavor.name);
@@ -45,6 +47,7 @@ export class ElementPlayer {
     public stop() {
         this.players.forEach(({ player }) => {
             player.stopAllBpms();
+            player.dispose();
         });
     }
 

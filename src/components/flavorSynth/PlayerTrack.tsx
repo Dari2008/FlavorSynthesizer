@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { useTooltip } from "./TooltipContext";
 import { useSynthSelector } from "./SynthSelectorContext";
 import { useCurrentlyPlaying } from "./CurrentlyPlayingContext";
@@ -17,18 +17,16 @@ if (!currentPosAnimationImages) {
     currentPosAnimationImages = [];
 
     (async () => {
-        const promises = [];
-        for (let i = 0; i < imageCount; i++) {
-            promises.push(new Promise<void>(async (resolve) => {
+        const batchSize = 5;
+        for (let i = 0; i < imageCount; i += batchSize) {
+            const batch = Array.from({ length: batchSize }, (_, j) => i + j).filter(x => x < imageCount);
+            await Promise.all(batch.map(async (idx) => {
                 const img = new Image();
                 img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
-                img.onload = () => {
-                    currentPosAnimationImages[i] = img;
-                    resolve()
-                };
+                await new Promise(res => img.onload = res);
+                currentPosAnimationImages[idx] = img;
             }));
         }
-        await Promise.all(promises);
         console.log("Loaded all");
 
     })();
@@ -51,15 +49,145 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
     const currentDraggingElementRef = useRef<null | FlavorElement>(null);
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
+
+
+
+    const timelineOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE));
+    const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
+    const currentPositionCursorCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, TOTAL_SYNTH_HEIGHT));
+
+    const renderTimeline = () => {
+        const ctx = timelineOffCanvasRef.current.getContext("2d");
+        if (!ctx) return;
+        const span = currentScrolledRef.current;
+        clearCanvas(ctx, timelineOffCanvasRef.current);
+
+        ctx.strokeStyle = STROKES_COLORS;
+        ctx.lineWidth = 1;
+
+        for (let i = Math.floor(span.from); i <= span.to; i++) {
+            const x = i * getPixelsPerSecond() - getOffsetX();
+            const time = Math.floor(i);
+            ctx.beginPath();
+            const extrSize = time % 10 == 0 ? MARKER_EXTRA_SIZE : 0;
+            ctx.moveTo(x, LINE_Y - LINE_MARKER_HEIGHT / 2 - extrSize / 2);
+            ctx.lineTo(x, LINE_Y + LINE_MARKER_HEIGHT / 2 + extrSize / 2);
+            ctx.closePath();
+            ctx.stroke();
+
+            if (time % 10 == 0) {
+                ctx.fillStyle = "white";
+                ctx.font = "20px PixelFont";
+                ctx.textAlign = "center";
+                ctx.fillText(time + UNIT, x, LINE_Y / 2);
+            }
+
+            if (time % 5 == 0 && time % 10 != 0) {
+                ctx.fillStyle = "rgb(125, 125, 125)";
+                ctx.font = "17px PixelFont";
+                ctx.textAlign = "center";
+                ctx.fillText(time + UNIT, x, LINE_Y / 2);
+            }
+
+        }
+
+    };
+    renderTimeline();
+
+    const renderElements = () => {//LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT
+        const ctx = allElementsOffCanvasRef.current.getContext("2d");
+        if (!ctx) return;
+        const span = currentScrolledRef.current;
+        clearCanvas(ctx, allElementsOffCanvasRef.current);
+
+        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
+            const isSelected = synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == element.uuid) != -1;
+            const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected);
+            if (!drewTitle) {
+                if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
+                    tooSmallToDisplayUUIDs.current.push(element.uuid);
+                }
+            } else {
+                const idx = tooSmallToDisplayUUIDs.current.indexOf(element.uuid);
+                if (idx != -1) {
+                    tooSmallToDisplayUUIDs.current.splice(idx, 1);
+                }
+            }
+        }
+
+    };
+    renderElements();
+
+    const renderCurrentPositionCursor = () => {
+        const ctx = currentPositionCursorCanvasRef.current.getContext("2d");
+        if (!ctx) return;
+        const span = currentScrolledRef.current;
+        clearCanvas(ctx, currentPositionCursorCanvasRef.current);
+
+        const currentSecondPlaying = currentPlaying.currentPositionRef.current;
+        const xOfPlayhead = currentSecondPlaying * getPixelsPerSecond() - getOffsetX();
+
+        // Draw playhead
+        if ((currentPlaying.isPlayingRef.current || (currentPlaying.isPlayingRef.current && (flavorSynthLine.solo && currentPlaying.isSoloPlay.current))) && !flavorSynthLine.muted) {
+            drawCurrentPos(xOfPlayhead, 0, xOfPlayhead, TOTAL_SYNTH_HEIGHT);
+            // drawLine(, "red", 2);
+        }
+
+        function drawCurrentPos(x: number, y: number, xEnd: number, yEnd: number) {
+            if (currentPosAnimationImages[currentAnimationPosition]) ctx?.drawImage(currentPosAnimationImages[currentAnimationPosition], x - 20, y, 40, yEnd);
+        }
+    }
+    renderCurrentPositionCursor();
+
+
+    let elementsDebounce = false;
+    const renderElementsWDebounce = () => {
+        if (!elementsDebounce) {
+            elementsDebounce = true;
+            requestAnimationFrame(() => {
+                elementsDebounce = false;
+                renderElements();
+            })
+        }
+    }
+
+    let timelineDebounce = false;
+    const renderTimelineWDebounce = () => {
+        if (!timelineDebounce) {
+            timelineDebounce = true;
+            requestAnimationFrame(() => {
+                timelineDebounce = false;
+                renderTimeline();
+            })
+        }
+    }
+
+    let currentPositionCursor = false;
+    const renderCurrentPositionCursorWDebounce = () => {
+        if (!currentPositionCursor) {
+            currentPositionCursor = true;
+            requestAnimationFrame(() => {
+                currentPositionCursor = false;
+                renderCurrentPositionCursor();
+            })
+        }
+    }
+
     // const selectedElementsRef = useRef<FlavorElement[]>([]);
 
-    // synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
-    // });
+    synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
+        renderTimeline();
+        renderElements();
+    });
 
 
     synthLines.addSynthRepainter(flavorSynthLine.uuid, () => {
         render();
     });
+
+    synthLines.addCurrentPisitionRepainter(flavorSynthLine.uuid, renderCurrentPositionCursorWDebounce);
+    synthLines.addElementsRepainter(flavorSynthLine.uuid, renderElementsWDebounce);
+    synthLines.addTimelineRepainter(flavorSynthLine.uuid, renderTimelineWDebounce);
 
     synthLines.addCollisionCheckerCallback(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
         let canMove = true;
@@ -336,6 +464,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                         }
                 }
             }
+            renderElements();
 
         };
 
@@ -402,6 +531,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 }
             }
             // repaint();
+            renderElements();
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
@@ -466,147 +596,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         if (!canvas) return;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
-        clearCanvas();
-        const mouse = mousePosRef.current;
+        clearCanvas(ctx, canvas);
 
-        ctx.strokeStyle = STROKES_COLORS;
-        ctx.lineWidth = 1;
-        // ctx.beginPath();
-        // ctx.moveTo(0, LINE_Y);
-        // ctx.lineTo(width, LINE_Y);
-        // ctx.closePath();
-        // ctx.stroke();
-
-        for (let i = Math.floor(span.from); i <= span.to; i++) {
-            const x = i * getPixelsPerSecond() - getOffsetX();
-            const time = Math.floor(i);
-            ctx.beginPath();
-            const extrSize = time % 10 == 0 ? 8 : 0;
-            ctx.moveTo(x, LINE_Y - LINE_MARKER_HEIGHT / 2 - extrSize / 2);
-            ctx.lineTo(x, LINE_Y + LINE_MARKER_HEIGHT / 2 + extrSize / 2);
-            ctx.closePath();
-            ctx.stroke();
-
-            if (time % 10 == 0) {
-                ctx.fillStyle = "white";
-                ctx.font = "20px PixelFont";
-                ctx.textAlign = "center";
-                ctx.fillText(time + UNIT, x, LINE_Y / 2);
-            }
-
-            if (time % 5 == 0 && time % 10 != 0) {
-                ctx.fillStyle = "rgb(125, 125, 125)";
-                ctx.font = "17px PixelFont";
-                ctx.textAlign = "center";
-                ctx.fillText(time + UNIT, x, LINE_Y / 2);
-            }
-
-        }
-
-        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
-            const isSelected = synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == element.uuid) != -1;
-            const drewTitle = drawElement(element, ctx, getOffsetX(), LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT, isSelected);
-            if (!drewTitle) {
-                if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
-                    tooSmallToDisplayUUIDs.current.push(element.uuid);
-                }
-            } else {
-                const idx = tooSmallToDisplayUUIDs.current.indexOf(element.uuid);
-                if (idx != -1) {
-                    tooSmallToDisplayUUIDs.current.splice(idx, 1);
-                }
-            }
-        }
-
-        const currentSecondPlaying = currentPlaying.currentPositionRef.current;
-        const xOfPlayhead = currentSecondPlaying * getPixelsPerSecond() - getOffsetX();
-
-        // Draw playhead
-        if (currentPlaying.isPlayingRef.current) {
-            drawCurrentPos(xOfPlayhead, 0, xOfPlayhead, TOTAL_SYNTH_HEIGHT);
-            // drawLine(, "red", 2);
-        }
-
-        function drawCurrentPos(x: number, y: number, xEnd: number, yEnd: number) {
-            if (currentPosAnimationImages[currentAnimationPosition]) ctx?.drawImage(currentPosAnimationImages[currentAnimationPosition], x - 20, y, 40, yEnd);
-        }
-
-        function clearCanvas() {
-            if (ctx) {
-                ctx.clearRect(0, 0, widthRef.current, TOTAL_SYNTH_HEIGHT);
-            }
-        }
-
-        function drawRect(x: number, y: number, width: number, height: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.rect(x, y, width, height);
-            }
-        }
-
-        function drawCircle(x: number, y: number, radius: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.stroke();
-            }
-        }
-
-        function drawLine(x1: number, y1: number, x2: number, y2: number, color: string = "black", lineWidth: number = 1) {
-            if (ctx) {
-                ctx.strokeStyle = color;
-                ctx.lineWidth = lineWidth;
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-            }
-        }
-
-        function fillRect(x: number, y: number, width: number, height: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.fillRect(x, y, width, height);
-            }
-        }
-
-        function fillCircle(x: number, y: number, radius: number, color: string = "black") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.beginPath();
-                ctx.arc(x, y, radius, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-
-        function fillCanvas(color: string = "white") {
-            if (ctx) {
-                ctx.fillStyle = color;
-                ctx.fillRect(0, 0, widthRef.current, TOTAL_SYNTH_HEIGHT);
-            }
-        }
-
-
+        ctx.drawImage(timelineOffCanvasRef.current, 0, 0);
+        ctx.drawImage(allElementsOffCanvasRef.current, 0, LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT);
+        ctx.drawImage(currentPositionCursorCanvasRef.current, 0, 0);
     };
 
-
-    // useEffect(() => {
-    //     let running = true;
-
-    //     const loop = () => {
-    //         if (!running) return;
-    //         render();
-    //         requestAnimationFrame(loop);
-    //     };
-
-    //     requestAnimationFrame(loop);
-
-    //     return () => {
-    //         running = false;
-    //     };
-    // }, [width]);
 
     function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {
         if (from < 0) return false;
@@ -666,6 +662,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             }
             currentDraggingElementRef.current = null;
             // repaint();
+            renderElementsWDebounce();
             return;
         }
 
@@ -674,6 +671,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         synthLines.setSynthLines([...synthLines.synthLines]);
         currentDraggingElementRef.current = null;
         // repaint();
+        renderElementsWDebounce();
     };
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
@@ -685,6 +683,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
             if (!offsetImageRaw || !elementLengthRaw) {
                 currentDraggingElementRef.current = null;
+                renderElementsWDebounce();
                 return;
             }
             const offsetImage = JSON.parse(offsetImageRaw);
@@ -715,11 +714,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
                     console.log("Dragging over at seconds (adjusted):", startPos);
                     e.preventDefault();
-                    // repaint();
+                    renderElementsWDebounce();
                     return;
                 }
 
                 currentDraggingElementRef.current = null;
+                renderElementsWDebounce();
                 return;
             }
 
@@ -727,22 +727,23 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
             console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
-            // repaint();
         } catch (ex) {
             currentDraggingElementRef.current = null;
-            // repaint();
         }
+        renderElementsWDebounce();
     };
 
     const onDragLeave = () => {
         currentDraggingElementRef.current = null;
         // repaint();
+        renderElementsWDebounce();
     };
 
     const onLeave = () => {
         tooltip.current!.style.display = "none";
         currentDraggingElementRef.current = null;
         // repaint();
+        renderElementsWDebounce();
     };
 
     return <canvas onMouseLeave={onLeave} onDragExit={onDragLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={widthRef.current} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
@@ -763,5 +764,64 @@ export type FlavorData = {
     colors: string[];
     contrastColor: string;
     bgColor: string;
-    renderBackgroundMask: (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
+    renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
+}
+
+
+
+function clearCanvas(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, canvas: HTMLCanvasElement | OffscreenCanvas) {
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+function drawRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
+    if (ctx) {
+        ctx.fillStyle = color;
+        ctx.rect(x, y, width, height);
+    }
+}
+
+function drawCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
+    if (ctx) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+}
+
+function drawLine(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string = "black", lineWidth: number = 1) {
+    if (ctx) {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+    }
+}
+
+function fillRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
+    if (ctx) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, width, height);
+    }
+}
+
+function fillCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
+    if (ctx) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+
+function fillCanvas(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, canvas: HTMLCanvasElement | OffscreenCanvas, color: string = "white") {
+    if (ctx) {
+        ctx.fillStyle = color;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 }

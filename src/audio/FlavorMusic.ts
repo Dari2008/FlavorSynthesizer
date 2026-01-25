@@ -126,6 +126,7 @@ export class FlavorFileMusic {
         Tone.Transport.stop();
         Tone.Transport.bpm.value = bpm;
         Tone.Transport.start();
+        this.files[bpm].toDestination();
         this.files[bpm].loop = true;
         this.files[bpm].start(from);
         this.files[bpm].stop(to);
@@ -143,9 +144,16 @@ export class FlavorFileMusic {
 
     public stopAllBpms() {
         for (const file of Object.values(this.files)) {
-            file.stop();
+            if (file.state == "started") file.stop();
         }
         MUSIC_PLAYERS = MUSIC_PLAYERS.filter(e => !Object.values(this.files).includes(e));
+    }
+
+    public dispose() {
+        for (const file of Object.values(this.files)) {
+            if (file.state == "started") file.stop();
+            if (!file.disposed) file.dispose();
+        }
     }
 
     public static stopAll() {

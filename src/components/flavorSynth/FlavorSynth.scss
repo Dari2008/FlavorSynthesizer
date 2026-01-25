@@ -1,4 +1,9 @@
 .flavor-synth {
+    overflow-y: auto;
+    max-height: 100%;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+
     .addLine {
         width: 100%;
         padding: 0px;

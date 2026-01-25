@@ -1,18 +1,18 @@
 import type React from "react";
 import { MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors"
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import "./MainFlavorSelectionDialog.scss";
 import { MAIN_FLAVORS } from "../../audio/Flavors";
 
 type Props = {
     setSelectedMainFlavor: (flavor: MainFlavor) => void;
     reselectMainFlavorRef: React.RefObject<() => void>;
+    isFirstTimeOpen: boolean;
 }
 
-export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, reselectMainFlavorRef }: Props) {
+export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, reselectMainFlavorRef, isFirstTimeOpen }: Props) {
 
     const dialogRef = useRef<HTMLDialogElement>(null);
-    const isFirstOpen = useRef<boolean>(true);
 
     const reselect = () => {
         if (dialogRef.current?.open) return;
@@ -26,7 +26,6 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
 
     const selectedFlavor = (flavor: MainFlavor) => {
         close();
-        isFirstOpen.current = false;
         setTimeout(() => {
             setSelectedMainFlavor(flavor);
         }, 300);
@@ -49,7 +48,7 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
             }
         </div>
         {
-            !isFirstOpen.current && <button className="close" onClick={close}>x</button>
+            !isFirstTimeOpen && <button className="close" onClick={close}>x</button>
         }
     </dialog>
 }
