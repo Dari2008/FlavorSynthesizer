@@ -37,7 +37,7 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
         <h1>Select Main Flavor</h1>
         <div className="flavor-list">
             {
-                MAIN_FLAVORS.map(e => e.FLAVOR_NAME).filter(e => !!e).map(name => {
+                MAIN_FLAVORS.map(e => e.NAME).filter(e => !!e).map(name => {
                     return <div key={name} className="main-flavor-entry" onClick={() => selectedFlavor(name)}>
                         <div className="bgImage main-color" style={{ "--main-color": MAIN_FLAVOR_COLOR[name][0] } as any}></div>
                         <div className="bgImage main-color-2" style={{ "--vine-color": MAIN_FLAVOR_COLOR[name][1] } as any}></div>

@@ -2,15 +2,29 @@ import * as Tone from "tone";
 import type { FlavorElement } from "./PlayerTrack";
 import { FLAVORS, getFlavorByName } from "../../audio/Flavors";
 import type { FlavorFileMusic } from "../../audio/FlavorMusic";
+import type { Volumes } from "./VolumeContext";
 
 export class ElementPlayer {
     private elements: (FlavorElement & { lineUuid: string })[] = [];
     private players: ElementPlayerPlayer[] = [];
     private cloningPromise: Promise<void[]> = Promise.resolve([]);
+    private volumes: Volumes = {
+        flavors: 100,
+        mainFlavor: 100,
+        master: 100
+    };
 
     public onStop: (() => void) | null = null;
 
     constructor() {
+    }
+
+    public setVolumes(volumes: Volumes) {
+        this.volumes = volumes;
+        console.log("Volume set to ", this.getVolumeFor("flavors"));
+        this.players.forEach(({ player }) => {
+            player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
+        });
     }
 
     public loadElements(elements: (FlavorElement & { lineUuid: string })[]) {
@@ -55,7 +69,8 @@ export class ElementPlayer {
         await this.cloningPromise;
         await Tone.start();
         const now = Tone.now();
-        this.players.forEach(({ element, play }) => {
+        this.players.forEach(({ element, player, play }) => {
+            player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
             play(now + element.from, now + element.to);
         });
         const lastElement = this.findLastPlayer();
@@ -64,6 +79,24 @@ export class ElementPlayer {
                 this.onStop?.();
             };
         }
+    }
+
+    percentToDb(percent: number) {
+        if (percent <= 0) return -Infinity;
+        return 20 * Math.log10(percent);
+    }
+
+    private getVolumeFor(vol: "flavors" | "mainFlavor"): number {
+        const percentageMaster = this.volumes.master / 100;
+        const percentageFlavors = this.volumes.flavors / 100;
+        const percentagMainFlavors = this.volumes.mainFlavor / 100;
+        switch (vol) {
+            case "flavors":
+                return this.percentToDb(percentageFlavors * percentageMaster);
+            case "mainFlavor":
+                return this.percentToDb(percentagMainFlavors * percentageMaster);
+        }
+        return 0;
     }
 
 }

@@ -48,7 +48,7 @@ export default function App() {
 
                 <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
 
-                <FlavorSynth synthLinesWrapped={synthLinesWrapped}></FlavorSynth>
+                <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped}></FlavorSynth>
                 <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
             </>
         }

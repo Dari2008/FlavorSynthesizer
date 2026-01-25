@@ -4,7 +4,7 @@ import Savory from "./main/Savory";
 import Sour from "./main/Sour";
 import Spicy from "./main/Spicy";
 import Sweet from "./main/Sweet";
-import FlavorMusic, { FlavorFileMusic } from "./FlavorMusic";
+import FlavorMusic, { FlavorFileMusic, MainFlavorFileMusic } from "./FlavorMusic";
 import type { MainFlavor } from "../@types/Flavors";
 
 const FLAVORS: FlavorFileMusic[] = [
@@ -47,13 +47,19 @@ const FLAVORS: FlavorFileMusic[] = [
 
 
 
-const MAIN_FLAVORS: FlavorMusic[] = [
-    new Bitter(),
-    new Salty(),
-    new Savory(),
-    new Sour(),
-    new Spicy(),
-    new Sweet()
+const MAIN_FLAVORS: MainFlavorFileMusic[] = [
+    // new Bitter(),
+    // new Salty(),
+    // new Savory(),
+    // new Sour(),
+    // new Spicy(),
+    // new Sweet()
+    new MainFlavorFileMusic("mainFlavors/bitter.wav", "Bitter"),
+    new MainFlavorFileMusic("mainFlavors/salty.wav", "Salty"),
+    new MainFlavorFileMusic("mainFlavors/savory.wav", "Savory"),
+    new MainFlavorFileMusic("mainFlavors/sour.wav", "Sour"),
+    new MainFlavorFileMusic("mainFlavors/spicy.wav", "Spicy"),
+    new MainFlavorFileMusic("mainFlavors/sweet.wav", "Sweet"),
 ];
 
 export function getFlavorByName(name: string) {
@@ -61,7 +67,7 @@ export function getFlavorByName(name: string) {
 }
 
 export function getMainFlavorByName(name: MainFlavor) {
-    return MAIN_FLAVORS.find(e => e.FLAVOR_NAME == name);
+    return MAIN_FLAVORS.find(e => e.NAME == name);
 }
 
 export { FLAVORS, MAIN_FLAVORS };

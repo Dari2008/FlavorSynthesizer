@@ -1,7 +1,7 @@
 import { useEffect, useEffectEvent, useRef, useState, type MouseEventHandler } from "react";
 import "./ControlKnob.scss"
 
-export default function ControlKnob({ classNames, label }: { classNames: string; label: string; }) {
+export default function ControlKnob({ classNames, label, onValueChanged }: { classNames: string; label: string; onValueChanged: (val: number) => void; }) {
 
     const ticksContainerRef = useRef<HTMLDivElement>(null);
     // const volumeRangeRef = useRef<HTMLDivElement>(null);
@@ -54,7 +54,10 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
             `;
 
         if (volumeDisplaySpanRef.current) volumeDisplaySpanRef.current.textContent = `${volume}%`;
-        currentValueRef.current = volume;
+        if (currentValueRef.current != volume) {
+            currentValueRef.current = volume;
+            onValueChanged(volume);
+        }
     };
 
     useEffect(() => {
@@ -91,7 +94,6 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
 
         let val = Math.round(percentage * 10) / 10;
 
-        currentValueRef.current = val;
         updateVisuals(val);
 
     };
@@ -154,13 +156,11 @@ export default function ControlKnob({ classNames, label }: { classNames: string;
         if (parsedVal > 100) parsedVal = 100;
         if (parsedVal < 0) parsedVal = 0;
         parsedVal = Math.round(parsedVal * 10) / 10;
-        console.log(parsedVal);
         if (setValue) {
             volumeDisplayRef.current.value = parsedVal + "%";
             volumeDisplaySpanRef.current && (volumeDisplaySpanRef.current.textContent = parsedVal + "%");
         }
         updateVisuals(parsedVal);
-        currentValueRef.current = parsedVal;
     };
 
     const onDrag = (e: React.DragEvent<HTMLDivElement>) => {

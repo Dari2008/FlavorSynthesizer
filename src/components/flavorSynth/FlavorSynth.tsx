@@ -11,13 +11,16 @@ import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
 import ControlKnob from "./ControlKnob";
 import FlavorStatistic from "./FlavorStatistic";
+import { VolumeContext, type Volumes } from "./VolumeContext";
+import { getMainFlavorByName, MAIN_FLAVORS } from "../../audio/Flavors";
+import type { MainFlavor } from "../../@types/Flavors";
 
 
 type EventListWithUUID<T> = {
     [uuid: string]: T;
 };
 
-export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>] }) {
+export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLinesWrapped: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>]; mainFlavor: MainFlavor; }) {
     // const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>(synthLinesPres);
     const [synthLines, setSynthLines] = synthLinesWrapped;
     const widthRef = useRef<number>(getCurrentTrackWidth());
@@ -32,7 +35,12 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
     const currentFrameId = useRef<number>(-1);
-
+    const volumesRef = useRef<Volumes>({
+        flavors: 100,
+        mainFlavor: 100,
+        master: 100
+    });
+    const mainFlavorsPlayer = getMainFlavorByName(mainFlavor);
     const synthSelectionChangeCallbacks = useRef<EventListWithUUID<() => void>>({});
     const synthRepaintCallbacks = useRef<EventListWithUUID<() => void>>({});
     const currentPosRepainters = useRef<EventListWithUUID<() => void>>({});
@@ -50,6 +58,7 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
     playerRef.current.onStop = () => {
         setPlaying(false);
         isPlayingRef.current = false;
+        stop();
     };
 
     const addSynth = () => {
@@ -218,8 +227,16 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
         const containsSolo = synthLines.filter(e => e.solo).length > 0;
         isSoloPlay.current = containsSolo;
         const elements = synthLines.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
+        if (elements.length == 0) return;
         playerRef.current.stop();
+        playerRef.current.setVolumes(volumesRef.current);
         playerRef.current.loadElements(elements);
+
+        if (!containsSolo) {
+            mainFlavorsPlayer?.setVolumes(volumesRef.current);
+            mainFlavorsPlayer?.play();
+        }
+
         playerRef.current.play();
         setPlaying(true);
         isPlayingRef.current = true;
@@ -232,6 +249,7 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
         setPlaying(false);
         isPlayingRef.current = false;
         repaintAllCurrentPositions();
+        mainFlavorsPlayer?.stop();
     }
 
     const currentPlayChanged = () => {
@@ -245,7 +263,25 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
     }, 100)
     clock.start();
 
+    const mainFlavorVolumeChanged = (volume: number) => {
+        volumesRef.current.mainFlavor = volume;
+        playerRef.current.setVolumes(volumesRef.current);
+        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+    };
 
+
+    const masterVolumeChanged = (volume: number) => {
+        volumesRef.current.master = volume;
+        playerRef.current.setVolumes(volumesRef.current);
+        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+    };
+
+
+    const flavorsVolumeChanged = (volume: number) => {
+        volumesRef.current.flavors = volume;
+        playerRef.current.setVolumes(volumesRef.current);
+        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+    };
 
 
     return <>
@@ -269,14 +305,16 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
         }}>
             <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                 <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef }}>
-                    <div className="flavor-synth">
-                        <div className="lines">
-                            {
-                                Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
-                            }
+                    <VolumeContext.Provider value={volumesRef.current}>
+                        <div className="flavor-synth">
+                            <div className="lines">
+                                {
+                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                                }
+                            </div>
+                            <button className="addLine" onClick={() => addSynth()}>+</button>
                         </div>
-                        <button className="addLine" onClick={() => addSynth()}>+</button>
-                    </div>
+                    </VolumeContext.Provider>
                 </CurrentlyPlayingContext.Provider>
             </SynthSelectorContext.Provider>
         </SynthLinesContext.Provider>
@@ -294,13 +332,13 @@ export default function FlavorSynth({ synthLinesWrapped }: { synthLinesWrapped: 
             <button className="skip-next">{"\uf04e"}</button>
             <div className="volumes">
                 <div className="volume">
-                    <ControlKnob classNames="flavors" label="Flavors"></ControlKnob>
+                    <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
                 </div>
                 <div className="mainFlavorVolume">
-                    <ControlKnob classNames="main-flavors" label="Main Flavor"></ControlKnob>
+                    <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
                 </div>
                 <div className="masterVolume">
-                    <ControlKnob classNames="master-flavors" label="Master"></ControlKnob>
+                    <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
                 </div>
             </div>
         </div>

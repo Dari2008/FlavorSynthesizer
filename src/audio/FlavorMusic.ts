@@ -1,9 +1,10 @@
 import { Player, } from "tone";
 import * as Tone from "tone";
-import { FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
+import { FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
 import { getResourceByName, hasResource, loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
+import type { Volumes } from "../components/flavorSynth/VolumeContext";
 
-const ROOT_FILE_DIR = "./flavors/audio/out/"
+const ROOT_FILE_DIR = "./flavors/audio/"
 
 const FADE_TIME = 0.1;
 
@@ -24,7 +25,7 @@ export default abstract class FlavorMusic {
 var MUSIC_PLAYERS: Player[] = [];
 
 export class FlavorFileMusic {
-    private index: number;
+    private index: number | string;
     private files: {
         [key in BPM]: Player;
     };
@@ -34,7 +35,7 @@ export class FlavorFileMusic {
     private loadedAllPromise: Promise<Player[]> | null = null;
     private promises: Promise<Player>[] = [];
 
-    constructor(index: number, name: Flavor, load: boolean = true) {
+    constructor(index: number | string, name: Flavor, load: boolean = true) {
         this.index = index;
         this.NAME = name;
 
@@ -48,7 +49,7 @@ export class FlavorFileMusic {
                 // Only create a new promise if it doesn't exist yet
                 if (!FILES_CACHE[name][bpm as BPM]) {
                     FILES_CACHE[name][bpm as BPM] = (async () => {
-                        const file = ROOT_FILE_DIR + bpm + "BPM/" + index + ".wav";
+                        const file = ROOT_FILE_DIR + bpm + "out/BPM/" + index + ".wav";
                         const dbPath = "bpm_" + bpm + "_index_" + index;
                         return loadAndSaveResource("audio", dbPath, file);
                         // if (await hasResource("audio", dbPath)) {
@@ -161,6 +162,128 @@ export class FlavorFileMusic {
     }
 
 }
+
+
+export class MainFlavorFileMusic {
+    private index: string;
+    private player: undefined | Player;
+    public NAME: MainFlavor;
+    public imageSrc: string;
+    private BPM: number = 81;
+    private volumes: Volumes = {
+        flavors: 100,
+        mainFlavor: 100,
+        master: 100
+    };
+
+    constructor(index: string, name: MainFlavor, load: boolean = true) {
+        this.index = index;
+        this.NAME = name;
+
+        this.imageSrc = MAIN_FLAVOR_IMAGES[name];
+
+        if (load) {
+            const file = ROOT_FILE_DIR + index;
+            console.log(file);
+            const dbPath = index.replace(".wav", "");
+            loadAndSaveResource("audio", dbPath, file).then(async (base64) => {
+                this.player = new Player();
+                await this.player.load(base64);
+                this.player.fadeIn = FADE_TIME;
+                this.player.fadeOut = FADE_TIME;
+                this.player.autostart = false;
+                this.player.loop = true;
+                this.player.toDestination();
+            });
+        }
+    }
+
+    public setVolumes(volumes: Volumes) {
+        this.volumes = volumes;
+        if (this.player) this.player.volume.value = this.getVolumeFor("mainFlavor");
+    }
+
+    public play() {
+        Tone.Transport.stop();
+        Tone.Transport.bpm.value = this.BPM;
+        this.stop();
+
+        Tone.Transport.start();
+        // this.files[bpm].toDestination();
+        this.player?.start()
+    }
+
+    public async clone(loop: boolean = false): Promise<MainFlavorFileMusic> {
+        const clone = new MainFlavorFileMusic(this.index, this.NAME, false);
+
+        for (const bpm of BPM_VALS) {
+            const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
+            const player = new Player();
+            await player.load(base64);
+            player.fadeIn = FADE_TIME;
+            player.fadeOut = FADE_TIME;
+            player.toDestination();
+            player.autostart = false;
+            player.loop = loop;
+            clone.player = player;
+        }
+
+        return clone;
+    }
+
+    public playSegment(from: number, to: number, bpm: BPM) {
+        this.stop();
+        Tone.Transport.stop();
+        Tone.Transport.bpm.value = bpm;
+        Tone.Transport.start();
+        if (!this.player) return;
+        this.player.toDestination();
+        this.player.loop = true;
+        this.player.start(from);
+        this.player.stop(to);
+    }
+
+
+    public getPlayers(): Player[] {
+        if (!this.player) return [];
+        return [this.player];
+    }
+
+    public getPlayer(): Player | undefined {
+        return this.player;
+    }
+
+    public stop() {
+        if (!this.player) return;
+        if (this.player.state == "started") this.player.stop();
+    }
+
+    public dispose() {
+        if (!this.player) return;
+        if (this.player.state == "started") this.player.stop();
+        if (!this.player.disposed) this.player.dispose();
+    }
+
+    percentToDb(percent: number) {
+        if (percent <= 0) return -Infinity;
+        return 20 * Math.log10(percent);
+    }
+
+    private getVolumeFor(vol: "flavors" | "mainFlavor"): number {
+        const percentageMaster = this.volumes.master / 100;
+        const percentageFlavors = this.volumes.flavors / 100;
+        const percentagMainFlavors = this.volumes.mainFlavor / 100;
+        switch (vol) {
+            case "flavors":
+                return this.percentToDb(percentageFlavors * percentageMaster);
+            case "mainFlavor":
+                return this.percentToDb(percentagMainFlavors * percentageMaster);
+        }
+        return 0;
+    }
+
+}
+
 
 type BPM = 81 |
     110 |
