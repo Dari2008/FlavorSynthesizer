@@ -53,6 +53,18 @@ export function calculateCurrentPosSeconds(x: number) {
     return Math.round(seconds);
 }
 
+export function calculateCurrentPosSecondsAccurate(x: number) {
+    const timelineX = convertScreenXToTimeline(x);
+    const seconds = timelineX / pixelsPerSecond;
+    return seconds;
+}
+
+export function calculateSecondsToCurrentPos(x: number) {
+    const timelineX = x * pixelsPerSecond;
+    const outsideX = convertTimelineXToScreen(timelineX);
+    return outsideX;
+}
+
 export function convertScreenXToTimeline(x: number) {
     return x + offsetX;
 }

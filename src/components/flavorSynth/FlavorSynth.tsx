@@ -50,6 +50,8 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
     const collisionCheckerCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => boolean>>({});
     const onElementMoveCallbacks = useRef<EventListWithUUID<(secondsOffset: number) => void>>({});
     const resizeCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => void>>({});
+    const cusorPos = useRef<number>(0);
+
     const currentDragingRef = useRef<FlavorElement | null>(null);
     const currentDragingOffsetRef = useRef<number>(0);
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
@@ -246,13 +248,13 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
 
         if (!containsSolo) {
             mainFlavorsPlayer?.setVolumes(volumesRef.current);
-            mainFlavorsPlayer?.play();
+            mainFlavorsPlayer?.play(cusorPos.current);
         }
 
-        playerRef.current.play();
+        playerRef.current.play(cusorPos.current);
         setPlaying(true);
         isPlayingRef.current = true;
-        currentPlayingOffsetRef.current = Tone.now();
+        currentPlayingOffsetRef.current = Tone.now() - cusorPos.current;
         repaintAllCurrentPositions();
     };
 
@@ -295,6 +297,23 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
         mainFlavorsPlayer?.setVolumes(volumesRef.current);
     };
 
+    useEffect(() => {
+        const keydown = (e: KeyboardEvent) => {
+            if (e.key == " ") {
+                if (isPlayingRef.current) {
+                    stop();
+                } else {
+                    play();
+                }
+            }
+        };
+
+        window.addEventListener("keydown", keydown);
+        return () => {
+            window.removeEventListener("keydown", keydown);
+        };
+    }, []);
+
 
     return <>
         <SynthLinesContext.Provider value={{
@@ -319,7 +338,7 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
             repaintAllElements
         }}>
             <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-                <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef }}>
+                <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
                     <VolumeContext.Provider value={volumesRef.current}>
                         <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
                             <div className="flavor-synth">
@@ -357,6 +376,14 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
                 <div className="masterVolume">
                     <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
                 </div>
+            </div>
+            <div className="buttons">
+                <button className="share" onClick={() => console.log("Share")}>
+                    Share
+                </button>
+                <button className="openShared" onClick={() => console.log("Open Shared")}>
+                    Open Shared
+                </button>
             </div>
         </div>
 

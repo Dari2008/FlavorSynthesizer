@@ -3,7 +3,7 @@
     height: 100%;
     margin-bottom: 10px;
     display: grid;
-    grid-template-columns: auto auto max-content max-content max-content auto auto auto;
+    grid-template-columns: auto auto max-content max-content max-content auto auto max-content;
     grid-template-rows: 1fr;
     grid-column-gap: 40px;
     grid-row-gap: 0px;
@@ -62,23 +62,23 @@
 
 
     .skip-prev {
-        grid-area: 1 / 3 / 3 / 4;
+        grid-area: 1 / 3 / 2 / 4;
     }
 
     .play {
-        grid-area: 1 / 4 / 3 / 5;
+        grid-area: 1 / 4 / 2 / 5;
     }
 
 
     .skip-next {
-        grid-area: 1 / 5 / 3 / 6;
+        grid-area: 1 / 5 / 2 / 6;
     }
 
     .volumes {
         display: flex;
         justify-content: space-evenly;
         align-items: center;
-        grid-area: 1 / 6 / 3 / 9;
+        grid-area: 1 / 6 / 2 / 8;
 
         .volume {
             // grid-area: 1 / 6 / 3 / 7;
@@ -90,6 +90,65 @@
 
         .masterVolume {
             // grid-area: 1 / 8 / 3 / 9;
+        }
+    }
+
+    .buttons {
+        grid-area: 1 / 8 / 2 / 9;
+        width: max-content;
+        justify-self: center;
+        align-self: center;
+        display: grid;
+        grid-template-columns: max-content;
+
+        .share,
+        .openShared {
+            font-size: 20px;
+            background: linear-gradient(135deg, var(--main-color), var(--secondary-color));
+            background-clip: text;
+            color: transparent;
+            border: none;
+            scale: 0.9;
+            transition: scale 0.3s ease-in-out;
+            padding: 10px;
+            padding-inline: 30px;
+
+            &:hover {
+                scale: 1;
+            }
+        }
+
+        .share {
+            &::before {
+                content: "\f1e0";
+                font-family: Fontawesome;
+                margin-right: 10px;
+            }
+        }
+
+
+        .openShared {
+
+            &::before {
+                content: "\e13b";
+                font-family: Fontawesome;
+                margin-right: 10px;
+            }
+
+            // .bg {
+            //     position: absolute;
+            //     inset: 0;
+            //     background: linear-gradient(135deg, var(--main-color), var(--secondary-color));
+            //     background-repeat: no-repeat;
+            //     background-position: center center;
+            //     background-size: 100% 100%;
+
+            //     mask-image: url("./masks/shareBtn/share_black_white_alpha.png");
+            //     mask-position: center center;
+            //     mask-repeat: no-repeat;
+            //     mask-size: contain;
+            //     mask-mode: alpha;
+            // }
         }
     }
 

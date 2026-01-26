@@ -1,9 +1,10 @@
-import { createContext, useContext } from "react";
+import React, { createContext, useContext } from "react";
 
 type CurrentlyPlayingContextType = {
     isPlayingRef: React.RefObject<boolean>;
     isSoloPlay: React.RefObject<boolean>;
     currentPositionRef: React.RefObject<number>;
+    cusorPos: React.RefObject<number>;
 }
 
 export const CurrentlyPlayingContext = createContext<CurrentlyPlayingContextType | null>(null);

@@ -2,7 +2,7 @@ import { Player, } from "tone";
 import * as Tone from "tone";
 import { FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
 import { getResourceByName, hasResource, loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
-import type { Volumes } from "../components/flavorSynth/VolumeContext";
+import type { Volumes } from "../contexts/VolumeContext";
 
 const ROOT_FILE_DIR = "./flavors/audio/"
 
@@ -203,14 +203,15 @@ export class MainFlavorFileMusic {
         if (this.player) this.player.volume.value = this.getVolumeFor("mainFlavor");
     }
 
-    public play() {
+    public play(offset: number = 0) {
         Tone.Transport.stop();
         Tone.Transport.bpm.value = this.BPM;
         this.stop();
 
+        const now = Tone.now();
+
         Tone.Transport.start();
-        // this.files[bpm].toDestination();
-        this.player?.start()
+        this.player?.start(now, offset);
     }
 
     public async clone(loop: boolean = false): Promise<MainFlavorFileMusic> {

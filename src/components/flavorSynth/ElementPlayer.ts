@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import type { FlavorElement } from "./PlayerTrack";
 import { FLAVORS, getFlavorByName } from "../../audio/Flavors";
 import type { FlavorFileMusic } from "../../audio/FlavorMusic";
-import type { Volumes } from "./VolumeContext";
+import type { Volumes } from "../../contexts/VolumeContext";
 
 export class ElementPlayer {
     private elements: (FlavorElement & { lineUuid: string })[] = [];
@@ -65,11 +65,12 @@ export class ElementPlayer {
         });
     }
 
-    async play() {
+    async play(offset: number = 0) {
         await this.cloningPromise;
         await Tone.start();
-        const now = Tone.now();
+        const now = Tone.now() - offset;
         this.players.forEach(({ element, player, play }) => {
+            if (element.to <= offset) return;
             player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
             play(now + element.from, now + element.to);
         });
@@ -78,6 +79,9 @@ export class ElementPlayer {
             lastElement.player.getPlayer(81).onstop = () => {
                 this.onStop?.();
             };
+            if (lastElement.element.to <= offset) {
+                this.onStop?.();
+            }
         }
     }
 

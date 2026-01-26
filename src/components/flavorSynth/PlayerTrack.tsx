@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, convertScreenXToTimeline, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, convertScreenXToTimeline, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { loadAndSaveResource } from "../ResourceSaver";
 import { useTooltip } from "../../contexts/TooltipContext";
 import { useSynthSelector } from "../../contexts/SynthSelectorContext";
@@ -92,6 +92,15 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             }
 
         }
+
+        const currentPositionX = calculateSecondsToCurrentPos(currentPlaying.cusorPos.current);
+
+        ctx.strokeStyle = "rgb(100, 100, 100)";
+        ctx.beginPath();
+        ctx.moveTo(currentPositionX, 0);
+        ctx.lineTo(currentPositionX, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE);
+        ctx.closePath();
+        ctx.stroke();
 
     };
     renderTimeline();
@@ -289,6 +298,16 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         let didDrag = false;
 
+        const onTimelineDrag = (e: MouseEvent) => {
+            const box = canvasRef.current?.getBoundingClientRect();
+            const x = e.x - (box?.left ?? 0);
+
+            const seconds = calculateCurrentPosSecondsAccurate(x);
+
+            currentPlaying.cusorPos.current = seconds;
+            synthLines.repaintAllTimelines();
+        };
+
         const onMouseMoveUpdate = (e: MouseEvent) => {
             const span = currentScrolledRef.current;
             if (!span) return;
@@ -481,6 +500,10 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 x: x,
                 y: y
             };
+            if (y < timelineOffCanvasRef.current.height && isMouseDown) {
+                onTimelineDrag(e);
+                return;
+            }
             if (isMouseDown) {
                 onDrag(e);
             } else {
@@ -490,6 +513,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         const onMouseDown = (e: MouseEvent) => {
             isMouseDown = true;
+            const box = canvasRef.current?.getBoundingClientRect();
+            const y = e.y - (box?.top ?? 0);
+            if (y < timelineOffCanvasRef.current.height) return;
             onDragStart(e);
         };
 
