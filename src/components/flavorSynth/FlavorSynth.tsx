@@ -50,6 +50,7 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
     const collisionCheckerCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => boolean>>({});
     const onElementMoveCallbacks = useRef<EventListWithUUID<(secondsOffset: number) => void>>({});
     const resizeCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => void>>({});
+    const stopDraggingCallbacks = useRef<EventListWithUUID<() => void>>({});
     const cusorPos = useRef<number>(0);
 
     const currentDragingRef = useRef<FlavorElement | null>(null);
@@ -297,6 +298,15 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
         mainFlavorsPlayer?.setVolumes(volumesRef.current);
     };
 
+
+    const stopAllDragging = () => {
+        Object.values(stopDraggingCallbacks.current).forEach(e => e());
+    }
+
+    const addStopDraggingCallback = (uuid: string, cb: () => void) => {
+        stopDraggingCallbacks.current[uuid] = cb;
+    };
+
     useEffect(() => {
         const keydown = (e: KeyboardEvent) => {
             if (e.key == " ") {
@@ -308,9 +318,18 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
             }
         };
 
+        const mouseRelease = (e: MouseEvent) => {
+            if (e.target instanceof HTMLCanvasElement && (e.target as HTMLCanvasElement).classList.contains("trackCanvas")) return;
+            currentDragingRef.current = null;
+            stopAllDragging();
+            repaintAllElements();
+        };
+
         window.addEventListener("keydown", keydown);
+        window.addEventListener("mouseup", mouseRelease);
         return () => {
             window.removeEventListener("keydown", keydown);
+            window.removeEventListener("mouseup", mouseRelease);
         };
     }, []);
 
@@ -335,7 +354,8 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
             addElementsRepainter,
             deleteElement,
             repaintAllTimelines,
-            repaintAllElements
+            repaintAllElements,
+            addStopDraggingCallback
         }}>
             <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                 <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>

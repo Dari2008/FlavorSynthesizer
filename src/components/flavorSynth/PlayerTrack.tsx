@@ -204,6 +204,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
     synthLines.addElementsRepainter(flavorSynthLine.uuid, renderElementsWDebounce);
     synthLines.addTimelineRepainter(flavorSynthLine.uuid, renderTimelineWDebounce);
 
+
     synthLines.addCollisionCheckerCallback(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
         let canMove = true;
         synthSelector.selectedElementsRef.current?.forEach(el => {
@@ -298,6 +299,14 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         let didDrag = false;
 
+
+        synthLines.addStopDraggingCallback(flavorSynthLine.uuid, () => {
+            currentDraggingElementRef.current = null;
+            targetElement = null;
+            isMouseDown = false;
+            renderElements();
+        });
+
         const onTimelineDrag = (e: MouseEvent) => {
             const box = canvasRef.current?.getBoundingClientRect();
             const x = e.x - (box?.left ?? 0);
@@ -312,6 +321,11 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             const span = currentScrolledRef.current;
             if (!span) return;
             const mouse = mousePosRef.current;
+
+            if (mouse.y < timelineOffCanvasRef.current.height) {
+                canvas.style.cursor = "default";
+                return;
+            }
 
 
             let foundOneWhereMouseOver = false;
@@ -368,6 +382,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             if (!span) return;
 
             const mouse = mousePosRef.current;
+            if (mouse.y < timelineOffCanvasRef.current.height) return;
 
 
             let foundOneWhereMouseOver = false;
@@ -420,6 +435,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             const span = currentScrolledRef.current;
             if (!span) return;
             const mouse = mousePosRef.current;
+            if (mouse.y < timelineOffCanvasRef.current.height) return;
             didDrag = true;
 
             const currentPos = calculateCurrentPosSeconds(mouse.x);
@@ -500,7 +516,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 x: x,
                 y: y
             };
-            if (y < timelineOffCanvasRef.current.height && isMouseDown) {
+            if (y < timelineOffCanvasRef.current.height && isMouseDown && targetElement == null && currentDraggingElementRef.current == null && interPlayerDrag.ref.current == null && !currentPlaying.isPlayingRef.current) {
+                console.log(isMouseDown);
                 onTimelineDrag(e);
                 return;
             }
@@ -521,6 +538,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         const onMouseUp = () => {
             isMouseDown = false;
+            console.log("Mouse up!!");
         };
 
         const onRelease = (e: MouseEvent) => {
@@ -595,7 +613,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         };
 
         const onMouseLeave = (e: MouseEvent) => {
-            console.log(targetElement, interPlayerDrag.ref);
             if (!isMouseDown) return;
             if (targetElement != null) {
                 interPlayerDrag.ref.current = targetElement;
@@ -669,16 +686,18 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     return;
                 }
 
+                console.log(flavorSynthLine);
                 synthLines.deleteElement(element.uuid);
-
 
                 element.from = newFrom;
                 element.to = newTo;
                 flavorSynthLine.elements.push(element);
 
+                console.log(flavorSynthLine);
+
                 interPlayerDrag.onPlaced.current();
                 currentDraggingElementRef.current = null;
-                interPlayerDrag.ref.current = null;
+                // interPlayerDrag.ref.current = null;
                 targetElement = null;
             }
         };
@@ -877,7 +896,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         renderElementsWDebounce();
     };
 
-    return <canvas onMouseLeave={onLeave} onDragExit={onDragLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={widthRef.current} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
+    return <canvas className="trackCanvas" onMouseLeave={onLeave} onDragExit={onDragLeave} onDrop={onDrop} onDragOver={onDragOver} style={{ touchAction: "none" }} width={widthRef.current} height={TOTAL_SYNTH_HEIGHT} ref={canvasRef}></canvas>
 }
 
 

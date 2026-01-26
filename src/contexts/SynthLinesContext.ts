@@ -21,6 +21,7 @@ type SynthLines = {
     deleteElement: (uuid: string) => void;
     repaintAllTimelines: () => void;
     repaintAllElements: () => void;
+    addStopDraggingCallback: (uuid: string, cb: () => void) => void;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);
