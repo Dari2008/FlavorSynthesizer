@@ -1,19 +1,20 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
-import SynthLine from "./SynthLine";
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
 import { calculateCurrentPosSeconds, constrainSpan, convertScreenXToTimeline, getOffsetX, getPixelsPerSecond, setPixelsPerSecond, setSpan } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
-import { SynthSelectorContext } from "./SynthSelectorContext";
 import { ElementPlayer } from "./ElementPlayer";
-import { CurrentlyPlayingContext } from "./CurrentlyPlayingContext";
 import * as Tone from "tone";
 import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
-import ControlKnob from "./ControlKnob";
-import FlavorStatistic from "./FlavorStatistic";
-import { VolumeContext, type Volumes } from "./VolumeContext";
 import { getMainFlavorByName, MAIN_FLAVORS } from "../../audio/Flavors";
 import type { MainFlavor } from "../../@types/Flavors";
+import { VolumeContext, type Volumes } from "../../contexts/VolumeContext";
+import { CurrentInterPlayerDragContext } from "../../contexts/CurrentInterPlayerDragContext";
+import { SynthSelectorContext } from "../../contexts/SynthSelectorContext";
+import { CurrentlyPlayingContext } from "../../contexts/CurrentlyPlayingContext";
+import SynthLine from "./synthLine/SynthLine";
+import FlavorStatistic from "./flavorStatistic/FlavorStatistic";
+import ControlKnob from "./controlKnob/ControlKnob";
 
 
 type EventListWithUUID<T> = {
@@ -49,6 +50,10 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
     const collisionCheckerCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => boolean>>({});
     const onElementMoveCallbacks = useRef<EventListWithUUID<(secondsOffset: number) => void>>({});
     const resizeCallbacks = useRef<EventListWithUUID<(fromOffset: number, toOffset: number) => void>>({});
+    const currentDragingRef = useRef<FlavorElement | null>(null);
+    const currentDragingOffsetRef = useRef<number>(0);
+    const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
+    const currentDraggingIsEmptyRef = useRef<(element: FlavorElement | null, from: number, to?: number) => boolean>(() => false);
 
 
     window.onresize = () => {
@@ -76,6 +81,13 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
 
     const deleteSynth = (uuid: string) => {
         setSynthLines([...synthLines.filter(e => e.uuid !== uuid)]);
+    }
+
+    const deleteElement = (uuid: string) => {
+        setSynthLines([...synthLines.map(e => {
+            e.elements = e.elements.filter(e => e.uuid !== uuid);
+            return e;
+        })]);
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -178,7 +190,7 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
         resizeCallbacks.current[uuid] = cb;
     }
 
-    const addCurrentPisitionRepainter = (uuid: string, cb: () => void) => {
+    const addCurrentPositionRepainter = (uuid: string, cb: () => void) => {
         currentPosRepainters.current[uuid] = cb;
     };
 
@@ -299,21 +311,26 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
             moveAll,
             resizeAll,
             canOffsetAll,
-            addCurrentPisitionRepainter,
+            addCurrentPositionRepainter,
             addTimelineRepainter,
-            addElementsRepainter
+            addElementsRepainter,
+            deleteElement,
+            repaintAllTimelines,
+            repaintAllElements
         }}>
             <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                 <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef }}>
                     <VolumeContext.Provider value={volumesRef.current}>
-                        <div className="flavor-synth">
-                            <div className="lines">
-                                {
-                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
-                                }
+                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                            <div className="flavor-synth">
+                                <div className="lines">
+                                    {
+                                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                                    }
+                                </div>
+                                <button className="addLine" onClick={() => addSynth()}>+</button>
                             </div>
-                            <button className="addLine" onClick={() => addSynth()}>+</button>
-                        </div>
+                        </CurrentInterPlayerDragContext.Provider>
                     </VolumeContext.Provider>
                 </CurrentlyPlayingContext.Provider>
             </SynthSelectorContext.Provider>
@@ -324,7 +341,7 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
                     <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors"></FlavorStatistic>
                 </div>
                 <div className="totalFlavorsUsed">
-                    <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={0} desc="The number of total flavors used"></FlavorStatistic>
+                    <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used"></FlavorStatistic>
                 </div>
             </div>
             <button className="skip-prev">{"\uf04a"}</button>

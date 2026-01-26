@@ -7,7 +7,7 @@ type SynthLines = {
     delete: (uuid: string) => void;
     onWheel: (e: WheelEvent) => void;
     addSynthRepainter: (uuid: string, sr: () => void) => void;
-    addCurrentPisitionRepainter: (uuid: string, sr: () => void) => void;
+    addCurrentPositionRepainter: (uuid: string, sr: () => void) => void;
     repaintAll: () => void;
     deleteSelectedElements: () => void;
     addCollisionCheckerCallback: (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => void;
@@ -18,6 +18,9 @@ type SynthLines = {
     canOffsetAll: (fromOffset: number, toOffset: number) => boolean;
     addTimelineRepainter: (uuid: string, sr: () => void) => void;
     addElementsRepainter: (uuid: string, sr: () => void) => void;
+    deleteElement: (uuid: string) => void;
+    repaintAllTimelines: () => void;
+    repaintAllElements: () => void;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

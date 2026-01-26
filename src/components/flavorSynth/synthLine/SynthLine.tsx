@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import "./SynthLine.scss";
-import PlayerTrack from "./PlayerTrack";
-import { type CurrentSpan, type FlavorSynthLine } from "./FlavorSynth";
-import { useSynthLines } from "../../contexts/SynthLinesContext";
-import { TooltipContext } from "./TooltipContext";
+import { useSynthLines } from "../../../contexts/SynthLinesContext";
+import { TooltipContext } from "../../../contexts/TooltipContext";
+import PlayerTrack from "../PlayerTrack";
+import type { CurrentSpan, FlavorSynthLine } from "../FlavorSynth";
 
 export default function SynthLine({ widthRef, flavorSynthLine, currentScrolledRef }: { widthRef: React.RefObject<number>, flavorSynthLine: FlavorSynthLine, currentScrolledRef: React.RefObject<CurrentSpan> }) {
     const synthLines = useSynthLines();

@@ -2,11 +2,12 @@ import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
-import { useTooltip } from "./TooltipContext";
-import { useSynthSelector } from "./SynthSelectorContext";
-import { useCurrentlyPlaying } from "./CurrentlyPlayingContext";
+import { calculateCurrentPosSeconds, convertScreenXToTimeline, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { loadAndSaveResource } from "../ResourceSaver";
+import { useTooltip } from "../../contexts/TooltipContext";
+import { useSynthSelector } from "../../contexts/SynthSelectorContext";
+import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext";
+import { useCurrentlyPlaying } from "../../contexts/CurrentlyPlayingContext";
 
 var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
 var imageCount = 99;
@@ -44,6 +45,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
     const tooltip = useTooltip();
     const synthSelector = useSynthSelector();
     const currentPlaying = useCurrentlyPlaying();
+    const interPlayerDrag = useInterPlayerDrag();
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
@@ -100,7 +102,11 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         const span = currentScrolledRef.current;
         clearCanvas(ctx, allElementsOffCanvasRef.current);
 
-        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current].filter(e => e != null).filter(e => e.from < span.to && e.to > span.from)) {
+        for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current]) {
+            if (element == null) continue;
+            if (element.uuid === interPlayerDrag.ref.current?.uuid && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
+            if (element.from >= span.to && element.to <= span.from) continue;
+
             const isSelected = synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == element.uuid) != -1;
             const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected);
             if (!drewTitle) {
@@ -185,7 +191,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         render();
     });
 
-    synthLines.addCurrentPisitionRepainter(flavorSynthLine.uuid, renderCurrentPositionCursorWDebounce);
+    synthLines.addCurrentPositionRepainter(flavorSynthLine.uuid, renderCurrentPositionCursorWDebounce);
     synthLines.addElementsRepainter(flavorSynthLine.uuid, renderElementsWDebounce);
     synthLines.addTimelineRepainter(flavorSynthLine.uuid, renderTimelineWDebounce);
 
@@ -332,7 +338,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         };
 
-        let currentlyResizing: null | FlavorElement = null;
+        let targetElement: null | FlavorElement = null;
         let action: "move" | "resizeL" | "resizeR" = "move";
         let startPosition = -1;
         let startPositionOfElement = -1;
@@ -359,19 +365,19 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     console.log(mouse, convertTimelineXToScreen(fromPos), convertTimelineXToScreen(toPos));
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
                         action = "resizeL";
-                        currentlyResizing = element;
+                        targetElement = element;
                         startPositionOfElement = element.from;
                         moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
                         lastPos = calculateCurrentPosSeconds(mouse.x);
                     } else if (mouse.x >= convertTimelineXToScreen(toPos) - TOLERANCE && mouse.x <= convertTimelineXToScreen(toPos)) {
                         action = "resizeR";
-                        currentlyResizing = element;
+                        targetElement = element;
                         startPositionOfElement = element.from;
                         moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
                         lastPos = calculateCurrentPosSeconds(mouse.x);
                     } else {
                         action = "move";
-                        currentlyResizing = element;
+                        targetElement = element;
                         startPosition = mouse.x;
                         startPositionOfElement = element.from;
                         moveStartOffsetToEnd = calculateCurrentPosSeconds(mouse.x) - element.from;
@@ -390,7 +396,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         let lastPos = -1;
 
         const onDrag = (e: MouseEvent) => {
-            if (!currentlyResizing) return;
+            if (!targetElement) return;
             if (action == "move" && startPosition == -1) return;
             const span = currentScrolledRef.current;
             if (!span) return;
@@ -404,27 +410,27 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 switch (action) {
                     case "move":
                         const delta = (currentPos - moveStartOffsetToEnd) - startPositionOfElement;
-                        const size = currentlyResizing.to - currentlyResizing.from;
+                        const size = targetElement.to - targetElement.from;
                         const fromNew = startPositionOfElement + delta;
-                        if (!isEmpty(currentlyResizing, startPositionOfElement + delta, fromNew + size)) return;
-                        currentlyResizing.from = startPositionOfElement + delta;
-                        currentlyResizing.to = fromNew + size;
+                        if (!isEmpty(targetElement, startPositionOfElement + delta, fromNew + size)) return;
+                        targetElement.from = startPositionOfElement + delta;
+                        targetElement.to = fromNew + size;
                         break;
                     case "resizeL":
-                        if (currentPos >= currentlyResizing.to) {
-                            if (!isEmpty(currentlyResizing, currentPos + 1)) return;
-                            currentlyResizing.to = currentPos + 1;
+                        if (currentPos >= targetElement.to) {
+                            if (!isEmpty(targetElement, currentPos + 1)) return;
+                            targetElement.to = currentPos + 1;
                         }
-                        if (!isEmpty(currentlyResizing, currentPos, currentlyResizing.to)) return;
-                        currentlyResizing.from = currentPos;
+                        if (!isEmpty(targetElement, currentPos, targetElement.to)) return;
+                        targetElement.from = currentPos;
                         break;
                     case "resizeR":
-                        if (currentPos <= currentlyResizing.from) {
-                            if (!isEmpty(currentlyResizing, currentPos - 1)) return;
-                            currentlyResizing.from = currentPos - 1;
+                        if (currentPos <= targetElement.from) {
+                            if (!isEmpty(targetElement, currentPos - 1)) return;
+                            targetElement.from = currentPos - 1;
                         }
-                        if (!isEmpty(currentlyResizing, currentlyResizing.from, currentPos)) return;
-                        currentlyResizing.to = currentPos;
+                        if (!isEmpty(targetElement, targetElement.from, currentPos)) return;
+                        targetElement.to = currentPos;
                         break;
                 }
                 // repaint();
@@ -465,7 +471,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 }
             }
             renderElements();
-
         };
 
         const onMouseMove = (e: MouseEvent) => {
@@ -532,6 +537,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             }
             // repaint();
             renderElements();
+            targetElement = null;
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
@@ -562,6 +568,95 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             // repaint();
         };
 
+        const onMouseLeave = (e: MouseEvent) => {
+            console.log(targetElement, interPlayerDrag.ref);
+            if (!isMouseDown) return;
+            if (targetElement != null) {
+                interPlayerDrag.ref.current = targetElement;
+                interPlayerDrag.offsetLeft.current = moveStartOffsetToEnd;
+                interPlayerDrag.onPlaced.current = () => {
+                    targetElement = null;
+                    startPosition = -1;
+                    startPositionOfElement = -1;
+                    moveStartOffsetToEnd = -1;
+                    interPlayerDrag.ref.current = null;
+                    interPlayerDrag.offsetLeft.current = 0;
+                    currentDraggingElementRef.current = null;
+                    renderElements();
+                    interPlayerDrag.onPlaced.current = () => 0;
+                };
+                interPlayerDrag.isEmptyRef.current = isEmpty;
+            }
+        };
+
+        const onMouseEnter = (e: MouseEvent) => {
+            if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.includes(interPlayerDrag.ref.current)) {
+                interPlayerDrag.ref.current = null;
+                interPlayerDrag.offsetLeft.current = 0;
+            }
+        };
+
+        const onMouseMoveExternalElement = (e: MouseEvent) => {
+            if (interPlayerDrag.ref.current != null) {
+                const canvasBox = canvasRef.current?.getBoundingClientRect();
+                if (!canvasBox) return;
+                const x = e.clientX - canvasBox.left;
+                const seconds = calculateCurrentPosSeconds(x);
+                const offset = interPlayerDrag.offsetLeft.current ?? 0;
+                const currentDragPos = seconds - offset;
+                const element = interPlayerDrag.ref.current;
+
+                const elementSpan = element.to - element.from;
+
+                const newFrom = currentDragPos;
+                const newTo = currentDragPos + elementSpan
+
+                if (!isEmpty(element, newFrom, newTo)) {
+                    synthLines.repaintAllElements();
+                    return;
+                }
+
+                element.from = newFrom;
+                element.to = newTo;
+                currentDraggingElementRef.current = element;
+
+                renderElements();
+            }
+        };
+
+        const onReleaseExternalElement = (e: MouseEvent) => {
+            if (interPlayerDrag.ref.current != null) {
+                const canvasBox = canvasRef.current?.getBoundingClientRect();
+                if (!canvasBox) return;
+                const x = e.clientX - canvasBox.left;
+                const seconds = calculateCurrentPosSeconds(x);
+                const offset = interPlayerDrag.offsetLeft.current ?? 0;
+                const currentDragPos = seconds - offset;
+                const element = interPlayerDrag.ref.current;
+                const elementSpan = element.to - element.from;
+
+                const newFrom = currentDragPos;
+                const newTo = currentDragPos + elementSpan
+
+                if (!isEmpty(element, newFrom, newTo)) {
+                    synthLines.repaintAllElements();
+                    return;
+                }
+
+                synthLines.deleteElement(element.uuid);
+
+
+                element.from = newFrom;
+                element.to = newTo;
+                flavorSynthLine.elements.push(element);
+
+                interPlayerDrag.onPlaced.current();
+                currentDraggingElementRef.current = null;
+                interPlayerDrag.ref.current = null;
+                targetElement = null;
+            }
+        };
+
         const wheelArgs = {
             passive: true,
             capture: true
@@ -570,8 +665,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("mouseleave", onMouseLeave);
+        canvas.addEventListener("mouseenter", onMouseEnter);
+        canvas.addEventListener("mouseup", onReleaseExternalElement);
+        canvas.addEventListener("mousemove", onMouseMoveExternalElement);
         canvas.addEventListener("wheel", onWheel);
         canvas.addEventListener("click", onRelease);
+        window.addEventListener("mouseup", onMouseUp);
         window.addEventListener("keydown", onKeyPress);
         // repaint();
 
@@ -579,8 +679,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             canvas.removeEventListener("mousemove", onMouseMove);
             canvas.removeEventListener("mousedown", onMouseDown);
             canvas.removeEventListener("mouseup", onMouseUp);
+            canvas.removeEventListener("mouseleave", onMouseLeave);
+            canvas.removeEventListener("mouseenter", onMouseEnter);
+            canvas.removeEventListener("mouseup", onReleaseExternalElement);
+            canvas.removeEventListener("mousemove", onMouseMoveExternalElement);
             canvas.removeEventListener("wheel", onWheel);
             canvas.removeEventListener("click", onRelease);
+            window.removeEventListener("mouseup", onMouseUp);
             window.removeEventListener("keydown", onKeyPress);
         };
 
