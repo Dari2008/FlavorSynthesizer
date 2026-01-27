@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { Activity, useRef, useState } from "react";
 import { FLAVORS } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
@@ -6,6 +6,7 @@ import FlavorSynth, { type FlavorSynthLine } from "../components/flavorSynth/Fla
 import "./App.scss";
 import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
+import ShareDialog from "../components/shareDialog/ShareDialog";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -35,23 +36,37 @@ export default function App() {
 
     return <>
 
-        {
-            !hasSelectedNewMainFlavor && <MainFlavorSelectionDialog isFirstTimeOpen={isFirstTimeOpen.current} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
-        }
-        {
+        <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
+            <MainFlavorSelectionDialog isFirstTimeOpen={isFirstTimeOpen.current} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
+        </Activity>
+
+        <Activity mode={hasSelectedNewMainFlavor ? "visible" : "hidden"}>
+            <div className="title">
+                <h1>Flavor Synthesizer</h1>
+                <span className="subtitle">Cook Up a Beat</span>
+            </div>
+
+            <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
+
+            <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped}>
+            </FlavorSynth>
+            <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
+            <Activity mode="visible">
+                <ShareDialog></ShareDialog>
+            </Activity>
+
+
+        </Activity>
+
+        {/* {
+
+            !hasSelectedNewMainFlavor && 
+        } */}
+        {/* {
             hasSelectedNewMainFlavor &&
             <>
-                <div className="title">
-                    <h1>Flavor Synthesizer</h1>
-                    <span className="subtitle">Cook Up a Beat</span>
-                </div>
-
-                <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
-
-                <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped}></FlavorSynth>
-                <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
             </>
-        }
+        } */}
 
     </>
 }

@@ -82,11 +82,11 @@
 
             &:hover {
                 label {
-                    transform: translate(-50%, -50%);
+                    transform: translate(-50%, -10%);
                     opacity: 1;
                 }
 
-                transform: translate(0px, -10%);
+                transform: translate(0px, -20%);
             }
 
             .bgImage {
@@ -103,8 +103,9 @@
                     // mask-image: linear-gradient(to bottom, black, white);
                     mask-position: 50% 50%;
                     mask-repeat: no-repeat;
-                    mask-size: cover;
+                    mask-size: contain;
                     mask-mode: alpha;
+                    image-rendering: pixelated;
                 }
 
                 &.main-color-2 {
@@ -113,7 +114,8 @@
                     mask-image: url("./masks/background-main-flavor-vines-mask_alpha.png");
                     mask-position: 50% 50%;
                     mask-repeat: no-repeat;
-                    mask-size: cover;
+                    mask-size: contain;
+                    image-rendering: pixelated;
                 }
             }
 
