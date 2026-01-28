@@ -1,17 +1,6 @@
 @use "../../utils/Variables.scss" as *;
 
-
-.flavor-drag-n-drop-list {
-    transition: opacity 0.4s ease-in-out;
-}
-
-
-#root:has(.share-dialog-wrapper.visible.login) .flavor-drag-n-drop-list {
-    opacity: 0;
-    grid-area: 1/1/5/4;
-}
-
-.share-dialog-wrapper {
+.open-share-dialog-wrapper {
     grid-area: 1/1/5/3;
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0;
@@ -19,14 +8,7 @@
     transition: opacity 0.3s ease-in-out;
     backdrop-filter: blur(10px);
 
-    &:not(.login) {
-        .background-image {
-            opacity: 0 !important;
-        }
-    }
-
-
-    .share-dialog {
+    .open-share-dialog {
         position: relative;
         margin: 40px;
         padding: 20px;
@@ -45,7 +27,10 @@
         grid-column-gap: 20px;
         grid-row-gap: 20px;
 
-
+        button:disabled {
+            border: none !important;
+            cursor: default;
+        }
 
         .background-image {
             position: absolute;
@@ -66,10 +51,6 @@
             }
         }
 
-        *:not(.background-image) {
-            z-index: 100;
-        }
-
 
         h1 {
             grid-area: 1 / 1 / 2 / 3;
@@ -78,29 +59,22 @@
             padding: 20px;
         }
 
-        .share-flavors {
+        .open-share-flavors {
             grid-area: 2 / 1 / 3 / 3;
             width: calc(100% - #{$gap});
             height: calc(100% - #{$gap});
             padding: 20px;
         }
 
-        .share-image {
+        .open-share-image {
             grid-area: 3 / 1 / 4 / 3;
             width: calc(100% - #{$gap});
             height: calc(100% - #{$gap});
             padding: 20px;
         }
 
-        .share-code {
-            grid-area: 4 / 1 / 5 / 2;
-            width: calc(100% - #{$gap});
-            height: calc(100% - #{$gap});
-            padding: 20px;
-        }
-
-        .share-url {
-            grid-area: 4 / 2 / 5 / 3;
+        .open-share-code {
+            grid-area: 4 / 1 / 5 / 3;
             width: calc(100% - #{$gap});
             height: calc(100% - #{$gap});
             padding: 20px;
@@ -160,7 +134,7 @@
     // Flavors share
 
 
-    .share-default-layout {
+    .open-share-default-layout {
         // width: 50%;
         margin-inline: auto;
         display: grid;
@@ -195,7 +169,7 @@
 
         .buttons {
             position: absolute;
-            top: 10px;
+            bottom: 10px;
             right: 10px;
             // grid-area: 4 / 1 / 5 / 2;
             width: max-content;
@@ -203,10 +177,16 @@
             align-self: end;
             display: flex;
             gap: 20px;
+
+            button {
+                font-size: 25px;
+                padding: 10px 20px !important;
+                line-height: 1rem;
+            }
         }
     }
 
-    .share-flavors {
+    .open-share-flavors {
         .combo {
             // grid-area: 3 / 1 / 4 / 2;
             max-width: 60%;
@@ -278,157 +258,48 @@
 
     }
 
-    .share-image {
-
-        .generate-image,
-        .no-generate-image {
-            width: calc(150px - 40px);
-            aspect-ratio: 1 / 1;
-            margin-inline: auto;
-            background-color: rgba(var(--main-color-rgb), 0.4);
-            border-radius: 20px;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            object-fit: contain;
-        }
-    }
-
-    .share-code {
+    .open-share-image {
         .content {
             display: flex;
-            flex-direction: row;
-            gap: 10px;
-            width: max-content;
-            margin-inline: auto;
+            flex-direction: column;
 
-            .digit {
-                font-size: 3em;
-                padding: 5px;
+            .upload {
+                width: max-content;
+                margin-inline: auto;
+                font-size: 1.3rem;
+            }
 
-                &:nth-of-type(3) {
-                    margin-right: 10px;
-                }
+            .imageUpload {
+                display: none;
             }
         }
     }
 
-    .share-url {
+    .open-share-code {
         .content {
             display: grid;
-            grid-template-columns: 1fr max-content;
-            grid-template-rows: 1fr;
+            grid-template-columns: max-content max-content max-content max-content max-content max-content;
+            max-width: 100%;
+            column-gap: 10px;
+            margin-inline: auto;
 
-            .url {
-                grid-area: 1 / 1 / 2 / 2;
-                width: 100%;
+            .digit {
+
+                &:focus {
+                    border: 1px solid var(--secondary-color);
+                }
+
+                font-size: 3em;
+                outline: none;
+                border: none;
+                width: 2.5rem;
+                border-radius: 10px;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 text-align: center;
-                margin: 0;
-                font-size: 22px;
+                aspect-ratio: 1 / 1.5;
             }
-
-            .copy {
-                grid-area: 1 / 2 / 2 / 3;
-                width: max-content;
-                font-size: 20px;
-                padding: 5px 10px;
-            }
-        }
-    }
-
-
-    &.login .share-dialog {
-        display: flex;
-        flex-direction: column;
-        justify-content: start;
-        align-items: center;
-
-        h1 {
-            width: 100%;
-            height: max-content;
-        }
-
-        .disclaimer {
-            width: 60%;
-            font-size: 20px;
-            text-align: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0.7;
-        }
-
-        .center {
-            width: 100%;
-            margin-block: auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .login-div {
-            width: 50%;
-            max-width: 300px;
-            min-width: 100px;
-            display: grid;
-            grid-template-columns: 1fr max-content;
-            grid-template-rows: repeat(4, auto);
-            grid-column-gap: 0px;
-            grid-row-gap: 10px;
-            background-color: rgba(var(--secondary-color-rgb), 0.3);
-            padding: 20px;
-            border-radius: 20px;
-
-            h3 {
-                grid-area: 1 / 1 / 2 / 3;
-                font-size: 3rem;
-                line-height: 1rem;
-                margin: 10px;
-                text-align: center;
-            }
-
-            input {
-                width: calc(100% - 20px);
-                height: calc(100% - 20px);
-                border: none;
-                outline: none;
-                padding: 10px;
-                border-radius: 10px;
-                font-size: 24px;
-            }
-
-            .username {
-                grid-area: 2 / 1 / 3 / 3;
-            }
-
-            .password {
-                grid-area: 3/1/4/3;
-            }
-
-            .login {
-                grid-area: 4 / 1 / 5 / 3;
-                font-size: 20px;
-            }
-        }
-
-        .microcopy {
-            margin-top: 0;
-            opacity: 0.4;
-            color: white;
-            text-align: center;
-            user-select: none;
-            pointer-events: none;
-        }
-
-        .share-anyways {
-            font-size: 25px;
-            margin-top: 3rem;
         }
     }
 

@@ -7,6 +7,7 @@ import "./App.scss";
 import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
 import ShareDialog from "../components/shareDialog/ShareDialog";
+import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -14,6 +15,8 @@ export default function App() {
     const reselectMainFlavorRef = useRef<() => void>(() => 0);
     const isFirstTimeOpen = useRef<boolean>(true);
     const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
+    const [isShareOpen, setShareOpen] = useState<boolean>(false);
+    const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
 
     const setMainFlavor = (flavor: MainFlavor) => {
         isFirstTimeOpen.current = false;
@@ -34,6 +37,10 @@ export default function App() {
         }, 300);
     };
 
+    const open = (data: OpenData) => {
+        console.log(data);
+    };
+
     return <>
 
         <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
@@ -48,11 +55,14 @@ export default function App() {
 
             <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
 
-            <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped}>
+            <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => setOpenShareOpen(true)}>
             </FlavorSynth>
             <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
-            <Activity mode="visible">
-                <ShareDialog></ShareDialog>
+            <Activity mode={isShareOpen ? "visible" : "hidden"}>
+                <ShareDialog visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
+            </Activity>
+            <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
+                <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>
             </Activity>
 
 

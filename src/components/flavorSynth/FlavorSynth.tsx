@@ -21,7 +21,7 @@ type EventListWithUUID<T> = {
     [uuid: string]: T;
 };
 
-export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLinesWrapped: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>]; mainFlavor: MainFlavor; }) {
+export default function FlavorSynth({ synthLinesWrapped, mainFlavor, openShare, openOpenShare }: { synthLinesWrapped: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>]; mainFlavor: MainFlavor; openShare: () => void; openOpenShare: () => void; }) {
     // const [synthLines, setSynthLines] = useState<FlavorSynthLine[]>(synthLinesPres);
     const [synthLines, setSynthLines] = synthLinesWrapped;
     const widthRef = useRef<number>(getCurrentTrackWidth());
@@ -398,10 +398,10 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor }: { synthLi
                 </div>
             </div>
             <div className="buttons">
-                <button className="share" onClick={() => console.log("Share")}>
+                <button className="share" onClick={openShare}>
                     Share
                 </button>
-                <button className="openShared" onClick={() => console.log("Open Shared")}>
+                <button className="openShared" onClick={openOpenShare}>
                     Open Shared
                 </button>
             </div>
