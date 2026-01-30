@@ -8,6 +8,8 @@ import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
 import ShareDialog from "../components/shareDialog/ShareDialog";
 import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
+import { ToastContainer } from "react-toastify";
+import { useConfirm } from "../components/dialogs/ConfirmDialogContext";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -17,6 +19,7 @@ export default function App() {
     const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
     const [isShareOpen, setShareOpen] = useState<boolean>(false);
     const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
+    const confirm = useConfirm().confirm;
 
     const setMainFlavor = (flavor: MainFlavor) => {
         isFirstTimeOpen.current = false;
@@ -37,11 +40,20 @@ export default function App() {
         }, 300);
     };
 
-    const open = (data: OpenData) => {
+    const open = async (data: OpenData) => {
+        if (getTrackData().length != 0) {
+            const want = await confirm("Do you want to override the current tracks?", "noYes");
+            if (!want) return;
+        }
         console.log(data);
     };
 
+    const getTrackData = (): FlavorSynthLine[] => {
+        return synthLinesWrapped[0];
+    };
+
     return <>
+        <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
         <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
             <MainFlavorSelectionDialog isFirstTimeOpen={isFirstTimeOpen.current} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
@@ -59,7 +71,7 @@ export default function App() {
             </FlavorSynth>
             <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
-                <ShareDialog visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
+                <ShareDialog getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
             </Activity>
             <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
                 <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>

@@ -4,9 +4,12 @@
     grid-area: 1/1/5/3;
     background-color: rgba(0, 0, 0, 0.5);
     opacity: 0;
-    pointer-events: none;
     transition: opacity 0.3s ease-in-out;
     backdrop-filter: blur(10px);
+
+    &:not(.visible) {
+        pointer-events: none;
+    }
 
     .open-share-dialog {
         position: relative;

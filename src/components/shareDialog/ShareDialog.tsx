@@ -1,7 +1,11 @@
-import { useRef, useState } from "react";
+import { isValidElement, useRef, useState } from "react";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
+import { BASE_URL } from "../../utils/Statics";
+import type { APIResponse, Digit, FlavorsSelected, LoginResponse, ShareErrorResponse, ShareResponse } from "../../@types/Api";
+import Utils from "../../utils/Utils";
+import type { FlavorSynthLine } from "../flavorSynth/FlavorSynth";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -13,7 +17,7 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
-export default function ShareDialog({ visible, setShareDialogOpened }: { visible: boolean; setShareDialogOpened: (open: boolean) => void }) {
+export default function ShareDialog({ visible, setShareDialogOpened, getTrackData }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[] }) {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
@@ -24,6 +28,11 @@ export default function ShareDialog({ visible, setShareDialogOpened }: { visible
     const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
     const [accepedUnchangable, setAcceptedUnchangable] = useState<boolean>(false);
     const imageIdRef = useRef<string>(generateRandomBackgroundImage());
+    const [isLogin, setIsLogin] = useState<boolean>(checkIfLoggedIn());
+
+    const loginEmailRef = useRef<HTMLInputElement>(null);
+    const loginUsernameRef = useRef<HTMLInputElement>(null);
+    const loginPasswordRef = useRef<HTMLInputElement>(null);
 
     const setShareDigits = (numbers: Digit[]) => {
         setSD(numbers);
@@ -75,16 +84,118 @@ export default function ShareDialog({ visible, setShareDialogOpened }: { visible
         }
     };
 
-    const publish = () => {
+    const publish = async () => {
+        const tracks = getTrackData();
+        if (tracks.length == 0) {
+            Utils.error("Can't share nothing");
+            return;
+        }
+
+        const elementCount = tracks.map(e => e.elements).flat().length;
+        if (elementCount <= 0) {
+            Utils.error("Can't share nothing");
+            return;
+        }
+
+        if (currentFlavorsSelected.length != 6) {
+            Utils.error("Your flavor code has to be 6 flavors long");
+            return;
+        }
+
+        const compiledTracks = tracks.map(track => {
+            const compiledTrack = {
+                volume: track.volume,
+                muted: track.muted,
+                solo: track.solo,
+                elements: track.elements.map(element => {
+                    const compiledElement = {
+                        from: element.from,
+                        to: element.to,
+                        flavor: element.flavor.name
+                    };
+                    return compiledElement;
+                })
+            };
+            return compiledTrack;
+        })
+
+        const response = await (await fetch(BASE_URL + "/share/share.php", {
+            method: "POST",
+            body: JSON.stringify({
+                jwt: localStorage.getItem("jwt") ?? undefined,
+                tracks: compiledTracks,
+                flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
+            })
+        })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
+
+        if (response.status == "error") {
+            if (response.flavorComboExists) {
+                Utils.error("This flavor combo already exists!");
+                return;
+            }
+            Utils.error("Failed to publish your dish");
+            return;
+        }
+
+        setShareDigits(response.dishData.code);
+        // setCurrentFlavorsSelected(response.flavors.map((e, i) => ({ flavor: e, index: i })));
+        setAIGeneratedImageBase64(response.dishData.aiImage);
+        Utils.success("Published your dish");
+
         setPublished(true);
     };
 
-    const login = () => {
-        setLoggedIn(true);
+    const login = async () => {
+        const username = loginUsernameRef.current?.value;
+        const password = loginPasswordRef.current?.value;
+
+        const result = await (await fetch(BASE_URL + "/users/login.php", {
+            method: "POST",
+            body: JSON.stringify({
+                username,
+                password
+            })
+        })).json() as APIResponse<LoginResponse>;
+
+        if (result.status == "error") {
+            Utils.error(result.message);
+            return;
+        } else {
+            Utils.success(result.message ?? "Successfully Logged in");
+            localStorage.setItem("jwt", result.jwtData.jwt);
+            localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
+            setLoggedIn(true);
+        }
     };
 
     const shareAnyways = () => {
         setAcceptedUnchangable(true);
+    };
+
+    const register = async () => {
+        const username = loginUsernameRef.current?.value;
+        const password = loginPasswordRef.current?.value;
+        const email = loginEmailRef.current?.value;
+
+        const result = await (await fetch(BASE_URL + "/users/register.php", {
+            method: "POST",
+            body: JSON.stringify({
+                username,
+                password,
+                email
+            })
+        })).json() as APIResponse<LoginResponse>;
+
+        if (result.status == "error") {
+            Utils.error(result.message);
+            return;
+        } else {
+            Utils.success(result.message ?? "Successfully Registered");
+            localStorage.setItem("jwt", result.jwtData.jwt);
+            localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
+            setLoggedIn(true);
+        }
+
     };
 
     return <div className={"share-dialog-wrapper" + (visible ? " visible" : "") + (!isLoggedIn && !accepedUnchangable ? " login" : "")}>
@@ -102,10 +213,12 @@ export default function ShareDialog({ visible, setShareDialogOpened }: { visible
                     <div className="center">
 
                         <div className="login-div">
-                            <h3>Login</h3>
-                            <input placeholder="Username" type="text" className="username" />
-                            <input placeholder="Password" type="password" className="password" />
-                            <button className="login" onClick={() => login()}>Login</button>
+                            <h3>{isLogin ? "Login" : "Register"}</h3>
+                            {!isLogin && <input placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
+                            <input placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
+                            <input placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
+                            <button className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</button>
+                            <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
                         </div>
                         <span className="microcopy">Edit later · Track stats · Keep ownership</span>
 
@@ -258,13 +371,6 @@ export default function ShareDialog({ visible, setShareDialogOpened }: { visible
     </div>;
 }
 
-type FlavorsSelected = {
-    flavor: Flavor;
-    index: number;
-};
-
-type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
-
 function generateRandomBackgroundImage() {
     const all = [
         "dish.png",
@@ -358,4 +464,14 @@ function copyTextOfFlavors(flavors: FlavorsSelected[]) {
 function randomFlavor() {
     const fl = FLAVORS.map(e => e.NAME);
     return fl[Math.round(Math.random() * (fl.length - 1))];
+}
+
+function checkIfLoggedIn() {
+    const jwt = localStorage.getItem("jwt");
+    const allowedDate = localStorage.getItem("allowedUntil");
+    if (!jwt) return false;
+    if (!allowedDate) return false;
+    const parsedUntil = parseInt(allowedDate) * 1000;
+    if (Date.now() > parsedUntil) return false;
+    return true;
 }

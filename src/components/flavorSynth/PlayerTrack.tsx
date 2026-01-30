@@ -538,7 +538,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
         const onMouseUp = () => {
             isMouseDown = false;
-            console.log("Mouse up!!");
+            // console.log("Mouse up!!");
         };
 
         const onRelease = (e: MouseEvent) => {

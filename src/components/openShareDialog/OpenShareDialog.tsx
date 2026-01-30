@@ -4,6 +4,7 @@ import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
+const AI_IMAGE_SIZE = 64;
 
 const maskImageVines = new Image();
 maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
@@ -18,10 +19,11 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
     const comboBoxRef = useRef<HTMLDivElement>(null);
     const digitsRef = useRef<HTMLDivElement>(null);
     const uploadedImageInputRef = useRef<HTMLInputElement>(null);
-    const okBtnCodeRef = useRef<HTMLButtonElement>(null);
-    const okButtonOpenImageRef = useRef<HTMLButtonElement>(null);
-    const okButtonShareFlavorRef = useRef<HTMLButtonElement>(null);
     const currentUploadedFileNameDisplayRef = useRef<HTMLInputElement>(null);
+
+    const [isOkButtonCodeIsDisabled, setOkButtonCodeIsDisabled] = useState<boolean>(true);
+    const [isOkButtonFlavorsIsDisabled, setOkButtonFlavorsIsDisabled] = useState<boolean>(true);
+    const [isOkButtonUploadedIsDisabled, setOkButtonUploadedIsDisabled] = useState<boolean>(true);
 
 
     const getFlavorIndex = (index: number) => {
@@ -69,15 +71,13 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
     };
 
     const checkForValidFlavors = () => {
-        console.log(currentFlavorsSelected);
         for (let i = 0; i < SHARE_FLAVOR_COMBO_LENGTH; i++) {
-            console.log(i, getFlavorIndex(i));
             if (getFlavorIndex(i) == undefined) {
-                okButtonShareFlavorRef.current && (okButtonShareFlavorRef.current.disabled = true);
+                setOkButtonFlavorsIsDisabled(true);
                 return;
             }
         }
-        okButtonShareFlavorRef.current && (okButtonShareFlavorRef.current.disabled = false);
+        setOkButtonFlavorsIsDisabled(false);
     }
 
     const openFlavors = () => {
@@ -104,8 +104,8 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
             if (!digitsRef.current) return undefined;
             const element = digitsRef.current.querySelector(`input[data-index="${i}"]`) as HTMLInputElement;
             return Math.round(parseInt(element.value ?? "0") % 10) as Digit;
-        }).filter(e => !!e);
-        if (digits.length != 6) return;
+        }).filter(e => (e != null && e != undefined));
+        if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) return;
 
         open({
             type: "code",
@@ -144,7 +144,7 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
                     }
                 </div>
                 <div className="buttons">
-                    <button className="ok" disabled onClick={() => openFlavors()} ref={okButtonShareFlavorRef}>Ok</button>
+                    <button className="ok" disabled={isOkButtonFlavorsIsDisabled} onClick={() => openFlavors()}>Open</button>
                 </div>
             </div>
 
@@ -159,16 +159,40 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
                             const files = uploadedImageInputRef.current?.files;
                             if (!files) {
                                 currentUploadedFileNameDisplayRef.current.textContent = "";
-                                okButtonOpenImageRef.current && (okButtonOpenImageRef.current.disabled = true);
+                                setOkButtonUploadedIsDisabled(true);
                                 return;
                             }
-                            currentUploadedFileNameDisplayRef.current.textContent = files[0].name;
-                            okButtonOpenImageRef.current && (okButtonOpenImageRef.current.disabled = false);
+
+                            fileToBase64(files[0]).then(imageData => {
+
+                                const image = new Image();
+                                image.src = imageData;
+
+                                image.onload = () => {
+                                    const width = image.width;
+                                    const height = image.height;
+                                    if (width != AI_IMAGE_SIZE || height != AI_IMAGE_SIZE) {
+                                        if (currentUploadedFileNameDisplayRef.current) {
+                                            currentUploadedFileNameDisplayRef.current.textContent = "Error: Too big (" + files[0].name + ")";
+                                        }
+                                        setOkButtonUploadedIsDisabled(true);
+                                        return;
+                                    }
+                                    if (currentUploadedFileNameDisplayRef.current) {
+                                        currentUploadedFileNameDisplayRef.current.textContent = files[0].name;
+                                    }
+                                    setOkButtonUploadedIsDisabled(false);
+                                };
+                            });
+                            if (currentUploadedFileNameDisplayRef.current) {
+                                currentUploadedFileNameDisplayRef.current.textContent = "Loading: " + files[0].name;
+                            }
+                            setOkButtonUploadedIsDisabled(true);
                         }
                     }} ref={uploadedImageInputRef} />
                 </div>
                 <div className="buttons">
-                    <button className="ok" onClick={() => openImage()} disabled ref={okButtonOpenImageRef}>Ok</button>
+                    <button className="ok" disabled={isOkButtonUploadedIsDisabled} onClick={() => openImage()} >Open</button>
                 </div>
             </div>
             <div className="open-share-code open-share-default-layout">
@@ -193,20 +217,15 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
                                         `input[data-index='${i - 1}']`
                                     ) as HTMLInputElement | null;
 
-                                    // r.addEventListener('keyup', () => {
-                                    //     if (r.value && i < SHARE_FLAVOR_COMBO_LENGTH - 1) {
-                                    //         next?.focus();
-                                    //     }
-                                    // });
-
                                     const paste = (content: string | undefined) => {
-                                        console.log(content);
+                                        content = content?.replaceAll(/\s/g, "");
                                         if (content?.length != SHARE_FLAVOR_COMBO_LENGTH) return;
                                         for (let i = 0; i < SHARE_FLAVOR_COMBO_LENGTH; i++) {
                                             const c = parentDiv.querySelector(`input[data-index='${i}']`) as HTMLInputElement | null;
                                             if (c) c.value = content.at(i) ?? "0";
                                         }
                                         checkForValid();
+                                        (parentDiv.querySelector(`input[data-index='${SHARE_FLAVOR_COMBO_LENGTH - 1}']`) as HTMLInputElement | null)?.focus();
                                     };
 
                                     const checkForValid = () => {
@@ -215,12 +234,12 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
                                             const element = digitsRef.current.querySelector(`input[data-index="${i}"]`) as HTMLInputElement;
                                             if (!element.value) return;
                                             return Math.round(parseInt(element.value) % 10) as Digit;
-                                        }).filter(e => !!e);
-                                        if (digits.length != 6) {
-                                            if (okBtnCodeRef.current) okBtnCodeRef.current.disabled = true;
+                                        }).filter(e => (e != null && e != undefined));
+                                        if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) {
+                                            setOkButtonCodeIsDisabled(true);
                                             return;
                                         }
-                                        if (okBtnCodeRef.current) okBtnCodeRef.current.disabled = false;
+                                        setOkButtonCodeIsDisabled(false);
                                     };
 
                                     r.addEventListener("paste", (e: ClipboardEvent) => {
@@ -305,7 +324,7 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
                 </div>
 
                 <div className="buttons">
-                    <button className="ok" disabled onClick={() => openCode()} ref={okBtnCodeRef}>Ok</button>
+                    <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => openCode()}>Open</button>
                 </div>
 
             </div>
