@@ -29,6 +29,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
     const [accepedUnchangable, setAcceptedUnchangable] = useState<boolean>(false);
     const imageIdRef = useRef<string>(generateRandomBackgroundImage());
     const [isLogin, setIsLogin] = useState<boolean>(checkIfLoggedIn());
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const loginEmailRef = useRef<HTMLInputElement>(null);
     const loginUsernameRef = useRef<HTMLInputElement>(null);
@@ -118,7 +119,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             };
             return compiledTrack;
         })
-
+        // setIsLoading(true);
         const response = await (await fetch(BASE_URL + "/share/share.php", {
             method: "POST",
             body: JSON.stringify({
@@ -127,6 +128,8 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
                 flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
             })
         })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
+
+        // setIsLoading(false);
 
         if (response.status == "error") {
             if (response.flavorComboExists) {
@@ -149,6 +152,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
         const username = loginUsernameRef.current?.value;
         const password = loginPasswordRef.current?.value;
 
+        setIsLoading(true);
         const result = await (await fetch(BASE_URL + "/users/login.php", {
             method: "POST",
             body: JSON.stringify({
@@ -156,6 +160,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
                 password
             })
         })).json() as APIResponse<LoginResponse>;
+        setIsLoading(false);
 
         if (result.status == "error") {
             Utils.error(result.message);
@@ -177,6 +182,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
         const password = loginPasswordRef.current?.value;
         const email = loginEmailRef.current?.value;
 
+        setIsLoading(true);
         const result = await (await fetch(BASE_URL + "/users/register.php", {
             method: "POST",
             body: JSON.stringify({
@@ -185,6 +191,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
                 email
             })
         })).json() as APIResponse<LoginResponse>;
+        setIsLoading(false);
 
         if (result.status == "error") {
             Utils.error(result.message);
@@ -205,7 +212,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             <h1>Share your dish</h1>
 
             {
-                !isLoggedIn && !accepedUnchangable && <>
+                !isLoggedIn && !accepedUnchangable && !isLoading && <>
                     <span className="disclaimer">
                         Log in to save and edit it later - or share once and move on.
                     </span>
@@ -220,11 +227,11 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
                             <button className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</button>
                             <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
                         </div>
-                        <span className="microcopy">Edit later · Track stats · Keep ownership</span>
+                        <span className="microcopy">Edit later · Track stats · Keep ownership · AI Image for Sharing</span>
 
                         <div className="buttons-below-first-share">
                             <button className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</button>
-                            <div className="microcopy">One-time share · No edits later</div>
+                            <div className="microcopy">One-time share · No edits later · No AI Image</div>
                         </div>
                     </div>
 
@@ -232,7 +239,13 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             }
 
             {
-                (isLoggedIn || accepedUnchangable) && <>
+                isLoading && <>
+                    <span className="loader"></span>
+                </>
+            }
+
+            {
+                ((isLoggedIn || accepedUnchangable) && !isLoading) && <>
 
                     <div className="share-flavors share-default-layout">
                         <h2>Share Flavor</h2>

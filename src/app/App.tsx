@@ -10,6 +10,10 @@ import ShareDialog from "../components/shareDialog/ShareDialog";
 import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
 import { ToastContainer } from "react-toastify";
 import { useConfirm } from "../components/dialogs/ConfirmDialogContext";
+import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
+import { BASE_URL } from "../utils/Statics";
+import Utils from "../utils/Utils";
+import { createElementForFlavor } from "../components/FlavorUtils";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -17,6 +21,7 @@ export default function App() {
     const reselectMainFlavorRef = useRef<() => void>(() => 0);
     const isFirstTimeOpen = useRef<boolean>(true);
     const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
+    const [isOpenedDish, setIsOpenedDish] = useState<boolean>(false);
     const [isShareOpen, setShareOpen] = useState<boolean>(false);
     const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
     const confirm = useConfirm().confirm;
@@ -45,7 +50,43 @@ export default function App() {
             const want = await confirm("Do you want to override the current tracks?", "noYes");
             if (!want) return;
         }
-        console.log(data);
+
+        if (data.type == "url") {
+            const params = (new URL(data.url)).searchParams;
+            const code = params.get("code") ?? -1;
+            if (code == -1) return;
+            if (!code) return;
+            data = {
+                type: "code",
+                code: code.split("").map(e => parseInt(e) as Digit)
+            };
+        }
+
+        const response = await (await fetch(BASE_URL + "/share/open.php", {
+            method: "POST",
+            body: JSON.stringify({
+                ...data
+            })
+        })).json() as APIResponse<OpenShareResponse>;
+
+        if (response.status == "error") {
+            Utils.error("Couldn't open dish");
+            return;
+        }
+
+        synthLinesWrapped[1](response.tracks.map(e => {
+            return {
+                uuid: Utils.uuidv4(),
+                muted: e.muted,
+                solo: e.solo,
+                volume: e.volume,
+                elements: e.elements.map(e => {
+                    return createElementForFlavor(e.flavor, e.from, e.to);
+                })
+            }
+        }));
+        setIsOpenedDish(true);
+        setOpenShareOpen(false);
     };
 
     const getTrackData = (): FlavorSynthLine[] => {

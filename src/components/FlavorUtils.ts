@@ -93,6 +93,7 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number)
 
     const starMask = new Image();
     starMask.src = STAR_MASK_IMAGE;
+    console.log(flavor);
 
     const d: FlavorElement = {
         from: from,

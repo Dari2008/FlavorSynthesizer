@@ -94,8 +94,8 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
         if (!files) return;
         const file = files[0];
         open({
-            type: "image",
-            image: (await fileToBase64(file)) ?? ""
+            type: "aiImage",
+            aiImage: (await fileToBase64(file)) ?? ""
         });
     };
 
@@ -371,8 +371,8 @@ type OpenCode = {
 }
 
 type OpenAIImage = {
-    type: "image";
-    image: string;
+    type: "aiImage";
+    aiImage: string;
 }
 
 type OpenURL = {

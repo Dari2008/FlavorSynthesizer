@@ -1,3 +1,4 @@
+import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import type { Flavor } from "./Flavors";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
@@ -36,6 +37,18 @@ export type ShareResponse = {
     };
 };
 
+export type OpenShareResponse = {
+    tracks: {
+        solo: boolean;
+        muted: boolean;
+        volume: number;
+        elements: {
+            from: number;
+            to: number;
+            flavor: Flavor;
+        }[];
+    }[];
+}
 
 
 export type FlavorsSelected = {
