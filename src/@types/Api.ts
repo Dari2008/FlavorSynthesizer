@@ -1,5 +1,5 @@
 import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
-import type { Flavor } from "./Flavors";
+import type { Flavor, MainFlavor } from "./Flavors";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
 
@@ -48,6 +48,7 @@ export type OpenShareResponse = {
             flavor: Flavor;
         }[];
     }[];
+    mainFlavor: MainFlavor;
 }
 
 

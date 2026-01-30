@@ -1,4 +1,4 @@
-import { Activity, useRef, useState } from "react";
+import { Activity, useEffect, useRef, useState } from "react";
 import { FLAVORS } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
@@ -45,6 +45,8 @@ export default function App() {
         }, 300);
     };
 
+
+
     const open = async (data: OpenData) => {
         if (getTrackData().length != 0) {
             const want = await confirm("Do you want to override the current tracks?", "noYes");
@@ -74,6 +76,7 @@ export default function App() {
             return;
         }
 
+        setMainFlavor(response.mainFlavor);
         synthLinesWrapped[1](response.tracks.map(e => {
             return {
                 uuid: Utils.uuidv4(),
@@ -87,11 +90,16 @@ export default function App() {
         }));
         setIsOpenedDish(true);
         setOpenShareOpen(false);
+        setHasSelectedNewMainFlavor(true);
     };
+
 
     const getTrackData = (): FlavorSynthLine[] => {
         return synthLinesWrapped[0];
     };
+    useEffect(() => {
+        open({ type: "url", url: location.href });
+    }, [location.href]);
 
     return <>
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
@@ -112,7 +120,7 @@ export default function App() {
             </FlavorSynth>
             <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
-                <ShareDialog getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
+                <ShareDialog getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
             </Activity>
             <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
                 <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>

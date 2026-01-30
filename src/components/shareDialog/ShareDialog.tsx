@@ -1,5 +1,5 @@
 import { isValidElement, useRef, useState } from "react";
-import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
+import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { BASE_URL } from "../../utils/Statics";
@@ -17,7 +17,7 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
-export default function ShareDialog({ visible, setShareDialogOpened, getTrackData }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[] }) {
+export default function ShareDialog({ visible, setShareDialogOpened, getTrackData, getMainFlavor }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[]; getMainFlavor: () => MainFlavor; }) {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
@@ -125,6 +125,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             body: JSON.stringify({
                 jwt: localStorage.getItem("jwt") ?? undefined,
                 tracks: compiledTracks,
+                mainFlavor: getMainFlavor(),
                 flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
             })
         })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
