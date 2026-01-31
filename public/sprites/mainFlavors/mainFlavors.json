@@ -1,0 +1,38 @@
+{
+    "bitter.jpg": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "salty.jpg": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "savory.jpg": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "sour.jpg": {
+        "x": 192,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "spicy.jpg": {
+        "x": 256,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "sweet.jpg": {
+        "x": 320,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    }
+}

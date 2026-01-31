@@ -119,7 +119,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             };
             return compiledTrack;
         })
-        // setIsLoading(true);
+        setIsLoading(true);
         const response = await (await fetch(BASE_URL + "/share/share.php", {
             method: "POST",
             body: JSON.stringify({
@@ -130,7 +130,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             })
         })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
 
-        // setIsLoading(false);
+        setIsLoading(false);
 
         if (response.status == "error") {
             if (response.flavorComboExists) {
@@ -323,6 +323,15 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
                                             }, 2000);
                                         }
                                     }}>Copy Image</button>
+                                    <button className="download-image" onClick={(e) => {
+                                        downloadImage(AIGeneratedImageBase64);
+                                        if (e.target instanceof HTMLButtonElement) {
+                                            (e.target as HTMLButtonElement).textContent = "Downloading...";
+                                            setTimeout(() => {
+                                                (e.target as HTMLButtonElement).textContent = "Download Image";
+                                            }, 2000);
+                                        }
+                                    }}>Download Image</button>
                                 </div>
                             </>
                         }
@@ -409,6 +418,14 @@ async function copyAIImage(base64: string) {
     await navigator.clipboard.write([
         new ClipboardItem({ [blob.type]: blob })
     ]);
+}
+
+async function downloadImage(base64: string) {
+    const a = document.createElement("a");
+    a.download = "dish-image";
+    a.href = base64;
+    a.click();
+
 }
 
 async function copyImageOfFlavors(flavors: FlavorsSelected[]) {

@@ -14,6 +14,7 @@ import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
 import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
+import InitialMenu, { type SelectableElement } from "../components/initialMenu/InitialMenu";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -24,12 +25,15 @@ export default function App() {
     const [isOpenedDish, setIsOpenedDish] = useState<boolean>(false);
     const [isShareOpen, setShareOpen] = useState<boolean>(false);
     const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
+    const [isMainMenuOpen, setMainMenuOpen] = useState<boolean>(true);
+    const [isFlavorListVisible, setFlavorListVisible] = useState<boolean>(false);
     const confirm = useConfirm().confirm;
 
     const setMainFlavor = (flavor: MainFlavor) => {
         isFirstTimeOpen.current = false;
         setMF(flavor);
         setHasSelectedNewMainFlavor(true);
+        setFlavorListVisible(true);
         document.body.setAttribute("data-flavor", flavor);
         const st = document.body.style;
         st.setProperty("--main-color", MAIN_FLAVOR_COLOR[flavor][0]);
@@ -45,7 +49,17 @@ export default function App() {
         }, 300);
     };
 
+    const opneShare = () => {
+        setFlavorListVisible(true);
+        setShareOpen(true);
+        setOpenShareOpen(false);
+    };
 
+    const openOpenShare = () => {
+        setFlavorListVisible(true);
+        setShareOpen(false);
+        setOpenShareOpen(true);
+    }
 
     const open = async (data: OpenData) => {
         if (getTrackData().length != 0) {
@@ -101,14 +115,36 @@ export default function App() {
         open({ type: "url", url: location.href });
     }, [location.href]);
 
+    const openStateChanged = (element: SelectableElement) => {
+        switch (element) {
+            case "add":
+                setMainMenuOpen(false);
+                setHasSelectedNewMainFlavor(false);
+                synthLinesWrapped[1]([]);
+                break;
+            case "open":
+                setMainMenuOpen(false);
+                setMainFlavor("Sour");
+                openOpenShare();
+                break;
+            case "list":
+                setMainMenuOpen(false);
+                break;
+        }
+    };
+
     return <>
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
-        <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
+        <Activity mode={isMainMenuOpen ? "visible" : "hidden"}>
+            <InitialMenu openStateChanged={openStateChanged}></InitialMenu>
+        </Activity>
+
+        <Activity mode={hasSelectedNewMainFlavor || isMainMenuOpen ? "hidden" : "visible"}>
             <MainFlavorSelectionDialog isFirstTimeOpen={isFirstTimeOpen.current} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
         </Activity>
 
-        <Activity mode={hasSelectedNewMainFlavor ? "visible" : "hidden"}>
+        <Activity mode={hasSelectedNewMainFlavor && !isOpenShareOpen ? "visible" : "hidden"}>
             <div className="title">
                 <h1>Flavor Synthesizer</h1>
                 <span className="subtitle">Cook Up a Beat</span>
@@ -118,15 +154,19 @@ export default function App() {
 
             <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => setOpenShareOpen(true)}>
             </FlavorSynth>
-            <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
                 <ShareDialog getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
             </Activity>
-            <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
-                <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>
-            </Activity>
 
 
+        </Activity>
+
+        <Activity mode={isFlavorListVisible ? "visible" : "hidden"}>
+            <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
+        </Activity>
+
+        <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
+            <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>
         </Activity>
 
         {/* {

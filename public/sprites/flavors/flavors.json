@@ -1,0 +1,440 @@
+{
+    "Almond.png": {
+        "x": 0,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Apple.png": {
+        "x": 64,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Balsamic.png": {
+        "x": 128,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Banana.png": {
+        "x": 192,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Barbecue.png": {
+        "x": 256,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Basil.png": {
+        "x": 320,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Blackberry.png": {
+        "x": 384,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Blueberry.png": {
+        "x": 448,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Brown Sugar.png": {
+        "x": 512,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Brownie.png": {
+        "x": 576,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Butterscotch.png": {
+        "x": 640,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Caesar.png": {
+        "x": 704,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Caramel.png": {
+        "x": 768,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Carrot Cake.png": {
+        "x": 832,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Chai.png": {
+        "x": 896,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cheesecake.png": {
+        "x": 960,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cherry.png": {
+        "x": 1024,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Chocolate Chip Cookie.png": {
+        "x": 1088,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Chocolate.png": {
+        "x": 1152,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cinnamon.png": {
+        "x": 1216,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Coconut.png": {
+        "x": 1280,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Coffee.png": {
+        "x": 1344,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cookies_Cream.png": {
+        "x": 1408,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cranberry.png": {
+        "x": 1472,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Cupcake.png": {
+        "x": 1536,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Donut.png": {
+        "x": 1600,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Earl Grey.png": {
+        "x": 1664,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Espresso.png": {
+        "x": 1728,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Fudge.png": {
+        "x": 1792,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Garlic.png": {
+        "x": 1856,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Gingerbread.png": {
+        "x": 1920,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Grapefruit.png": {
+        "x": 1984,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Green Tea.png": {
+        "x": 2048,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Hazelnut.png": {
+        "x": 2112,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Honey Mustard.png": {
+        "x": 2176,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Honey.png": {
+        "x": 2240,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Ketchup.png": {
+        "x": 2304,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Lavender.png": {
+        "x": 2368,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Lemon.png": {
+        "x": 2432,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Lemongrass.png": {
+        "x": 2496,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Lime.png": {
+        "x": 2560,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Mango.png": {
+        "x": 2624,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Maple.png": {
+        "x": 2688,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Marshmallow.png": {
+        "x": 2752,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Matcha.png": {
+        "x": 2816,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Mayonnaise.png": {
+        "x": 2880,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Mocha.png": {
+        "x": 2944,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Molasses.png": {
+        "x": 3008,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Mustard.png": {
+        "x": 3072,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Nutmeg.png": {
+        "x": 3136,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Onion.png": {
+        "x": 3200,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Orange.png": {
+        "x": 3264,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Peach.png": {
+        "x": 3328,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Peanut Butter.png": {
+        "x": 3392,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Pickle.png": {
+        "x": 3456,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Pineapple.png": {
+        "x": 3520,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Pistachio.png": {
+        "x": 3584,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Pomegranate.png": {
+        "x": 3648,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Pumpkin Spice.png": {
+        "x": 3712,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Ranch.png": {
+        "x": 3776,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Raspberry.png": {
+        "x": 3840,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Red Velvet.png": {
+        "x": 3904,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Rose.png": {
+        "x": 3968,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Rosemary.png": {
+        "x": 4032,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Smores.png": {
+        "x": 4096,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Snickerdoodle.png": {
+        "x": 4160,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Soy Sauce.png": {
+        "x": 4224,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Strawberry.png": {
+        "x": 4288,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Teriyaki.png": {
+        "x": 4352,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Thyme.png": {
+        "x": 4416,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Tiramisu.png": {
+        "x": 4480,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Vanilla.png": {
+        "x": 4544,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    },
+    "Watermelon.png": {
+        "x": 4608,
+        "y": 0,
+        "width": 64,
+        "height": 64
+    }
+}
