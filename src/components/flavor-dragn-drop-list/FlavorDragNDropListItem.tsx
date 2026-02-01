@@ -5,9 +5,10 @@ import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecon
 
 type Props = {
     player: FlavorFileMusic;
+    hasDownloaded: boolean;
 }
 
-export default function FlavorDragNDropListItem({ player }: Props) {
+export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props) {
 
     const [isPlaying, setPl] = useState<boolean>(false);
     const playerRef = useRef<FlavorFileMusic>(null);
@@ -15,7 +16,7 @@ export default function FlavorDragNDropListItem({ player }: Props) {
     const itemRef = useRef<HTMLLIElement>(null);
     const flavorImage = useRef<HTMLImageElement>(null);
 
-    if (playerRef.current == null && responseWaitRef.current == null) responseWaitRef.current = player.clone().then(c => {
+    if (playerRef.current == null && responseWaitRef.current == null && hasDownloaded) responseWaitRef.current = player.clone().then(c => {
         playerRef.current = c;
         playerRef.current.getPlayers().forEach(pl => {
             pl.onstop = (() => {

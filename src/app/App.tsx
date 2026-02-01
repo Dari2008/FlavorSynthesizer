@@ -1,5 +1,5 @@
 import { Activity, useEffect, useRef, useState } from "react";
-import { FLAVORS } from "../audio/Flavors";
+import { FLAVORS, intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
 import FlavorSynth, { type FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
@@ -14,12 +14,14 @@ import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
 import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
-import InitialMenu, { type SelectableElement } from "../components/initialMenu/InitialMenu";
+import InitialMenu, { type DownloadProgress, type SelectableElement } from "../components/initialMenu/InitialMenu";
 import type { User } from "../@types/User";
+import DishList from "../components/dishList/DishList";
+import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
-    const [hasSelectedNewMainFlavor, setHasSelectedNewMainFlavor] = useState<boolean>(false);
+    const [hasSelectedNewMainFlavor, setHasSelectedNewMainFlavor] = useState<boolean>(true);
     const reselectMainFlavorRef = useRef<() => void>(() => 0);
     const isFirstTimeOpen = useRef<boolean>(true);
     const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -29,6 +31,20 @@ export default function App() {
     const [isMainMenuOpen, setMainMenuOpen] = useState<boolean>(true);
     const [isFlavorListVisible, setFlavorListVisible] = useState<boolean>(false);
     const [userLoggedIn, setUserLoggedIn] = useState<User | null>(null);
+    const [isDishListOpen, setDishListOpen] = useState<boolean>(false);
+    const [isGameOpen, setGameOpen] = useState<boolean>(false);
+    const [hasDownloadedData, setHasDD] = useState<boolean>(false);
+    const [downloadProgress, setDownloadProgres] = useState<DownloadProgress>({ max: 0, val: 0, maxSize: 0, size: 0, mbSec: 0 });
+    const [hasLoaded, setHasLoaded] = useState<boolean>(false);
+    const [selectedMainElement, setSelectedMainElement] = useState<SelectableElement>("none");
+    const [isMainFlavorSelectorCancelToMainMenu, setIsMainFlavorSelectorCancelToMainMenu] = useState<boolean>(false);
+    useEffect(() => {
+        checkIfDataDownloaded().then(async e => {
+            if (e) await initializeAllDownloadedResources();
+            setHasDD(e);
+            setHasLoaded(true);
+        })
+    }, []);
     const confirm = useConfirm().confirm;
 
     const setMainFlavor = (flavor: MainFlavor) => {
@@ -42,6 +58,7 @@ export default function App() {
         st.setProperty("--secondary-color", MAIN_FLAVOR_COLOR[flavor][1]);
         st.setProperty("--main-color-rgb", toRGB(MAIN_FLAVOR_COLOR[flavor][0]));
         st.setProperty("--secondary-color-rgb", toRGB(MAIN_FLAVOR_COLOR[flavor][1]));
+        setGameOpen(true);
     };
 
     const openSelectMainFlavor = () => {
@@ -62,6 +79,11 @@ export default function App() {
         setShareOpen(false);
         setOpenShareOpen(true);
     }
+
+    const initializeAllDownloadedResources = async () => {
+        await intitializeAllAudios();
+        await initCurrentPosImages();
+    };
 
     const open = async (data: OpenData) => {
         if (getTrackData().length != 0) {
@@ -121,16 +143,21 @@ export default function App() {
         switch (element) {
             case "add":
                 setMainMenuOpen(false);
+                setIsMainFlavorSelectorCancelToMainMenu(true);
                 setHasSelectedNewMainFlavor(false);
                 synthLinesWrapped[1]([]);
                 break;
             case "open":
                 setMainMenuOpen(false);
                 setMainFlavor("Sour");
+                setGameOpen(false);
                 openOpenShare();
                 break;
             case "list":
                 setMainMenuOpen(false);
+                setDishListOpen(true);
+                setHasSelectedNewMainFlavor(true);
+                setGameOpen(false);
                 break;
         }
     };
@@ -139,14 +166,14 @@ export default function App() {
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
         <Activity mode={isMainMenuOpen ? "visible" : "hidden"}>
-            <InitialMenu loggedInState={[userLoggedIn, setUserLoggedIn]} openStateChanged={openStateChanged}></InitialMenu>
+            <InitialMenu selectedElementWrapper={[selectedMainElement, setSelectedMainElement]} hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData} loggedInState={[userLoggedIn, setUserLoggedIn]} downloadWrapper={[downloadProgress, setDownloadProgres]} openStateChanged={openStateChanged}></InitialMenu>
         </Activity>
 
-        <Activity mode={hasSelectedNewMainFlavor || isMainMenuOpen ? "hidden" : "visible"}>
-            <MainFlavorSelectionDialog isFirstTimeOpen={isFirstTimeOpen.current} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
+        <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
+            <MainFlavorSelectionDialog cancelClicked={() => { isMainFlavorSelectorCancelToMainMenu; setIsMainFlavorSelectorCancelToMainMenu(false); setMainMenuOpen(true); setHasSelectedNewMainFlavor(true); setSelectedMainElement("none"); }} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
         </Activity>
 
-        <Activity mode={hasSelectedNewMainFlavor && !isOpenShareOpen ? "visible" : "hidden"}>
+        <Activity mode={isGameOpen ? "visible" : "hidden"}>
             <div className="title">
                 <h1>Flavor Synthesizer</h1>
                 <span className="subtitle">Cook Up a Beat</span>
@@ -164,11 +191,15 @@ export default function App() {
         </Activity>
 
         <Activity mode={isFlavorListVisible ? "visible" : "hidden"}>
-            <FlavorDragNDropList flavors={FLAVORS}></FlavorDragNDropList>
+            <FlavorDragNDropList flavors={FLAVORS} hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
         </Activity>
 
         <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
-            <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={setOpenShareOpen}></OpenShareDialog>
+            <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={(open) => { setOpenShareOpen(open); setFlavorListVisible(open); setMainMenuOpen(!open); setSelectedMainElement("none"); }}></OpenShareDialog>
+        </Activity>
+
+        <Activity mode={isDishListOpen ? "visible" : "hidden"}>
+            <DishList></DishList>
         </Activity>
 
         {/* {
@@ -206,4 +237,10 @@ function toRGB(hex: string): string {
     const b = parseInt(fullHex.slice(4, 6), 16);
 
     return `${r}, ${g}, ${b}`;
+}
+
+
+async function checkIfDataDownloaded() {
+    const dbs = await indexedDB.databases();
+    return dbs.length == 2;
 }

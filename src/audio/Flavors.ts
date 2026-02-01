@@ -1,10 +1,4 @@
-import Bitter from "./main/Bitter";
-import Salty from "./main/Salty";
-import Savory from "./main/Savory";
-import Sour from "./main/Sour";
-import Spicy from "./main/Spicy";
-import Sweet from "./main/Sweet";
-import FlavorMusic, { FlavorFileMusic, MainFlavorFileMusic } from "./FlavorMusic";
+import { FlavorFileMusic, MainFlavorFileMusic, type BPM } from "./FlavorMusic";
 import type { MainFlavor } from "../@types/Flavors";
 
 const FLAVORS: FlavorFileMusic[] = [
@@ -71,3 +65,10 @@ export function getMainFlavorByName(name: MainFlavor) {
 }
 
 export { FLAVORS, MAIN_FLAVORS };
+
+export async function intitializeAllAudios() {
+    let all = [];
+    all.push(...FLAVORS.map(e => e.download()));
+    all.push(MAIN_FLAVORS.map(e => e.download()));
+    await Promise.all(all);
+}

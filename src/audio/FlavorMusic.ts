@@ -25,7 +25,7 @@ export default abstract class FlavorMusic {
 var MUSIC_PLAYERS: Player[] = [];
 
 export class FlavorFileMusic {
-    private index: number | string;
+    public index: number | string;
     private files: {
         [key in BPM]: Player;
     };
@@ -35,7 +35,7 @@ export class FlavorFileMusic {
     private loadedAllPromise: Promise<Player[]> | null = null;
     private promises: Promise<Player>[] = [];
 
-    constructor(index: number | string, name: Flavor, load: boolean = true) {
+    constructor(index: number | string, name: Flavor, load: boolean = false) {
         this.index = index;
         this.NAME = name;
 
@@ -43,49 +43,38 @@ export class FlavorFileMusic {
         this.imageSrc = FLAVOR_IMAGES[name];
 
         if (load) {
-            for (const bpm of BPM_VALS) {
-                if (!FILES_CACHE[name]) FILES_CACHE[name] = {} as any;
-
-                // Only create a new promise if it doesn't exist yet
-                if (!FILES_CACHE[name][bpm as BPM]) {
-                    FILES_CACHE[name][bpm as BPM] = (async () => {
-                        const file = ROOT_FILE_DIR + bpm + "out/BPM/" + index + ".wav";
-                        const dbPath = "bpm_" + bpm + "_index_" + index;
-                        return loadAndSaveResource("audio", dbPath, file);
-                        // if (await hasResource("audio", dbPath)) {
-                        //     const base64 = getResourceByName("audio", dbPath);
-                        //     return base64;
-                        // } else {
-                        //     const response = await fetch(file);
-                        //     const blob = await response.blob();
-
-                        //     const base64 = await new Promise<string>((resolve, reject) => {
-                        //         const reader = new FileReader();
-                        //         reader.onloadend = () => resolve(reader.result as string);
-                        //         reader.onerror = reject;
-                        //         reader.readAsDataURL(blob);
-                        //     });
-                        //     saveResourceWithName("audio", dbPath, base64);
-                        //     return base64;
-                        // }
-
-                    })();
-                }
-
-                // Await the cache and create the player
-                FILES_CACHE[name][bpm as BPM].then((base64) => {
-                    this.files[bpm as BPM] = new Player();
-                    this.promises.push(this.files[bpm as BPM].load(base64));
-                    this.files[bpm as BPM].fadeIn = FADE_TIME;
-                    this.files[bpm as BPM].fadeOut = FADE_TIME;
-                    this.files[bpm as BPM].autostart = false;
-                    this.files[bpm as BPM].toDestination();
-                    this.loadedAllPromise = Promise.all(this.promises);
-                });
-            }
+            this.download();
         }
     }
 
+    public async downloadSingle(bpm: BPM): Promise<void> {
+        if (!FILES_CACHE[this.NAME]) FILES_CACHE[this.NAME] = {} as any;
+        if (FILES_CACHE[this.NAME][bpm] !== undefined) return;
+
+        // Only create a new promise if it doesn't exist yet
+        if (!FILES_CACHE[this.NAME][bpm as BPM]) {
+            const file = ROOT_FILE_DIR + "out/" + bpm + "BPM/" + this.index + ".wav";
+            const dbPath = "bpm_" + bpm + "_index_" + this.index;
+            FILES_CACHE[this.NAME][bpm as BPM] = loadAndSaveResource("audio", dbPath, file);
+        }
+
+        const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
+        this.files[bpm as BPM] = new Player();
+        this.promises.push(this.files[bpm as BPM].load(base64));
+        this.files[bpm as BPM].fadeIn = FADE_TIME;
+        this.files[bpm as BPM].fadeOut = FADE_TIME;
+        this.files[bpm as BPM].autostart = false;
+        this.files[bpm as BPM].toDestination();
+        this.loadedAllPromise = Promise.all(this.promises);
+    }
+
+    public async download() {
+        let all = [];
+        for (const bpm of BPM_VALS as BPM[]) {
+            all.push(this.downloadSingle(bpm));
+        }
+        await Promise.all(all);
+    }
 
     public play(bpm: BPM) {
         Tone.Transport.stop();
@@ -100,7 +89,6 @@ export class FlavorFileMusic {
     }
 
     public async clone(loop: boolean = false): Promise<FlavorFileMusic> {
-        console.log("Cloning");
         const clone = new FlavorFileMusic(this.index, this.NAME, false);
         clone.files = {} as any;
 
@@ -176,26 +164,30 @@ export class MainFlavorFileMusic {
         master: 100
     };
 
-    constructor(index: string, name: MainFlavor, load: boolean = true) {
+    constructor(index: string, name: MainFlavor, load: boolean = false) {
         this.index = index;
         this.NAME = name;
 
         this.imageSrc = MAIN_FLAVOR_IMAGES[name];
 
         if (load) {
-            const file = ROOT_FILE_DIR + index;
-            console.log(file);
-            const dbPath = index.replace(".wav", "");
-            loadAndSaveResource("audio", dbPath, file).then(async (base64) => {
-                this.player = new Player();
-                await this.player.load(base64);
-                this.player.fadeIn = FADE_TIME;
-                this.player.fadeOut = FADE_TIME;
-                this.player.autostart = false;
-                this.player.loop = true;
-                this.player.toDestination();
-            });
+            this.download();
         }
+    }
+
+    public async download(): Promise<void> {
+        if (this.player) return;
+
+        const file = ROOT_FILE_DIR + this.index;
+        const dbPath = this.index.replace(".wav", "");
+        const base64 = await loadAndSaveResource("audio", dbPath, file);
+        this.player = new Player();
+        await this.player.load(base64);
+        this.player.fadeIn = FADE_TIME;
+        this.player.fadeOut = FADE_TIME;
+        this.player.autostart = false;
+        this.player.loop = true;
+        this.player.toDestination();
     }
 
     public setVolumes(volumes: Volumes) {
@@ -286,7 +278,7 @@ export class MainFlavorFileMusic {
 }
 
 
-type BPM = 81 |
+export type BPM = 81 |
     110 |
     124 |
     130;

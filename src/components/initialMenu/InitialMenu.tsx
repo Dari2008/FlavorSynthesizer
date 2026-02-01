@@ -1,22 +1,61 @@
 import { useEffect, useRef, useState } from "react";
 import "./InitialMenu.scss";
 import type { User } from "../../@types/User";
-import { useOnClickOutside } from "usehooks-ts";
 import { loginUser, registerUser } from "../../utils/UserUtils";
+import { downloadAll } from "../../download/DownloadManager";
 
-export default function InitialMenu({ openStateChanged, loggedInState }: { openStateChanged: (element: SelectableElement) => void; loggedInState: [User | null, React.Dispatch<React.SetStateAction<User | null>>] }) {
+export default function InitialMenu({ openStateChanged, loggedInState, hasDownloadedAssets, downloadFinished, hasLoaded, selectedElementWrapper }: {
+    openStateChanged: (element: SelectableElement) => void;
+    loggedInState: [User | null, React.Dispatch<React.SetStateAction<User | null>>];
+    downloadWrapper: [DownloadProgress, React.Dispatch<React.SetStateAction<DownloadProgress>>];
+    hasDownloadedAssets: boolean; downloadFinished: () => void; hasLoaded: boolean;
+    selectedElementWrapper: [SelectableElement, React.Dispatch<React.SetStateAction<SelectableElement>>];
+}) {
 
-    const [selectedElement, setSelectedElement] = useState<SelectableElement>("none");
+    const [selectedElement, setSelectedElement] = selectedElementWrapper;
     const [isDropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const [isLoginOrRegister, setIsLoginOrRegsiter] = useState<"login" | "register">("login");
+    // const [downloadProgress, setDownloadProgres] = downloadWrapper;
+    const [isDownloading, setIsDownloading] = useState<boolean>(false);
+    const [isSuccessfullDownload, setIsSuccessfullDownload] = useState<boolean>(false);
     const userProfileDivRef = useRef<HTMLDivElement>(null);
     const usernameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
     const emailRef = useRef<HTMLInputElement>(null);
+    const progressLabelRef = useRef<HTMLSpanElement>(null);
+    const currentDownloadingProgressRef = useRef<HTMLDivElement>(null);
 
     const clicked = (element: SelectableElement) => {
         setSelectedElement(element);
         setTimeout(() => openStateChanged(element), 300);
+    };
+
+    const download = () => {
+        if (hasDownloadedAssets) return;
+        downloadAll((max, curr, maxSize, size, mbSec) => {
+            // setDownloadProgres({
+            //     max: max,
+            //     val: curr,
+            //     maxSize,
+            //     size,
+            //     mbSec
+            // });
+            console.log(max, curr, maxSize, size, mbSec);
+            setIsDownloading(true);
+            if (curr >= max) {
+                setIsDownloading(false);
+                setIsSuccessfullDownload(true);
+                setTimeout(() => {
+                    downloadFinished();
+                }, 1000);
+            }
+            if (progressLabelRef.current) {
+                progressLabelRef.current.textContent = `${(size / 1000 / 1000).toFixed(1)} MB / ${(maxSize / 1000 / 1000).toFixed(1)} MB (${(mbSec / 1000 / 1000).toFixed(1)} MB/s)`;
+            }
+            if (currentDownloadingProgressRef.current) {
+                currentDownloadingProgressRef.current.style.setProperty("--progress-percentage", (size / maxSize) * 100 + "%");
+            }
+        });
     };
 
     const login = async () => {
@@ -110,7 +149,7 @@ export default function InitialMenu({ openStateChanged, loggedInState }: { openS
                 </>
             }
         </div>
-        <div className="options">
+        <div className="options" data-hasdownloaded={hasDownloadedAssets ? "true" : undefined}>
             <button className={"add-dish" + (selectedElement == "add" ? " selected" : "")} onClick={() => clicked("add")}>
                 <img src="./mainMenu/add-dish.png" alt="A Bowl with a plus" />
                 <span className="label">Create a dish</span>
@@ -119,12 +158,38 @@ export default function InitialMenu({ openStateChanged, loggedInState }: { openS
                 <img src="./mainMenu/dish-list.png" alt="A list with entrys" />
                 <span className="label">View saved dishes</span>
             </button>
-            <button className={"open-dish-list" + (selectedElement == "open" ? " selected" : "")} onClick={() => clicked("open")}>
+            <button className={"open-shared-dish" + (selectedElement == "open" ? " selected" : "")} onClick={() => clicked("open")}>
                 <img src="./mainMenu/open-shared-dish.png" alt="A pot with the lid levetating above it" />
                 <span className="label">Open a shared dish</span>
             </button>
         </div>
+
+        {!hasDownloadedAssets && hasLoaded && <div className="has-to-download">
+            <h3>Download Assets</h3>
+            <span>You have to download the assets of the game if you want to play it</span>
+            {!isDownloading && <button className="download" onClick={download}>Download</button>}
+            {
+                isDownloading && !isSuccessfullDownload && <>
+                    <div className="progress-bar" role="progressbar" ref={currentDownloadingProgressRef}>
+                        <div className="progress"></div>
+                        <span className="label" ref={progressLabelRef}>0 MB / 0 MB (0 MB/s)</span>
+                    </div>
+                </>
+            }
+            {
+                isSuccessfullDownload && <>
+                    <h2 className="successfull-download">Downloaded Successfully</h2>
+                </>
+            }
+        </div>}
     </div>;
 }
 
 export type SelectableElement = "add" | "open" | "list" | "none";
+export type DownloadProgress = {
+    max: number;
+    val: number;
+    maxSize: number;
+    size: number;
+    mbSec: number;
+};

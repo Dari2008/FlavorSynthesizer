@@ -10,35 +10,13 @@ import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext
 import { useCurrentlyPlaying } from "../../contexts/CurrentlyPlayingContext";
 
 var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
-var imageCount = 99;
-var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
 var currentAnimationPosition = 0;
 
-if (!currentPosAnimationImages) {
-    currentPosAnimationImages = [];
 
-    (async () => {
-        const batchSize = 5;
-        for (let i = 0; i < imageCount; i += batchSize) {
-            const batch = Array.from({ length: batchSize }, (_, j) => i + j).filter(x => x < imageCount);
-            await Promise.all(batch.map(async (idx) => {
-                const img = new Image();
-                img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
-                await new Promise(res => img.onload = res);
-                currentPosAnimationImages[idx] = img;
-            }));
-        }
-        console.log("Loaded all");
-
-    })();
-
-    setInterval(() => {
-        currentAnimationPosition++;
-        currentAnimationPosition = currentAnimationPosition % 100;
-    }, 20);
-
-    (window as any).CURRENT_ANIMATIONS_IMAGES = currentPosAnimationImages;
-}
+setInterval(() => {
+    currentAnimationPosition++;
+    currentAnimationPosition = currentAnimationPosition % 100;
+}, 20);
 
 export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthLine }: { widthRef: React.RefObject<number>, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
     const synthLines = useSynthLines();

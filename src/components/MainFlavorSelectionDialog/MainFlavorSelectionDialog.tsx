@@ -7,10 +7,10 @@ import { MAIN_FLAVORS } from "../../audio/Flavors";
 type Props = {
     setSelectedMainFlavor: (flavor: MainFlavor) => void;
     reselectMainFlavorRef: React.RefObject<() => void>;
-    isFirstTimeOpen: boolean;
+    cancelClicked: () => void;
 }
 
-export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, reselectMainFlavorRef, isFirstTimeOpen }: Props) {
+export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, reselectMainFlavorRef, cancelClicked }: Props) {
 
     const dialogRef = useRef<HTMLDialogElement>(null);
 
@@ -22,6 +22,7 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
     const close = () => {
         if (!dialogRef.current?.open) return;
         dialogRef.current?.close();
+        cancelClicked();
     };
 
     const selectedFlavor = (flavor: MainFlavor) => {
@@ -47,8 +48,6 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
                 })
             }
         </div>
-        {
-            !isFirstTimeOpen && <button className="close" onClick={close}>x</button>
-        }
+        <button className="close" onClick={close}>x</button>
     </dialog>
 }
