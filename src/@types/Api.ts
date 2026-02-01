@@ -20,6 +20,8 @@ export type SuccessAPIResponse<T> = T & {
 
 export type LoginResponse = {
     jwtData: JWTData;
+    displayName: string;
+    uuid: string;
 };
 
 export type RegisterResponse = {

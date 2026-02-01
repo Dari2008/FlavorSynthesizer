@@ -6,6 +6,8 @@ import { BASE_URL } from "../../utils/Statics";
 import type { APIResponse, Digit, FlavorsSelected, LoginResponse, ShareErrorResponse, ShareResponse } from "../../@types/Api";
 import Utils from "../../utils/Utils";
 import type { FlavorSynthLine } from "../flavorSynth/FlavorSynth";
+import { loginUser, registerUser } from "../../utils/UserUtils";
+import type { User } from "../../@types/User";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -17,7 +19,7 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
-export default function ShareDialog({ visible, setShareDialogOpened, getTrackData, getMainFlavor }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[]; getMainFlavor: () => MainFlavor; }) {
+export default function ShareDialog({ visible, setShareDialogOpened, getTrackData, getMainFlavor, loggedInState }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[]; getMainFlavor: () => MainFlavor; loggedInState: [User | null, React.Dispatch<React.SetStateAction<User | null>>] }) {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
@@ -25,7 +27,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
     const [shareDigits, setSD] = useState<Digit[]>([0, 0, 0, 0, 0, 0]);
     const [shareURL, setShareUrl] = useState<string>(location.origin + "/?code=");
     const [isPublished, setPublished] = useState<boolean>(false);
-    const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
+    // const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
     const [accepedUnchangable, setAcceptedUnchangable] = useState<boolean>(false);
     const imageIdRef = useRef<string>(generateRandomBackgroundImage());
     const [isLogin, setIsLogin] = useState<boolean>(checkIfLoggedIn());
@@ -154,24 +156,33 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
         const password = loginPasswordRef.current?.value;
 
         setIsLoading(true);
-        const result = await (await fetch(BASE_URL + "/users/login.php", {
-            method: "POST",
-            body: JSON.stringify({
-                username,
-                password
-            })
-        })).json() as APIResponse<LoginResponse>;
+        // const result = await (await fetch(BASE_URL + "/users/login.php", {
+        //     method: "POST",
+        //     body: JSON.stringify({
+        //         username,
+        //         password
+        //     })
+        // })).json() as APIResponse<LoginResponse>;
+
+        const response = await loginUser(username ?? "", password ?? "");
+
+        if (response) {
+            loggedInState[1](response);
+        } else {
+            loggedInState[1](null);
+        }
+
         setIsLoading(false);
 
-        if (result.status == "error") {
-            Utils.error(result.message);
-            return;
-        } else {
-            Utils.success(result.message ?? "Successfully Logged in");
-            localStorage.setItem("jwt", result.jwtData.jwt);
-            localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
-            setLoggedIn(true);
-        }
+        // if (result.status == "error") {
+        //     Utils.error(result.message);
+        //     return;
+        // } else {
+        //     Utils.success(result.message ?? "Successfully Logged in");
+        //     localStorage.setItem("jwt", result.jwtData.jwt);
+        //     localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
+        //     setLoggedIn(true);
+        // }
     };
 
     const shareAnyways = () => {
@@ -184,36 +195,25 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
         const email = loginEmailRef.current?.value;
 
         setIsLoading(true);
-        const result = await (await fetch(BASE_URL + "/users/register.php", {
-            method: "POST",
-            body: JSON.stringify({
-                username,
-                password,
-                email
-            })
-        })).json() as APIResponse<LoginResponse>;
+        const response = await registerUser(username ?? "", password ?? "", email ?? "");
         setIsLoading(false);
 
-        if (result.status == "error") {
-            Utils.error(result.message);
-            return;
+        if (response) {
+            loggedInState[1](response);
         } else {
-            Utils.success(result.message ?? "Successfully Registered");
-            localStorage.setItem("jwt", result.jwtData.jwt);
-            localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
-            setLoggedIn(true);
+            loggedInState[1](null);
         }
 
     };
 
-    return <div className={"share-dialog-wrapper" + (visible ? " visible" : "") + (!isLoggedIn && !accepedUnchangable ? " login" : "")}>
+    return <div className={"share-dialog-wrapper" + (visible ? " visible" : "") + (!loggedInState[0] && !accepedUnchangable ? " login" : "")}>
         <div role="dialog" className="share-dialog">
             <img src={"./imgs/shareDish-bgs/" + imageIdRef.current} alt={imageIdRef.current.replace(".png", "")} className="background-image" />
 
             <h1>Share your dish</h1>
 
             {
-                !isLoggedIn && !accepedUnchangable && !isLoading && <>
+                !loggedInState[0] && !accepedUnchangable && !isLoading && <>
                     <span className="disclaimer">
                         Log in to save and edit it later - or share once and move on.
                     </span>
@@ -246,7 +246,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             }
 
             {
-                ((isLoggedIn || accepedUnchangable) && !isLoading) && <>
+                ((loggedInState[0] || accepedUnchangable) && !isLoading) && <>
 
                     <div className="share-flavors share-default-layout">
                         <h2>Share Flavor</h2>

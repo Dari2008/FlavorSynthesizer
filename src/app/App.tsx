@@ -15,6 +15,7 @@ import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu, { type SelectableElement } from "../components/initialMenu/InitialMenu";
+import type { User } from "../@types/User";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -27,6 +28,7 @@ export default function App() {
     const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
     const [isMainMenuOpen, setMainMenuOpen] = useState<boolean>(true);
     const [isFlavorListVisible, setFlavorListVisible] = useState<boolean>(false);
+    const [userLoggedIn, setUserLoggedIn] = useState<User | null>(null);
     const confirm = useConfirm().confirm;
 
     const setMainFlavor = (flavor: MainFlavor) => {
@@ -137,7 +139,7 @@ export default function App() {
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
         <Activity mode={isMainMenuOpen ? "visible" : "hidden"}>
-            <InitialMenu openStateChanged={openStateChanged}></InitialMenu>
+            <InitialMenu loggedInState={[userLoggedIn, setUserLoggedIn]} openStateChanged={openStateChanged}></InitialMenu>
         </Activity>
 
         <Activity mode={hasSelectedNewMainFlavor || isMainMenuOpen ? "hidden" : "visible"}>
@@ -155,7 +157,7 @@ export default function App() {
             <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => setOpenShareOpen(true)}>
             </FlavorSynth>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
-                <ShareDialog getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
+                <ShareDialog loggedInState={[userLoggedIn, setUserLoggedIn]} getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
             </Activity>
 
 
