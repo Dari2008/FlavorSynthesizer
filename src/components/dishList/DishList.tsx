@@ -8,13 +8,13 @@ export default function DishList() {
         <div className="options">
             <div className="top-options">
                 <button className="delete">
-                    <img src="" alt="" className="delete-img" />
+                    {"\uf1f8"}
                 </button>
                 <button className="share">
-                    <img src="" alt="" className="share-img" />
+                    {"\uf064"}
                 </button>
                 <button className="duplicate">
-                    <img src="" alt="" className="duplicate-img" />
+                    {"\uf24d"}
                 </button>
             </div>
             <button className="open">

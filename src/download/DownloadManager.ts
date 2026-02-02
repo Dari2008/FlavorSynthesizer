@@ -62,6 +62,7 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
         onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
         curr++
     }
+    onProgress(max, max, maxDownloadedContent, maxDownloadedContent, 0);
 }
 
 function calculateMaxDownloadSize() {

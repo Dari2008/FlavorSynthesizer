@@ -36,7 +36,7 @@ export default function App() {
     const [hasDownloadedData, setHasDD] = useState<boolean>(false);
     const [downloadProgress, setDownloadProgres] = useState<DownloadProgress>({ max: 0, val: 0, maxSize: 0, size: 0, mbSec: 0 });
     const [hasLoaded, setHasLoaded] = useState<boolean>(false);
-    const [selectedMainElement, setSelectedMainElement] = useState<SelectableElement>("none");
+    const selectedMainElementRef = useRef<(selectedElement: SelectableElement) => void>(null);
     const [isMainFlavorSelectorCancelToMainMenu, setIsMainFlavorSelectorCancelToMainMenu] = useState<boolean>(false);
     useEffect(() => {
         checkIfDataDownloaded().then(async e => {
@@ -52,6 +52,7 @@ export default function App() {
         setMF(flavor);
         setHasSelectedNewMainFlavor(true);
         setFlavorListVisible(true);
+        setMainMenuOpen(false);
         document.body.setAttribute("data-flavor", flavor);
         const st = document.body.style;
         st.setProperty("--main-color", MAIN_FLAVOR_COLOR[flavor][0]);
@@ -166,22 +167,21 @@ export default function App() {
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
         <Activity mode={isMainMenuOpen ? "visible" : "hidden"}>
-            <InitialMenu selectedElementWrapper={[selectedMainElement, setSelectedMainElement]} hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData} loggedInState={[userLoggedIn, setUserLoggedIn]} downloadWrapper={[downloadProgress, setDownloadProgres]} openStateChanged={openStateChanged}></InitialMenu>
+            <InitialMenu selectedElementWrapper={selectedMainElementRef} hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData} loggedInState={[userLoggedIn, setUserLoggedIn]} downloadWrapper={[downloadProgress, setDownloadProgres]} openStateChanged={openStateChanged}></InitialMenu>
         </Activity>
 
         <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
-            <MainFlavorSelectionDialog cancelClicked={() => { isMainFlavorSelectorCancelToMainMenu; setIsMainFlavorSelectorCancelToMainMenu(false); setMainMenuOpen(true); setHasSelectedNewMainFlavor(true); setSelectedMainElement("none"); }} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
+            <MainFlavorSelectionDialog cancelClicked={() => { isMainFlavorSelectorCancelToMainMenu; setIsMainFlavorSelectorCancelToMainMenu(false); setMainMenuOpen(true); setHasSelectedNewMainFlavor(true); selectedMainElementRef.current?.("none"); }} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
         </Activity>
 
         <Activity mode={isGameOpen ? "visible" : "hidden"}>
             <div className="title">
-                <h1>Flavor Synthesizer</h1>
-                <span className="subtitle">Cook Up a Beat</span>
+                <input className="title-input" type="text" ref={(e) => { e && (e.value = "Unnamed") }}></input>
             </div>
 
             <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
 
-            <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => setOpenShareOpen(true)}>
+            <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => { setOpenShareOpen(true); setFlavorListVisible(true); }}>
             </FlavorSynth>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
                 <ShareDialog loggedInState={[userLoggedIn, setUserLoggedIn]} getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
@@ -195,7 +195,19 @@ export default function App() {
         </Activity>
 
         <Activity mode={isOpenShareOpen ? "visible" : "hidden"}>
-            <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={(open) => { setOpenShareOpen(open); setFlavorListVisible(open); setMainMenuOpen(!open); setSelectedMainElement("none"); }}></OpenShareDialog>
+            <OpenShareDialog open={open} visible={isOpenShareOpen} setOpenShareDialogOpened={(open) => {
+                if (isGameOpen) {
+                    setOpenShareOpen(open);
+                    setFlavorListVisible(true);
+                    setMainMenuOpen(false);
+                    selectedMainElementRef.current?.("none");
+                } else {
+                    setOpenShareOpen(open);
+                    setFlavorListVisible(open);
+                    setMainMenuOpen(!open);
+                    selectedMainElementRef.current?.("none");
+                }
+            }}></OpenShareDialog>
         </Activity>
 
         <Activity mode={isDishListOpen ? "visible" : "hidden"}>
