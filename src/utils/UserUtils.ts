@@ -17,13 +17,14 @@ export async function loginUser(username: string, password: string): Promise<Use
         return false;
     } else {
         Utils.success(result.message ?? "Successfully Logged in");
-        localStorage.setItem("jwt", result.jwtData.jwt);
         localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
-        return {
+        const user = {
             displayName: result.displayName,
             jwt: result.jwtData.jwt,
             uuid: result.uuid
         };
+        localStorage.setItem("user", JSON.stringify(user));
+        return user;
     }
 }
 
@@ -72,13 +73,14 @@ export async function registerUser(username: string, password: string, email: st
         return false;
     } else {
         Utils.success(result.message ?? "Successfully Registered");
-        localStorage.setItem("jwt", result.jwtData.jwt);
         localStorage.setItem("allowedUntil", result.jwtData.allowedUntil + "");
-        return {
+        const user = {
             displayName: result.displayName,
             jwt: result.jwtData.jwt,
             uuid: result.uuid
         };
+        localStorage.setItem("user", JSON.stringify(user));
+        return user;
     }
 
 }

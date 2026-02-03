@@ -18,6 +18,7 @@ import InitialMenu, { type DownloadProgress, type SelectableElement } from "../c
 import type { User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
+import { UserContext } from "../contexts/UserContext";
 
 export default function App() {
     const [mainFlavor, setMF] = useState<MainFlavor>("Savory");
@@ -30,14 +31,14 @@ export default function App() {
     const [isOpenShareOpen, setOpenShareOpen] = useState<boolean>(false);
     const [isMainMenuOpen, setMainMenuOpen] = useState<boolean>(true);
     const [isFlavorListVisible, setFlavorListVisible] = useState<boolean>(false);
-    const [userLoggedIn, setUserLoggedIn] = useState<User | null>(null);
+    const [userLoggedIn, setUserLoggedIn] = useState<User | null>(getLoggedInUser());
     const [isDishListOpen, setDishListOpen] = useState<boolean>(false);
     const [isGameOpen, setGameOpen] = useState<boolean>(false);
     const [hasDownloadedData, setHasDD] = useState<boolean>(false);
     const [downloadProgress, setDownloadProgres] = useState<DownloadProgress>({ max: 0, val: 0, maxSize: 0, size: 0, mbSec: 0 });
     const [hasLoaded, setHasLoaded] = useState<boolean>(false);
     const selectedMainElementRef = useRef<(selectedElement: SelectableElement) => void>(null);
-    const [isMainFlavorSelectorCancelToMainMenu, setIsMainFlavorSelectorCancelToMainMenu] = useState<boolean>(false);
+    const [returnPointWhenCancel, setReturnPointWhenCancel] = useState<ReturnPointWhenCancel>("menu");
     useEffect(() => {
         checkIfDataDownloaded().then(async e => {
             if (e) await initializeAllDownloadedResources();
@@ -53,6 +54,7 @@ export default function App() {
         setHasSelectedNewMainFlavor(true);
         setFlavorListVisible(true);
         setMainMenuOpen(false);
+        setDishListOpen(false);
         document.body.setAttribute("data-flavor", flavor);
         const st = document.body.style;
         st.setProperty("--main-color", MAIN_FLAVOR_COLOR[flavor][0]);
@@ -144,7 +146,7 @@ export default function App() {
         switch (element) {
             case "add":
                 setMainMenuOpen(false);
-                setIsMainFlavorSelectorCancelToMainMenu(true);
+                setReturnPointWhenCancel("menu");
                 setHasSelectedNewMainFlavor(false);
                 synthLinesWrapped[1]([]);
                 break;
@@ -163,7 +165,7 @@ export default function App() {
         }
     };
 
-    return <>
+    return <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
         <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
         <Activity mode={isMainMenuOpen ? "visible" : "hidden"}>
@@ -171,12 +173,37 @@ export default function App() {
         </Activity>
 
         <Activity mode={hasSelectedNewMainFlavor ? "hidden" : "visible"}>
-            <MainFlavorSelectionDialog cancelClicked={() => { isMainFlavorSelectorCancelToMainMenu; setIsMainFlavorSelectorCancelToMainMenu(false); setMainMenuOpen(true); setHasSelectedNewMainFlavor(true); selectedMainElementRef.current?.("none"); }} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
+            <MainFlavorSelectionDialog cancelClicked={() => {
+                if (returnPointWhenCancel == "menu") {
+                    setReturnPointWhenCancel("menu");
+                    setMainMenuOpen(true);
+                    setHasSelectedNewMainFlavor(true);
+                    selectedMainElementRef.current?.("none");
+                    setDishListOpen(false);
+                } else if (returnPointWhenCancel == "dishList") {
+                    setMainMenuOpen(false);
+                    setHasSelectedNewMainFlavor(true);
+                    setFlavorListVisible(false);
+                    setDishListOpen(true);
+                } else {
+                    setMainMenuOpen(false);
+                    setHasSelectedNewMainFlavor(true);
+                    setFlavorListVisible(true);
+                    setDishListOpen(false);
+                }
+            }} setSelectedMainFlavor={setMainFlavor} reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
         </Activity>
 
         <Activity mode={isGameOpen ? "visible" : "hidden"}>
             <div className="title">
-                <input className="title-input" type="text" ref={(e) => { e && (e.value = "Unnamed") }}></input>
+                <div className="bg-wrapper">
+                    <div className="img-wrapper">
+                        <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
+                        <div className="bg-image"></div>
+                        <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                    </div>
+                    <input className="title-input" maxLength={20} type="text" ref={(e) => { e && (e.value = "Unnamed") }}></input>
+                </div>
             </div>
 
             <CurrentMainThemeSelector mainFlavor={mainFlavor} repickMainFlavor={openSelectMainFlavor}></CurrentMainThemeSelector>
@@ -184,7 +211,7 @@ export default function App() {
             <FlavorSynth mainFlavor={mainFlavor} synthLinesWrapped={synthLinesWrapped} openShare={() => setShareOpen(true)} openOpenShare={() => { setOpenShareOpen(true); setFlavorListVisible(true); }}>
             </FlavorSynth>
             <Activity mode={isShareOpen ? "visible" : "hidden"}>
-                <ShareDialog loggedInState={[userLoggedIn, setUserLoggedIn]} getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
+                <ShareDialog getMainFlavor={() => mainFlavor} getTrackData={getTrackData} visible={isShareOpen} setShareDialogOpened={setShareOpen}></ShareDialog>
             </Activity>
 
 
@@ -211,7 +238,22 @@ export default function App() {
         </Activity>
 
         <Activity mode={isDishListOpen ? "visible" : "hidden"}>
-            <DishList></DishList>
+            <DishList
+                isVisible={isDishListOpen}
+
+                openCreationMenu={() => {
+                    setDishListOpen(false);
+                    setReturnPointWhenCancel("dishList");
+                    setMainMenuOpen(false);
+                    setHasSelectedNewMainFlavor(false);
+                }}
+
+                onClose={() => {
+                    setDishListOpen(false);
+                    setMainMenuOpen(true);
+                    selectedMainElementRef.current?.("none");
+                }}
+            ></DishList>
         </Activity>
 
         {/* {
@@ -224,7 +266,7 @@ export default function App() {
             </>
         } */}
 
-    </>
+    </UserContext.Provider>
 }
 
 function toRGB(hex: string): string {
@@ -256,3 +298,15 @@ async function checkIfDataDownloaded() {
     const dbs = await indexedDB.databases();
     return dbs.length == 2;
 }
+
+function getLoggedInUser(): User | null {
+    const user = localStorage.getItem("user") as User | null;
+    const allowedDate = localStorage.getItem("allowedUntil");
+    if (!allowedDate) return null;
+    if (!user) return null;
+    const parsedUntil = parseInt(allowedDate) * 1000;
+    if (Date.now() > parsedUntil) return null;
+    return user;
+}
+
+export type ReturnPointWhenCancel = "flavorSynth" | "dishList" | "menu";

@@ -367,7 +367,9 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor, openShare, 
                                         Object.values(synthLines).map(e => <SynthLine key={e.uuid} flavorSynthLine={e} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
                                     }
                                 </div>
-                                <button className="addLine" onClick={() => addSynth()}>+</button>
+                                <button className="addLine" onClick={() => addSynth()}>
+                                    <img src="./imgs/plus/plus.png" alt="+" className="plus" />
+                                </button>
                             </div>
                         </CurrentInterPlayerDragContext.Provider>
                     </VolumeContext.Provider>
@@ -383,9 +385,20 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor, openShare, 
                     <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used"></FlavorStatistic>
                 </div>
             </div>
-            <button className="skip-prev">{"\uf04a"}</button>
-            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{isPlaying ? "\uf04d" : "\uf04b"}</button>
-            <button className="skip-next">{"\uf04e"}</button>
+            <button className="skip-prev">
+                <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+            </button>
+            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                isPlaying
+                    ?
+                    <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                    :
+                    <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+            }
+            </button>
+            <button className="skip-next">
+                <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
+            </button>
             <div className="volumes">
                 <div className="volume">
                     <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
@@ -401,9 +414,9 @@ export default function FlavorSynth({ synthLinesWrapped, mainFlavor, openShare, 
                 <button className="share" onClick={openShare}>
                     Share
                 </button>
-                <button className="openShared" onClick={openOpenShare}>
+                {/* <button className="openShared" onClick={openOpenShare}>
                     Open Shared
-                </button>
+                </button> */}
             </div>
         </div>
 

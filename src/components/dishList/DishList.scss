@@ -1,6 +1,98 @@
 @use "../../utils/Variables.scss" as *;
 
+#root:has(.dish-list.visible) {
+    overflow-y: auto;
+}
+
 .dish-list {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: center;
+
+    .top,
+    .middle,
+    .bottom {
+        width: 50%;
+        background-position: 0% 0%;
+        background-size: 100% auto;
+        position: relative;
+        image-rendering: pixelated;
+    }
+
+    .top {
+        aspect-ratio: 88/34;
+        background-image: url("./imgs/dishList/dish-list-background-top.png");
+        background-repeat: no-repeat;
+        margin-top: 10px;
+    }
+
+    .middle {
+        background-image: url("./imgs/dishList/dish-list-background-main.png");
+        background-repeat: repeat-y;
+        min-height: 40vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .bottom {
+        aspect-ratio: 88/17;
+        background-image: url("./imgs/dishList/dish-list-background-bottom.png");
+        background-repeat: no-repeat;
+    }
+
+    .close {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        font-size: 4rem;
+        line-height: 2rem;
+        background-color: transparent;
+        border: none;
+        transition: transform 0.2s ease-in-out;
+        transform-origin: 50% 50%;
+        padding: 0px;
+
+        &:hover {
+            transform: scale(1.2);
+        }
+    }
+
+    h1 {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+        top: 70%;
+        left: 50%;
+        transform: translate(-50%, -100%);
+        color: $gray-900;
+        font-size: 5rem;
+    }
+
+    h2 {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        margin: auto;
+        font-size: 3rem;
+        justify-self: center;
+        align-self: center;
+        color: $gray-800;
+
+        a {
+            font-size: 1.5rem;
+            background-color: transparent;
+            padding: 0;
+            margin: 0;
+            border: none;
+        }
+    }
 
     .options {
         padding: 2px;
@@ -15,6 +107,12 @@
         justify-content: center;
         align-items: center;
         gap: 2px;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+
+        &.open {
+            opacity: 1;
+        }
 
         button {
             font-family: Fontawesome;
@@ -48,6 +146,11 @@
             padding-inline: 0;
             padding-block: 5px;
         }
+    }
+
+    .list {
+        width: 100%;
+        min-height: 50vh;
     }
 
 }

@@ -20,9 +20,9 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
     };
 
     const close = () => {
+        cancelClicked();
         if (!dialogRef.current?.open) return;
         dialogRef.current?.close();
-        cancelClicked();
     };
 
     const selectedFlavor = (flavor: MainFlavor) => {

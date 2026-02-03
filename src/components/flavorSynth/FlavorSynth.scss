@@ -1,8 +1,17 @@
+@use "../../utils/Variables.scss" as *;
+
 .flavor-synth {
     overflow-y: auto;
     max-height: 100%;
     overflow-x: hidden;
     scrollbar-width: thin;
+
+    .lines {
+        margin-left: 10px;
+        background-color: rgba(black, 0.5);
+        padding: 10px;
+        border-radius: 20px;
+    }
 
     .addLine {
         // width: 100%;
@@ -11,14 +20,18 @@
         line-height: 0.7em;
         // margin-top: 10px;
         box-sizing: border-box;
-        color: var(--main-color);
+        // color: var(--main-color);
         background-color: transparent;
         border: none;
-        transition: color 0.3s ease-in-out;
+        transition: transform 0.2s ease-in-out, filter 0.3s ease-in-out;
         margin-inline: 50%;
+        transform: scale(1);
+        margin-top: 10px;
 
         &:hover {
-            color: var(--secondary-color);
+            // color: var(--secondary-color);
+            filter: brightness(60%) saturate(110%);
+            transform: scale(1.1);
         }
     }
 }

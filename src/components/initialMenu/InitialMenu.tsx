@@ -13,10 +13,8 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
     selectedElementWrapper: React.RefObject<((selectedElement: SelectableElement) => void) | null>;
 }) {
 
-    // const [selectedElement, setSelectedElement] = selectedElementWrapper;
     const [isDropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const [isLoginOrRegister, setIsLoginOrRegsiter] = useState<"login" | "register">("login");
-    // const [downloadProgress, setDownloadProgres] = downloadWrapper;
     const [isDownloading, setIsDownloading] = useState<boolean>(false);
     const [isSuccessfullDownload, setIsSuccessfullDownload] = useState<boolean>(false);
     const userProfileDivRef = useRef<HTMLDivElement>(null);
