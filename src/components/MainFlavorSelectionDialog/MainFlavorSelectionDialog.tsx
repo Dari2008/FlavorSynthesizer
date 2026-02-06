@@ -3,16 +3,19 @@ import { MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@t
 import { useRef, useState } from "react";
 import "./MainFlavorSelectionDialog.scss";
 import { MAIN_FLAVORS } from "../../audio/Flavors";
+import { useGameState } from "../../contexts/GameStateContext";
+import { useMainFlavor } from "../../contexts/MainFlavorContext";
 
 type Props = {
-    setSelectedMainFlavor: (flavor: MainFlavor) => void;
     reselectMainFlavorRef: React.RefObject<() => void>;
-    cancelClicked: () => void;
 }
 
-export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, reselectMainFlavorRef, cancelClicked }: Props) {
+export default function MainFlavorSelectionDialog({ reselectMainFlavorRef }: Props) {
 
     const dialogRef = useRef<HTMLDialogElement>(null);
+
+    const gameState = useGameState();
+    const mainFlavor = useMainFlavor();
 
     const reselect = () => {
         if (dialogRef.current?.open) return;
@@ -20,15 +23,16 @@ export default function MainFlavorSelectionDialog({ setSelectedMainFlavor, resel
     };
 
     const close = () => {
-        cancelClicked();
+        gameState.goBack();
         if (!dialogRef.current?.open) return;
         dialogRef.current?.close();
     };
 
     const selectedFlavor = (flavor: MainFlavor) => {
-        close();
         setTimeout(() => {
-            setSelectedMainFlavor(flavor);
+            // setSelectedMainFlavor(flavor);
+            mainFlavor.setMainFlavor(flavor);
+            gameState.setGameState("createDish-create");
         }, 300);
     };
 

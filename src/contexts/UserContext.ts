@@ -4,6 +4,7 @@ import type { User } from "../@types/User"
 export type UserContextType = {
     user: User | null;
     setUser: (user: User | null) => void;
+    saveDishes: () => void;
 }
 
 export const UserContext = createContext<UserContextType | null>(null);

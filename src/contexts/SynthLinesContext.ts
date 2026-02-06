@@ -1,9 +1,6 @@
 import { createContext, useContext } from "react";
-import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 
 type SynthLines = {
-    synthLines: FlavorSynthLine[];
-    setSynthLines: (synthLines: FlavorSynthLine[]) => void;
     delete: (uuid: string) => void;
     onWheel: (e: WheelEvent) => void;
     addSynthRepainter: (uuid: string, sr: () => void) => void;

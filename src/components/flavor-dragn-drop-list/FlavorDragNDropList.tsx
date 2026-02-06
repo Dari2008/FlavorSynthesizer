@@ -1,14 +1,14 @@
 import type { FlavorFileMusic } from "../../audio/FlavorMusic"
 import FlavorDragNDropListItem from "./FlavorDragNDropListItem";
 import "./FlavorDragNDropList.scss";
+import { FLAVORS } from "../../audio/Flavors";
 
 type Props = {
-    flavors: FlavorFileMusic[];
     hasDownloaded: boolean;
 }
 
-export default function FlavorDragNDropList({ flavors, hasDownloaded }: Props) {
+export default function FlavorDragNDropList({ hasDownloaded }: Props) {
     return <ul className="flavor-drag-n-drop-list">
-        {flavors.map(flavor => <FlavorDragNDropListItem key={flavor.NAME} hasDownloaded={hasDownloaded} player={flavor}></FlavorDragNDropListItem>)}
+        {FLAVORS.map(flavor => <FlavorDragNDropListItem key={flavor.NAME} hasDownloaded={hasDownloaded} player={flavor}></FlavorDragNDropListItem>)}
     </ul>
 }

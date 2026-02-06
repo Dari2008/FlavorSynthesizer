@@ -3,13 +3,14 @@ import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
 import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
-import { loadAndSaveResource } from "../ResourceSaver";
 import { useTooltip } from "../../contexts/TooltipContext";
 import { useSynthSelector } from "../../contexts/SynthSelectorContext";
 import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext";
 import { useCurrentlyPlaying } from "../../contexts/CurrentlyPlayingContext";
+import { useCurrentDish } from "../../contexts/CurrentDish";
+import { useSynthChange } from "../../contexts/SynthChangeContext";
 
-var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
+// var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
 
 
@@ -18,7 +19,7 @@ setInterval(() => {
     currentAnimationPosition = currentAnimationPosition % 100;
 }, 20);
 
-export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthLine }: { widthRef: React.RefObject<number>, currentScrolledRef: React.RefObject<CurrentSpan>, flavorSynthLine: FlavorSynthLine }) {
+export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUID }: { widthRef: React.RefObject<number>, currentScrolledRef: React.RefObject<CurrentSpan>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
     const tooltip = useTooltip();
     const synthSelector = useSynthSelector();
@@ -30,11 +31,22 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
     const currentDraggingElementRef = useRef<null | FlavorElement>(null);
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
 
+    const change = useSynthChange();
 
 
     const timelineOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE));
     const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
     const currentPositionCursorCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, TOTAL_SYNTH_HEIGHT));
+
+    const currentDish = useCurrentDish();
+
+    const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0) ?? {
+        elements: [],
+        muted: false,
+        solo: false,
+        uuid: crypto.randomUUID(),
+        volume: 1
+    };
 
     const renderTimeline = () => {
         const ctx = timelineOffCanvasRef.current.getContext("2d");
@@ -127,7 +139,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         }
 
         function drawCurrentPos(x: number, y: number, xEnd: number, yEnd: number) {
-            if (currentPosAnimationImages[currentAnimationPosition]) ctx?.drawImage(currentPosAnimationImages[currentAnimationPosition], x - 20, y, 40, yEnd);
+            if ((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition]) ctx?.drawImage((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition], x - 20, y, 40, yEnd);
         }
     }
     renderCurrentPositionCursor();
@@ -484,6 +496,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 }
             }
             renderElements();
+            change.changed();
         };
 
         const onMouseMove = (e: MouseEvent) => {
@@ -574,6 +587,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                     // }
                     // synthSelector.selectedElementsRef.current = [];
                     synthLines.deleteSelectedElements();
+                    change.changed();
                     // synthLines.repaintAll();
                     break;
                 case "Escape":
@@ -677,6 +691,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
                 currentDraggingElementRef.current = null;
                 // interPlayerDrag.ref.current = null;
                 targetElement = null;
+                change.changed();
             }
         };
 
@@ -734,7 +749,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
 
     function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {
         if (from < 0) return false;
-        const toCheck = flavorSynthLine.elements.filter(e => e !== element);
+        const toCheck = flavorSynthLine?.elements.filter(e => e !== element);
+        if (!toCheck) return false;
         for (const element of toCheck) {
             if (to == undefined) {
                 // For resizing
@@ -786,7 +802,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
             if (startPos != -1 && endPos != -1 && startPos != endPos) {
                 flavorSynthLine.elements.push(createElementForFlavor(flavorName, startPos, endPos));
                 console.log("Dropped at seconds:", startPos, flavorSynthLine.elements);
-                synthLines.setSynthLines([...synthLines.synthLines]);
+                change.changed();
+                // synthLines.setSynthLines([...synthLines.synthLines]);
             }
             currentDraggingElementRef.current = null;
             // repaint();
@@ -795,8 +812,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, flavorSynthL
         }
 
         flavorSynthLine.elements.push(createElementForFlavor(flavorName, currentPos, currentPos + elementLength));
+        change.changed();
         console.log("Dropped at seconds:", currentPos, flavorSynthLine.elements);
-        synthLines.setSynthLines([...synthLines.synthLines]);
+        // synthLines.setSynthLines([...synthLines.synthLines]);
         currentDraggingElementRef.current = null;
         // repaint();
         renderElementsWDebounce();

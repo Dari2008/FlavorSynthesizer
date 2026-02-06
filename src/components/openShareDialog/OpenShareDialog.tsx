@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
+import { useGameState } from "../../contexts/GameStateContext";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -12,7 +13,7 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
-export default function OpenShareDialog({ visible, setOpenShareDialogOpened, open }: { visible: boolean; setOpenShareDialogOpened: (open: boolean) => void; open: (openData: OpenData) => void }) {
+export default function OpenShareDialog({ open }: { open: (openData: OpenData) => void }) {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const currentFlavorsSelectedRef = useRef<FlavorsSelected[]>([]);
@@ -25,6 +26,7 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
     const [isOkButtonFlavorsIsDisabled, setOkButtonFlavorsIsDisabled] = useState<boolean>(true);
     const [isOkButtonUploadedIsDisabled, setOkButtonUploadedIsDisabled] = useState<boolean>(true);
 
+    const gameState = useGameState();
 
     const getFlavorIndex = (index: number) => {
         return currentFlavorsSelectedRef.current.find(e => e.index == index);
@@ -114,7 +116,7 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
     };
 
 
-    return <div className={"open-share-dialog-wrapper" + (visible ? " visible" : "")}>
+    return <div className={"open-share-dialog-wrapper" + (gameState.gameState == "openShared" ? " visible" : "")}>
         <div role="dialog" className="open-share-dialog">
             <h1>Open Shared Dish</h1>
 
@@ -330,7 +332,7 @@ export default function OpenShareDialog({ visible, setOpenShareDialogOpened, ope
             </div>
 
             <div className="action-buttons">
-                <button className="close" onClick={() => setOpenShareDialogOpened(false)}>X</button>
+                <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
 
         </div>

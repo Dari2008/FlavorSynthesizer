@@ -5,6 +5,7 @@
 }
 
 .dish-list {
+    grid-area: 1/1/5/6;
     width: 100%;
     min-height: 100vh;
     display: flex;
@@ -26,7 +27,6 @@
         aspect-ratio: 88/34;
         background-image: url("./imgs/dishList/dish-list-background-top.png");
         background-repeat: no-repeat;
-        margin-top: 10px;
     }
 
     .middle {
@@ -100,8 +100,8 @@
         background-color: $gray-500;
         width: max-content;
         position: fixed;
-        top: 50%;
-        left: 50%;
+        top: var(--top);
+        left: var(--left);
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -109,8 +109,9 @@
         gap: 2px;
         opacity: 0;
         transition: opacity 0.2s ease-in-out;
+        z-index: 100000;
 
-        &.open {
+        &.opened {
             opacity: 1;
         }
 
@@ -149,8 +150,213 @@
     }
 
     .list {
-        width: 100%;
+        width: 80%;
         min-height: 50vh;
+        margin: 0;
+        padding: 0;
+        margin-inline: auto;
+        list-style-type: none;
+
+        li {
+            width: 90%;
+            margin-inline: auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: max-content 1fr 0.5fr;
+            grid-template-rows: repeat(2, auto);
+            grid-column-gap: 20px;
+            grid-row-gap: 0px;
+            margin-block: 20px;
+            image-rendering: pixelated;
+            position: relative;
+            background-color: transparent;
+            z-index: 10;
+            color: $gray-700;
+        }
+    }
+
+    .list:not(.public) li {
+
+        span {
+            line-height: 1rem;
+        }
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+
+        $bg: rgba(0, 0, 0, 0.4);
+
+        .bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            z-index: -1;
+            grid-template-columns: max-content 1fr max-content;
+            grid-template-rows: 1fr;
+
+            .left {
+                mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+                mask-position: left;
+                mask-size: auto 100%;
+                mask-mode: alpha;
+                background-color: $bg;
+                aspect-ratio: 3 / 13;
+                mask-repeat: no-repeat;
+                height: 100%;
+            }
+
+            .center {
+                background-color: $bg;
+                width: 100%;
+            }
+
+            .right {
+                mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+                mask-position: right;
+                mask-size: auto 100%;
+                mask-mode: alpha;
+                background-color: $bg;
+                aspect-ratio: 3 / 13;
+                mask-repeat: no-repeat;
+                height: 100%;
+            }
+        }
+
+        img {
+            grid-area: 1 / 1 / 3 / 2;
+            height: 100%;
+            opacity: 0.6;
+            filter: grayscale(90%);
+        }
+
+        .dish-name {
+            grid-area: 1 / 2 / 2 / 3;
+            width: max-content;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-content: center;
+        }
+
+        .dish-creation-date {
+            grid-area: 1 / 3 / 2 / 4;
+            font-size: 1.5rem;
+            text-align: right;
+        }
+
+        .dish-created-by {
+            grid-area: 2 / 2 / 3 / 3;
+            opacity: 0.4;
+            font-size: 1.5rem;
+        }
+
+        .dish-publish-state {
+            grid-area: 2 / 3 / 3 / 4;
+            opacity: 0.4;
+            font-size: 1.5rem;
+            text-align: right;
+            width: 100%;
+        }
+    }
+
+    .list.public li {
+
+        span {
+            line-height: 1rem;
+        }
+
+        &:first-of-type {
+            margin-top: 0;
+        }
+
+        &:last-of-type {
+            margin-bottom: 0;
+        }
+
+        $bg: rgba(0, 0, 0, 0.4);
+
+        .bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: grid;
+            z-index: -1;
+            grid-template-columns: max-content 1fr max-content;
+            grid-template-rows: 1fr;
+
+            .left {
+                mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+                mask-position: left;
+                mask-size: auto 100%;
+                mask-mode: alpha;
+                background-color: $bg;
+                aspect-ratio: 3 / 13;
+                mask-repeat: no-repeat;
+                height: 100%;
+            }
+
+            .center {
+                background-color: $bg;
+                width: 100%;
+            }
+
+            .right {
+                mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+                mask-position: right;
+                mask-size: auto 100%;
+                mask-mode: alpha;
+                background-color: $bg;
+                aspect-ratio: 3 / 13;
+                mask-repeat: no-repeat;
+                height: 100%;
+            }
+        }
+
+        img {
+            grid-area: 1 / 1 / 3 / 2;
+            height: 100%;
+            opacity: 0.6;
+            filter: grayscale(90%);
+        }
+
+        .dish-name {
+            grid-area: 1 / 2 / 2 / 3;
+            width: max-content;
+            font-size: 2rem;
+            display: flex;
+            justify-content: center;
+            align-content: center;
+        }
+
+        .dish-creation-date {
+            grid-area: 1 / 3 / 2 / 4;
+            font-size: 1.5rem;
+            text-align: right;
+        }
+
+        .dish-created-by {
+            grid-area: 2 / 2 / 3 / 3;
+            opacity: 0.4;
+            font-size: 1.5rem;
+        }
+
+        .dish-publish-state {
+            grid-area: 2 / 3 / 3 / 4;
+            opacity: 0.4;
+            font-size: 1.5rem;
+            text-align: right;
+            width: 100%;
+        }
     }
 
 }

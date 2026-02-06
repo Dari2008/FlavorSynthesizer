@@ -19,6 +19,24 @@
         backdrop-filter: brightness(60%) contrast(110%);
     }
 
+    &>.close {
+        position: fixed;
+        top: 20px;
+        right: 250px;
+        background-color: transparent;
+        border: none;
+        font-size: 5rem;
+        padding: 0;
+        margin: 0;
+        line-height: 1rem;
+        backdrop-filter: none;
+        transition: scale 0.3s ease-in-out;
+
+        &:hover {
+            scale: 1.1;
+        }
+    }
+
     .current-main-theme-selector {
         grid-area: 1 / 1 / 3 / 2;
         height: min-content;
@@ -132,6 +150,9 @@ body {
 
 .Toastify {
     z-index: 100000000000;
+    position: fixed;
+    bottom: 0;
+    right: 0;
 }
 
 * {

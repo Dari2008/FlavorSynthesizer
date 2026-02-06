@@ -1,6 +1,7 @@
 .current-main-theme-selector {
 
     position: relative;
+    z-index: 10000;
 
     .main-flavor-label {
         font-size: 2rem;

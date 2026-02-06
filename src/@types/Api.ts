@@ -51,8 +51,21 @@ export type OpenShareResponse = {
         }[];
     }[];
     mainFlavor: MainFlavor;
+    aiImage: string;
+    uuid: string;
+    share: {
+        code: [Digit, Digit, Digit, Digit, Digit, Digit],
+        flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor]
+    };
+    name: string;
+    dishCreationDate: number;
+    createdBy: string;
+    publishState: "private" | "published";
 }
 
+export type DishLoadResponse = {
+    dishes: OpenShareResponse[];
+}
 
 export type FlavorsSelected = {
     flavor: Flavor;

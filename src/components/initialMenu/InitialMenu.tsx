@@ -4,13 +4,12 @@ import type { User } from "../../@types/User";
 import { loginUser, registerUser } from "../../utils/UserUtils";
 import { downloadAll } from "../../download/DownloadManager";
 import ImageMenu from "../imageMenu/ImageMenu";
+import { useGameState } from "../../contexts/GameStateContext";
+import { useUser } from "../../contexts/UserContext";
 
-export default function InitialMenu({ openStateChanged, loggedInState, hasDownloadedAssets, downloadFinished, hasLoaded, selectedElementWrapper }: {
-    openStateChanged: (element: SelectableElement) => void;
-    loggedInState: [User | null, React.Dispatch<React.SetStateAction<User | null>>];
+export default function InitialMenu({ hasDownloadedAssets, downloadFinished, hasLoaded }: {
     downloadWrapper: [DownloadProgress, React.Dispatch<React.SetStateAction<DownloadProgress>>];
     hasDownloadedAssets: boolean; downloadFinished: () => void; hasLoaded: boolean;
-    selectedElementWrapper: React.RefObject<((selectedElement: SelectableElement) => void) | null>;
 }) {
 
     const [isDropDownOpen, setDropDownOpen] = useState<boolean>(false);
@@ -23,6 +22,9 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
     const emailRef = useRef<HTMLInputElement>(null);
     const progressLabelRef = useRef<HTMLSpanElement>(null);
     const currentDownloadingProgressRef = useRef<HTMLDivElement>(null);
+
+    const gameState = useGameState();
+    const user = useUser();
 
     const download = () => {
         if (hasDownloadedAssets) return;
@@ -59,9 +61,9 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
         const response = await loginUser(username ?? "", password ?? "");
 
         if (response) {
-            loggedInState[1](response);
+            user.setUser(response);
         } else {
-            loggedInState[1](null);
+            user.setUser(null);
         }
     };
 
@@ -73,15 +75,10 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
         const response = await registerUser(username ?? "", password ?? "", email ?? "");
 
         if (response) {
-            loggedInState[1](response);
+            user.setUser(response);
         } else {
-            loggedInState[1](null);
+            user.setUser(null);
         }
-
-    }
-
-    const goto = (pos: string) => {
-
     };
 
     useEffect(() => {
@@ -99,6 +96,24 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
         }
     }, []);
 
+    const open = (e: SelectableElement) => {
+        switch (e) {
+            case "add":
+                gameState.createNewActiveDish();
+                gameState.setGameState("createDish-mainFlavor");
+                break;
+            case "open":
+                gameState.setGameState("openShared");
+                break;
+            case "list":
+                gameState.setGameState("dishList");
+                break;
+            case "none":
+                gameState.setGameState("mainMenu");
+                break;
+        }
+    };
+
 
     return <div className="main-menu">
         <h1>Flavor Synthesizer</h1>
@@ -106,10 +121,10 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
         <div className="user-profile" ref={userProfileDivRef} data-open={isDropDownOpen ? "true" : undefined}>
             <img src="./mainMenu/user-profile.png" onClick={() => setDropDownOpen(!isDropDownOpen)} className="user-icon" alt="Image of chefs hat" />
             {
-                loggedInState[0] != null && <>
+                user.user != null && <>
                     <div className="dropdown">
                         <span className="label user-name">{ }</span>
-                        <button className="settings" onClick={() => goto("settings")}>
+                        <button className="settings" onClick={() => 0}>
                             <img src="./mainMenu/user-dropdown/settings.png" alt="Settings Icon" />
                             <span className="label">Setting</span>
                         </button>
@@ -145,7 +160,7 @@ export default function InitialMenu({ openStateChanged, loggedInState, hasDownlo
             }
         </div>
 
-        <ImageMenu clicked={(e) => { openStateChanged(e); }} selectedElementWrapper={selectedElementWrapper}></ImageMenu>
+        <ImageMenu clicked={open}></ImageMenu>
 
         {/* <div className="options" data-hasdownloaded={hasDownloadedAssets ? "true" : undefined}>
             <button className={"add-dish" + (selectedElement == "add" ? " selected" : "")} onClick={() => clicked("add")}>

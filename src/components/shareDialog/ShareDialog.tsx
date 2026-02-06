@@ -1,14 +1,15 @@
-import { isValidElement, useRef, useState } from "react";
-import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../../@types/Flavors";
+import { useRef, useState } from "react";
+import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { BASE_URL } from "../../utils/Statics";
-import type { APIResponse, Digit, FlavorsSelected, LoginResponse, ShareErrorResponse, ShareResponse } from "../../@types/Api";
+import type { APIResponse, Digit, FlavorsSelected, ShareErrorResponse, ShareResponse } from "../../@types/Api";
 import Utils from "../../utils/Utils";
-import type { FlavorSynthLine } from "../flavorSynth/FlavorSynth";
 import { loginUser, registerUser } from "../../utils/UserUtils";
-import type { User } from "../../@types/User";
 import { useUser } from "../../contexts/UserContext";
+import { useMainFlavor } from "../../contexts/MainFlavorContext";
+import { useGameState } from "../../contexts/GameStateContext";
+import { useCurrentDish } from "../../contexts/CurrentDish";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -20,7 +21,7 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
-export default function ShareDialog({ visible, setShareDialogOpened, getTrackData, getMainFlavor }: { visible: boolean; setShareDialogOpened: (open: boolean) => void; getTrackData: () => FlavorSynthLine[]; getMainFlavor: () => MainFlavor; }) {
+export default function ShareDialog() {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
@@ -39,6 +40,9 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
     const loginPasswordRef = useRef<HTMLInputElement>(null);
 
     const user = useUser();
+    const currentDish = useCurrentDish();
+    const mainFlavor = useMainFlavor();
+    const gameState = useGameState();
 
     const setShareDigits = (numbers: Digit[]) => {
         setSD(numbers);
@@ -91,7 +95,8 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
     };
 
     const publish = async () => {
-        const tracks = getTrackData();
+        const tracks = currentDish?.data;
+        if (!tracks) return;
         if (tracks.length == 0) {
             Utils.error("Can't share nothing");
             return;
@@ -130,7 +135,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             body: JSON.stringify({
                 jwt: user.user?.jwt ?? undefined,
                 tracks: compiledTracks,
-                mainFlavor: getMainFlavor(),
+                mainFlavor: mainFlavor.mainFlavor,
                 flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
             })
         })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
@@ -209,7 +214,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
 
     };
 
-    return <div className={"share-dialog-wrapper" + (visible ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
+    return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
         <div role="dialog" className="share-dialog">
             <img src={"./imgs/shareDish-bgs/" + imageIdRef.current} alt={imageIdRef.current.replace(".png", "")} className="background-image" />
 
@@ -390,7 +395,7 @@ export default function ShareDialog({ visible, setShareDialogOpened, getTrackDat
             }
 
             <div className="action-buttons">
-                <button className="close" onClick={() => setShareDialogOpened(false)}>X</button>
+                <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
 
         </div>

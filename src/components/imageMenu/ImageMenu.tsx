@@ -4,6 +4,7 @@ import LIST_DISHES_SELECTION from "./selections/listDishes.json";
 import BOX_DUNNO_SELECTION from "./selections/boxDunno.json";
 import { useEffect, useRef, useState } from "react";
 import type { SelectableElement } from "../initialMenu/InitialMenu";
+import { useGameState } from "../../contexts/GameStateContext";
 
 
 const SELECTION_FILES: SelectionFiles = {
@@ -56,7 +57,7 @@ function getBounds(data: SelectionFile) {
 const IMAGE_WIDTH = 400;
 const IMAGE_HEIGHT = 344;
 
-export default function ImageMenu({ clicked, selectedElementWrapper }: { clicked: (element: SelectableElement) => void; selectedElementWrapper: React.RefObject<((selectedElement: SelectableElement) => void) | null>; }) {
+export default function ImageMenu({ clicked }: { clicked: (element: SelectableElement) => void; }) {
 
     const imagesRef = useRef<HTMLDivElement>(null);
     const createNewDishRef = useRef<HTMLImageElement>(null);
@@ -71,23 +72,23 @@ export default function ImageMenu({ clicked, selectedElementWrapper }: { clicked
     const listDishesLabelRef = useRef<HTMLSpanElement>(null);
     const boxDunnoLabelRef = useRef<HTMLSpanElement>(null);
 
-    selectedElementWrapper.current = (e) => {
-        console.log(e);
-        switch (e) {
-            case "add":
-                setChosenOne("create-new-dish");
-                break;
-            case "open":
-                setChosenOne("open-shared-dish");
-                break;
-            case "list":
-                setChosenOne("list-dishes");
-                break;
-            case "none":
-                setChosenOne("none")
-                break;
-        }
-    };
+    // selectedElementWrapper.current = (e) => {
+    //     console.log(e);
+    //     switch (e) {
+    //         case "add":
+    //             setChosenOne("create-new-dish");
+    //             break;
+    //         case "open":
+    //             setChosenOne("open-shared-dish");
+    //             break;
+    //         case "list":
+    //             setChosenOne("list-dishes");
+    //             break;
+    //         case "none":
+    //             setChosenOne("none")
+    //             break;
+    //     }
+    // };
 
     useEffect(() => {
         const images = imagesRef.current;
@@ -286,6 +287,7 @@ export default function ImageMenu({ clicked, selectedElementWrapper }: { clicked
                     case "box-dunno":
                         break;
                 }
+                setChosenOne("none");
             }, 300);
         };
 
