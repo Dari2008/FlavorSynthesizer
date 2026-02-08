@@ -2,7 +2,7 @@ import { Activity, useEffect, useRef, useState } from "react";
 import { intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
-import FlavorSynth from "../components/flavorSynth/FlavorSynth";
+import FlavorSynth, { type FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import "./App.scss";
 import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
@@ -15,18 +15,19 @@ import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu, { type DownloadProgress } from "../components/initialMenu/InitialMenu";
-import type { Dish, LocalDish, User } from "../@types/User";
+import type { Dish, DishVolumes, LocalDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 import { UserContext } from "../contexts/UserContext";
 import { DishesContext } from "../contexts/DishesContext";
 import { useTitle } from "../contexts/TitleContext";
 import { CurrentDishIndexContext } from "../contexts/CurrentDish";
-import useJsObjectHook, { useJsRefObjectHook } from "../hooks/JsObjectHook";
+import useJsObjectHook, { useJsObjectHookForArray, useJsRefObjectHook } from "../hooks/JsObjectHook";
 import { GameStateContext, type GameState } from "../contexts/GameStateContext";
 import { MainFlavorContext } from "../contexts/MainFlavorContext";
 import DishManager from "../components/dishManager/DishManager";
 import withDebounce from "../hooks/Debounce";
+import { CurrentDishActionsContext } from "../contexts/DishActions";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -48,6 +49,14 @@ export default function App() {
 
     const [currentDishName, setCurrentDishName] = useJsRefObjectHook<string, Dish | LocalDish>(generateNewDishTitle(), currentDish, "name");
     const [mainFlavor, setMF] = useJsObjectHook<MainFlavor, Dish | LocalDish>("Savory", currentDish, "mainFlavor");
+
+    const [volumes, setVolumes] = useJsRefObjectHook<DishVolumes, Dish | LocalDish>(currentDish?.volumes ?? ({
+        flavors: 100,
+        mainFlavor: 100,
+        master: 100
+    }), currentDish, "volumes");
+
+    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<FlavorSynthLine, Dish | LocalDish>([], currentDish, "data");
 
     const { setTitle, title } = useTitle();
 
@@ -79,12 +88,8 @@ export default function App() {
                 let dishes = null;
                 if (integrateDishes && localDishes) {
                     dishes = await DishManager.loadDishesFromServer(userLoggedIn, localDishes);
-                } else if (integrateDishes) {
-                    dishes = await DishManager.loadDishesFromServer(userLoggedIn);
                 } else {
-                    if (!localDishes) return;
-                    setDishes(localDishes);
-                    return;
+                    dishes = await DishManager.loadDishesFromServer(userLoggedIn);
                 }
                 if (!dishes) return;
                 localStorage.removeItem("dishes");
@@ -145,9 +150,9 @@ export default function App() {
             temporary: undefined,
             uuid: Utils.uuidv4Exclude(dishes.map(e => e.uuid)),
             volumes: {
-                flavors: 1,
-                mainFlavor: 1,
-                master: 1
+                flavors: 100,
+                mainFlavor: 100,
+                master: 100
             }
         };
         dishes.push(newDish);
@@ -240,6 +245,19 @@ export default function App() {
         setGameState("createDish-create-viewonly");
     };
 
+    const openDishFromObj = (dish: Dish | LocalDish) => {
+        const index = dishes.indexOf(dish as any);
+        if (index == -1) return;
+        setCurrentDishIndex(index);
+
+        setCurrentDishTitleToElement(dish.name);
+        setCurrentDishName(dish.name);
+        setMainFlavor(dish.mainFlavor);
+
+        setVolumes(dish.volumes);
+        setSynthLines(dish.data);
+    }
+
     useEffect(() => {
         open({ type: "url", url: location.href });
     }, [location.href]);
@@ -250,78 +268,85 @@ export default function App() {
     };
 
     return <>
-        <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
-            <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
-                <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex }}>
-                    <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000) }}>
-                        <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
-                            <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
+        <CurrentDishActionsContext value={{ synthLines: [synthLines, setSynthLines, addSynthLine], volumes: [volumes, setVolumes] }}>
+            <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
+                <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
+                    <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>
+                        <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000) }}>
+                            <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
+                                <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
-                            <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
-                                <InitialMenu hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData} downloadWrapper={[downloadProgress, setDownloadProgres]}></InitialMenu>
-                            </Activity>
+                                <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
+                                    <InitialMenu hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData} downloadWrapper={[downloadProgress, setDownloadProgres]}></InitialMenu>
+                                </Activity>
 
-                            <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
-                                <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
-                            </Activity>
+                                <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
+                                    <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
+                                </Activity>
 
-                            <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
-                                <div className="title">
-                                    <div className="bg-wrapper">
-                                        <div className="img-wrapper">
-                                            <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
-                                            <div className="bg-image"></div>
-                                            <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                {
+                                    (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
+                                        <div className="title">
+                                            <div className="bg-wrapper">
+                                                <div className="img-wrapper">
+                                                    <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
+                                                    <div className="bg-image"></div>
+                                                    <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                                </div>
+                                                <input className="title-input" maxLength={20} type="text" onInput={() => {
+                                                    if (currentDishTitleRef.current) {
+                                                        setCurrentDishName(currentDishTitleRef.current.value || "Unnamed");
+                                                    }
+                                                }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
+                                            </div>
                                         </div>
-                                        <input className="title-input" maxLength={20} type="text" onInput={() => {
-                                            if (currentDishTitleRef.current) {
-                                                setCurrentDishName(currentDishTitleRef.current.value || "Unnamed");
-                                            }
-                                        }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
-                                    </div>
+
+                                        <CurrentMainThemeSelector />
+                                        <FlavorSynth />
+
+                                        <button className="close" onClick={() => setGameState("mainMenu")}>x</button>
+                                    </>
+                                }
+
+                                {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
+                            </Activity> */}
+
+                                <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
+                                    <ShareDialog></ShareDialog>
+                                </Activity>
+
+                                <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
+                                    <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
+                                </Activity>
+
+                                <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
+                                    <OpenShareDialog open={open}></OpenShareDialog>
+                                </Activity>
+
+                                <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
+                                    <DishList />
+                                </Activity>
+
+                                <div className="save-message" ref={savedMessageRef}>
+                                    Saved Current Dish
                                 </div>
 
-                                <CurrentMainThemeSelector />
-                                <FlavorSynth />
-
-                                <button className="close" onClick={() => setGameState("mainMenu")}>x</button>
-                            </Activity>
-
-                            <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
-                                <ShareDialog></ShareDialog>
-                            </Activity>
-
-                            <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
-                                <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
-                            </Activity>
-
-                            <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
-                                <OpenShareDialog open={open}></OpenShareDialog>
-                            </Activity>
-
-                            <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
-                                <DishList />
-                            </Activity>
-
-                            <div className="save-message" ref={savedMessageRef}>
-                                Saved Current Dish
-                            </div>
-
-                            {/* {
+                                {/* {
 
             !hasSelectedNewMainFlavor && 
         } */}
-                            {/* {
+                                {/* {
             hasSelectedNewMainFlavor &&
             <>
             </>
         } */}
 
-                        </UserContext.Provider>
-                    </DishesContext.Provider>
-                </CurrentDishIndexContext.Provider>
-            </GameStateContext.Provider>
-        </MainFlavorContext.Provider>
+                            </UserContext.Provider>
+                        </DishesContext.Provider>
+                    </CurrentDishIndexContext.Provider>
+                </GameStateContext.Provider>
+            </MainFlavorContext.Provider>
+        </CurrentDishActionsContext>
     </>;
 }
 

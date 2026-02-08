@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import type { Dish, LocalDish } from "../@types/User"
 
 type DishesContextType = {
-    dishes: Dish[] | LocalDish[];
+    dishes: (Dish | LocalDish)[];
     setDishes: (dishes: Dish[] | LocalDish[]) => void;
     saveCurrentDish: () => void;
 }

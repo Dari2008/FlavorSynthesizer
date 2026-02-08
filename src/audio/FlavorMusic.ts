@@ -2,7 +2,7 @@ import { Player, } from "tone";
 import * as Tone from "tone";
 import { FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
 import { getResourceByName, hasResource, loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
-import type { Volumes } from "../contexts/VolumeContext";
+import type { DishVolumes } from "../@types/User";
 
 const ROOT_FILE_DIR = "./flavors/audio/"
 
@@ -158,7 +158,7 @@ export class MainFlavorFileMusic {
     public NAME: MainFlavor;
     public imageSrc: string;
     private BPM: number = 81;
-    private volumes: Volumes = {
+    private volumes: DishVolumes = {
         flavors: 100,
         mainFlavor: 100,
         master: 100
@@ -190,7 +190,7 @@ export class MainFlavorFileMusic {
         this.player.toDestination();
     }
 
-    public setVolumes(volumes: Volumes) {
+    public setVolumes(volumes: DishVolumes) {
         this.volumes = volumes;
         if (this.player) this.player.volume.value = this.getVolumeFor("mainFlavor");
     }

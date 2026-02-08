@@ -1,14 +1,12 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, convertScreenXToTimeline, getOffsetX, getPixelsPerSecond, setPixelsPerSecond, setSpan } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, setSpan } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
 import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
 import { getMainFlavorByName, MAIN_FLAVORS } from "../../audio/Flavors";
-import type { MainFlavor } from "../../@types/Flavors";
-import { VolumeContext, type Volumes } from "../../contexts/VolumeContext";
 import { CurrentInterPlayerDragContext } from "../../contexts/CurrentInterPlayerDragContext";
 import { SynthSelectorContext } from "../../contexts/SynthSelectorContext";
 import { CurrentlyPlayingContext } from "../../contexts/CurrentlyPlayingContext";
@@ -16,14 +14,12 @@ import SynthLine from "./synthLine/SynthLine";
 import FlavorStatistic from "./flavorStatistic/FlavorStatistic";
 import ControlKnob from "./controlKnob/ControlKnob";
 import { useCurrentDish } from "../../contexts/CurrentDish";
-import { SynthChangeContext } from "../../contexts/SynthChangeContext";
+import { SynthChangeContext, useSynthChange } from "../../contexts/SynthChangeContext";
 import { useTitle } from "../../contexts/TitleContext";
-import { useUser } from "../../contexts/UserContext";
-import useJsObjectHook, { useJsObjectHookForArray } from "../../hooks/JsObjectHook";
-import type { Dish, LocalDish } from "../../@types/User";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useDishes } from "../../contexts/DishesContext";
+import { useCurrentDishActions } from "../../contexts/DishActions";
 
 
 type EventListWithUUID<T> = {
@@ -44,11 +40,6 @@ export default function FlavorSynth() {
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
     const currentFrameId = useRef<number>(-1);
-    const volumesRef = useRef<Volumes>({
-        flavors: 100,
-        mainFlavor: 100,
-        master: 100
-    });
 
     const mainFlavor = useMainFlavor();
     const gameState = useGameState();
@@ -73,8 +64,11 @@ export default function FlavorSynth() {
     const { title, setTitle } = useTitle();
     const currentDish = useCurrentDish();
     const dishes = useDishes();
+    const dishActions = useCurrentDishActions();
 
-    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<FlavorSynthLine, Dish | LocalDish>([], currentDish, "data");
+    const [synthLines, setSynthLines, addSynthLine] = dishActions.synthLines;
+    const [volumes, setVolumes] = dishActions.volumes;
+
 
     window.onresize = () => {
         widthRef.current = getCurrentTrackWidth();
@@ -267,11 +261,11 @@ export default function FlavorSynth() {
         const elements = synthLines.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
         if (elements.length == 0) return;
         playerRef.current.stop();
-        playerRef.current.setVolumes(volumesRef.current);
+        playerRef.current.setVolumes(volumes.current);
         playerRef.current.loadElements(elements);
 
         if (!containsSolo) {
-            mainFlavorsPlayer?.setVolumes(volumesRef.current);
+            mainFlavorsPlayer?.setVolumes(volumes.current);
             mainFlavorsPlayer?.play(cusorPos.current);
         }
 
@@ -302,23 +296,29 @@ export default function FlavorSynth() {
     clock.start();
 
     const mainFlavorVolumeChanged = (volume: number) => {
-        volumesRef.current.mainFlavor = volume;
-        playerRef.current.setVolumes(volumesRef.current);
-        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+        volumes.current.mainFlavor = volume;
+        setVolumes(volumes.current);
+        playerRef.current.setVolumes(volumes.current);
+        mainFlavorsPlayer?.setVolumes(volumes.current);
+        onSynthLineChanged();
     };
 
 
     const masterVolumeChanged = (volume: number) => {
-        volumesRef.current.master = volume;
-        playerRef.current.setVolumes(volumesRef.current);
-        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+        volumes.current.master = volume;
+        setVolumes(volumes.current);
+        playerRef.current.setVolumes(volumes.current);
+        mainFlavorsPlayer?.setVolumes(volumes.current);
+        onSynthLineChanged();
     };
 
 
     const flavorsVolumeChanged = (volume: number) => {
-        volumesRef.current.flavors = volume;
-        playerRef.current.setVolumes(volumesRef.current);
-        mainFlavorsPlayer?.setVolumes(volumesRef.current);
+        volumes.current.flavors = volume;
+        setVolumes(volumes.current);
+        playerRef.current.setVolumes(volumes.current);
+        mainFlavorsPlayer?.setVolumes(volumes.current);
+        onSynthLineChanged();
     };
 
 
@@ -386,70 +386,66 @@ export default function FlavorSynth() {
             }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                     <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
-                        <VolumeContext.Provider value={volumesRef.current}>
-                            <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
-                                <div className="flavor-synth">
-                                    <div className="lines">
-                                        {
-                                            Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
-                                        }
+                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                            <div className="flavor-synth">
+                                <div className="lines">
+                                    {
+                                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                                    }
+                                </div>
+                                <button className="addLine" onClick={() => addSynth()}>
+                                    <img src="./imgs/plus/plus.png" alt="+" className="plus" />
+                                </button>
+                            </div>
+
+                            <div className="flavor-synth-controls">
+                                <div className="statistics">
+                                    <div className="activeFlavorsPlaying">
+                                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors"></FlavorStatistic>
                                     </div>
-                                    <button className="addLine" onClick={() => addSynth()}>
-                                        <img src="./imgs/plus/plus.png" alt="+" className="plus" />
+                                    <div className="totalFlavorsUsed">
+                                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used"></FlavorStatistic>
+                                    </div>
+                                </div>
+                                <button className="skip-prev">
+                                    <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+                                </button>
+                                <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                                    isPlaying
+                                        ?
+                                        <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                        :
+                                        <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                                }
+                                </button>
+                                <button className="skip-next">
+                                    <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
+                                </button>
+                                <div className="volumes">
+                                    <div className="volume">
+                                        <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
+                                    </div>
+                                    <div className="mainFlavorVolume">
+                                        <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
+                                    </div>
+                                    <div className="masterVolume">
+                                        <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
+                                    </div>
+                                </div>
+                                <div className="buttons">
+                                    <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                        <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
+                                    </button>
+                                    <button className="save" onClick={dishes.saveCurrentDish}>
+                                        <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                 </div>
-                            </CurrentInterPlayerDragContext.Provider>
-                        </VolumeContext.Provider>
+                            </div>
+
+                        </CurrentInterPlayerDragContext.Provider>
                     </CurrentlyPlayingContext.Provider>
                 </SynthSelectorContext.Provider>
             </SynthLinesContext.Provider>
-            <div className="flavor-synth-controls">
-                <div className="statistics">
-                    <div className="activeFlavorsPlaying">
-                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors"></FlavorStatistic>
-                    </div>
-                    <div className="totalFlavorsUsed">
-                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used"></FlavorStatistic>
-                    </div>
-                </div>
-                <button className="skip-prev">
-                    <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
-                </button>
-                <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
-                    isPlaying
-                        ?
-                        <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
-                        :
-                        <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
-                }
-                </button>
-                <button className="skip-next">
-                    <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
-                </button>
-                <div className="volumes">
-                    <div className="volume">
-                        <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
-                    </div>
-                    <div className="mainFlavorVolume">
-                        <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
-                    </div>
-                    <div className="masterVolume">
-                        <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
-                    </div>
-                </div>
-                <div className="buttons">
-                    <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
-                        <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
-                    </button>
-                    <button className="save" onClick={dishes.saveCurrentDish}>
-                        <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
-                    </button>
-                    {/* <button className="openShared" onClick={openOpenShare}>
-                    Open Shared
-                </button> */}
-                </div>
-            </div>
-
         </SynthChangeContext.Provider>
     </>
 }

@@ -12,6 +12,7 @@
     flex-direction: column;
     position: relative;
     align-items: center;
+    overflow-y: auto;
 
     .top,
     .middle,
@@ -32,7 +33,6 @@
     .middle {
         background-image: url("./imgs/dishList/dish-list-background-main.png");
         background-repeat: repeat-y;
-        min-height: 40vh;
         display: flex;
         flex-direction: column;
     }

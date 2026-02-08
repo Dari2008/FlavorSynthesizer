@@ -7,6 +7,7 @@ import type { CurrentSpan, FlavorSynthLine } from "../FlavorSynth";
 import { useCurrentDish } from "../../../contexts/CurrentDish";
 import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
+import { useCurrentDishActions } from "../../../contexts/DishActions";
 
 export default function SynthLine({ widthRef, synthLineUUID, currentScrolledRef }: { widthRef: React.RefObject<number>, synthLineUUID: string, currentScrolledRef: React.RefObject<CurrentSpan> }) {
     const synthLines = useSynthLines();
@@ -16,8 +17,12 @@ export default function SynthLine({ widthRef, synthLineUUID, currentScrolledRef 
 
     const currentDish = useCurrentDish();
     const change = useSynthChange();
+    const dishActions = useCurrentDishActions();
 
     const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0);
+
+    // const [isMuted, setMuted] = dishActions.muted;
+
     const [isMuted, setMuted] = useJsObjectHook<boolean, FlavorSynthLine>(false, flavorSynthLine, "muted", (e) => { change.changed(); return e; });
     const [isSolo, setSolo] = useJsObjectHook<boolean, FlavorSynthLine>(false, flavorSynthLine, "solo", (e) => { change.changed(); return e; });
     // const setSolo = (s: boolean) => {

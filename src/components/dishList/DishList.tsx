@@ -2,11 +2,12 @@ import "./DishList.scss";
 import { useDishes } from "../../contexts/DishesContext";
 import dayjs from "dayjs";
 import customFormat from "dayjs/plugin/customParseFormat"
-import { FLAVOR_IMAGES } from "../../@types/Flavors";
+import { FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { useEffect, useRef } from "react";
-import type { Dish } from "../../@types/User";
+import type { Dish, LocalDish } from "../../@types/User";
 import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish";
 import { useGameState } from "../../contexts/GameStateContext";
+import type { Digit } from "../../@types/Api";
 
 dayjs.extend(customFormat);
 
@@ -16,7 +17,7 @@ export default function DishList() {
     const gameState = useGameState();
 
     const listRef = useRef<HTMLUListElement>(null);
-    const currentSelectedElementRef = useRef<Dish>(null);
+    const currentSelectedElementRef = useRef<Dish | LocalDish>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -110,22 +111,22 @@ export default function DishList() {
 
     const shareCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const element = dishes.find(e => e.name == currentSelectedElementRef.current?.name);
+        const element = currentSelectedElementRef.current;
         if (!element) return;
     };
 
     const duplicateCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const element = dishes.find(e => e.name == currentSelectedElementRef.current?.name);
+        const element = currentSelectedElementRef.current;
         if (!element) return;
 
     };
 
     const openCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const element = dishes.find(e => e.name == currentSelectedElementRef.current?.name);
-        if (!element) return;
-        currentElement.setIndex(dishes.indexOf(element));
+        // currentElement.setIndex((dishes as any[]).indexOf(currentSelectedElementRef.current));
+        currentElement.openDishFromObj(currentSelectedElementRef.current);
+        gameState.setGameState("createDish-create");
     };
 
 
@@ -157,24 +158,24 @@ export default function DishList() {
             {
                 dishes.length > 0 && <ul className="list" ref={listRef}>
                     {
-                        dishes.filter(e => !e.temporary).map(dish => {
-                            return <li key={dish.name} className={dish.publishState == "private" ? "" : "public"} data-list-entry-name={dish.name}>
-                                <img src={(dish.aiImage && dish.aiImage.length != 0 ? dish.aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image" />
+                        dishes.filter(e => !(e as any).temporary).map((dish, i) => {
+                            return <li key={dish.name + i} className={((dish as any).publishState ?? "private") == "private" ? "" : "public"} data-list-entry-name={dish.name}>
+                                <img src={((dish as any).aiImage && (dish as any).aiImage.length != 0 ? (dish as any).aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image" />
                                 <span className="dish-name">{dish.name}</span>
-                                <span className="dish-creation-date">{dayjs(dish.dishCreationDate).format("YYYY/MM/DD hh:mm")}</span>
-                                <span className="dish-created-by">by {dish.createdBy ?? "Unknown"}</span>
-                                <span className="dish-publish-state">{dish.publishState}</span>
+                                <span className="dish-creation-date">{dayjs((dish as any).dishCreationDate).format("YYYY/MM/DD hh:mm")}</span>
+                                <span className="dish-created-by">by {(dish as any).createdBy ?? "Unknown"}</span>
+                                <span className="dish-publish-state">{(dish as any).publishState}</span>
 
                                 {
-                                    dish.publishState == "published" && dish.share && <>
+                                    dish && (dish as Dish).publishState == "published" && (dish as Dish).share && <>
                                         <div className="flavors">{
-                                            dish.share.flavors.map((flavor, i) => {
+                                            ((dish as any).share.flavors as Flavor[]).map((flavor, i) => {
                                                 return <img key={flavor + i} src={FLAVOR_IMAGES[flavor]} alt={flavor} className="flavor-img" />
                                             })
                                         }</div>
                                         <div className="code">
                                             {
-                                                dish.share.code.map((digit, i) => {
+                                                ((dish as any).share.code as Digit[]).map((digit, i) => {
                                                     return <span key={i} className="digit">{digit}</span>
                                                 })
                                             }

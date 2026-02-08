@@ -5,12 +5,13 @@ import type { Dish, LocalDish } from "../@types/User";
 type CurrentDishIndexContextType = {
     val: number;
     setIndex: (val: number) => void;
+    openDishFromObj: (dish: Dish | LocalDish) => void;
 }
 
-export const CurrentDishIndexContext = createContext<CurrentDishIndexContextType>({ val: -1, setIndex(val) { } });
+export const CurrentDishIndexContext = createContext<CurrentDishIndexContextType | null>(null);
 
 export function useCurrentDishIndex() {
-    const ctx = useContext<CurrentDishIndexContextType>(CurrentDishIndexContext);
+    const ctx = useContext<CurrentDishIndexContextType | null>(CurrentDishIndexContext);
     if (ctx == null || ctx == null) {
         throw ("cant use useCurrentDish outside of Provider");
     }
