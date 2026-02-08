@@ -1,8 +1,8 @@
 import { Activity, useEffect, useRef, useState } from "react";
-import { FLAVORS, intitializeAllAudios } from "../audio/Flavors";
+import { intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
-import FlavorSynth, { type FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
+import FlavorSynth from "../components/flavorSynth/FlavorSynth";
 import "./App.scss";
 import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
@@ -15,7 +15,7 @@ import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu, { type DownloadProgress } from "../components/initialMenu/InitialMenu";
-import type { Dish, User } from "../@types/User";
+import type { Dish, LocalDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 import { UserContext } from "../contexts/UserContext";
@@ -26,17 +26,19 @@ import useJsObjectHook, { useJsRefObjectHook } from "../hooks/JsObjectHook";
 import { GameStateContext, type GameState } from "../contexts/GameStateContext";
 import { MainFlavorContext } from "../contexts/MainFlavorContext";
 import DishManager from "../components/dishManager/DishManager";
+import withDebounce from "../hooks/Debounce";
 
 export default function App() {
-    const reselectMainFlavorRef = useRef<() => void>(() => 0);
-    const isFirstTimeOpen = useRef<boolean>(true);
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
+
+    const savedMessageRef = useRef<HTMLDivElement>(null);
+
     const [userLoggedIn, setUserLoggedIn] = useState<User | null>(getLoggedInUser());
     const [hasDownloadedData, setHasDD] = useState<boolean>(false);
     const [downloadProgress, setDownloadProgres] = useState<DownloadProgress>({ max: 0, val: 0, maxSize: 0, size: 0, mbSec: 0 });
     const [hasLoaded, setHasLoaded] = useState<boolean>(false);
     const currentDishTitleRef = useRef<HTMLInputElement>(null);
-    const [dishes, setDishes] = useState<Dish[]>([]);
+    const [dishes, setDishes] = useState<Dish[] | LocalDish[]>([]);
     const [currentDishIndex, setCurrentDishIndex] = useState<number>(-1);
 
     const [gameState, _setGameState] = useState<GameState>("mainMenu");
@@ -44,8 +46,8 @@ export default function App() {
 
     const currentDish = dishes.at(currentDishIndex);
 
-    const [currentDishName, setCurrentDishName] = useJsRefObjectHook<string, Dish>(generateNewDishTitle(), currentDish, "name");
-    const [mainFlavor, setMF] = useJsObjectHook<MainFlavor, Dish>("Savory", currentDish, "mainFlavor");
+    const [currentDishName, setCurrentDishName] = useJsRefObjectHook<string, Dish | LocalDish>(generateNewDishTitle(), currentDish, "name");
+    const [mainFlavor, setMF] = useJsObjectHook<MainFlavor, Dish | LocalDish>("Savory", currentDish, "mainFlavor");
 
     const { setTitle, title } = useTitle();
 
@@ -67,39 +69,55 @@ export default function App() {
     useEffect(() => {
         if (userLoggedIn) {
             (async () => {
-                const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as Dish[] | null;
-                let integrateDishes = null;
-                if (localDishes != null) {
+                const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
+                const v = localStorage.getItem("overwriteLocalDishesToServer");
+                let integrateDishes = v == null ? null : v == "true";
+                if (integrateDishes == null && localDishes != null) {
                     integrateDishes = await confirm("Do you want to upload all your local Dishes to the server?", "noYes");
+                    localStorage.setItem("overwriteLocalDishesToServer", integrateDishes + "");
                 }
                 let dishes = null;
                 if (integrateDishes && localDishes) {
                     dishes = await DishManager.loadDishesFromServer(userLoggedIn, localDishes);
-                } else {
+                } else if (integrateDishes) {
                     dishes = await DishManager.loadDishesFromServer(userLoggedIn);
+                } else {
+                    if (!localDishes) return;
+                    setDishes(localDishes);
+                    return;
                 }
                 if (!dishes) return;
+                localStorage.removeItem("dishes");
+                localStorage.removeItem("overwriteLocalDishesToServer");
                 setDishes(dishes);
             })();
         } else {
-            // TODO: Load dishes from local storage
-            const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as Dish[] | null;
-            console.log(localDishes);
+            const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
             if (localDishes) {
                 setDishes(localDishes);
             }
         }
     }, []);
 
-    const saveDishes = () => {
+    const saveCurrentDish = () => {
         if (userLoggedIn) {
-
+            if (!currentDish) {
+                Utils.error("Can't save this dish");
+                return;
+            }
+            DishManager.updateEntireDish(userLoggedIn, currentDish as Dish);
         } else {
-            const jsonData = JSON.stringify(dishes.filter(e => !e.temporary));
+            const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary));
             localStorage.setItem("dishes", jsonData);
         }
 
         setTitle(title.replaceAll("*", ""));
+        if (savedMessageRef.current) {
+            savedMessageRef.current?.setAttribute("data-open", "");
+            setTimeout(() => {
+                savedMessageRef.current?.removeAttribute("data-open");
+            }, 2000);
+        }
     }
 
     function generateNewDishTitle() {
@@ -125,15 +143,31 @@ export default function App() {
             createdBy: userLoggedIn?.displayName ?? "Unknown",
             share: undefined,
             temporary: undefined,
-            uuid: Utils.uuidv4Exclude(dishes.map(e => e.uuid))
+            uuid: Utils.uuidv4Exclude(dishes.map(e => e.uuid)),
+            volumes: {
+                flavors: 1,
+                mainFlavor: 1,
+                master: 1
+            }
         };
         dishes.push(newDish);
         const index = dishes.indexOf(newDish);
         setDishes([...dishes]);
-        // synthLinesWrapped[1](newDish.data);
         setCurrentDishName(newDish.name)
         setCurrentDishTitleToElement(newDish.name);
         setCurrentDishIndex(index);
+        addedNewDish(newDish, index);
+    }
+
+    async function addedNewDish(dish: Dish, index: number) {
+        if (!userLoggedIn) return;
+        const changedUUID = await DishManager.addDish(userLoggedIn, dish);
+        if (!changedUUID) return;
+        if (typeof changedUUID == "string") {
+            const d = dishes.at(index);
+            if (!d) return;
+            d.uuid = changedUUID;
+        }
     }
 
     useEffect(() => {
@@ -146,7 +180,6 @@ export default function App() {
     const confirm = useConfirm().confirm;
 
     const setMainFlavor = (flavor: MainFlavor) => {
-        isFirstTimeOpen.current = false;
         setMF(flavor);
         document.body.setAttribute("data-flavor", flavor);
         const st = document.body.style;
@@ -155,17 +188,6 @@ export default function App() {
         st.setProperty("--main-color-rgb", toRGB(MAIN_FLAVOR_COLOR[flavor][0]));
         st.setProperty("--secondary-color-rgb", toRGB(MAIN_FLAVOR_COLOR[flavor][1]));
     };
-
-    const openSelectMainFlavor = () => {
-        setGameState("createDish-mainFlavor");
-        setTimeout(() => {
-            reselectMainFlavorRef.current();
-        }, 300);
-    };
-
-    const openOpenShare = () => {
-        setGameState("openShared");
-    }
 
     const initializeAllDownloadedResources = async () => {
         await intitializeAllAudios();
@@ -231,8 +253,8 @@ export default function App() {
         <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
             <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
                 <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex }}>
-                    <DishesContext.Provider value={{ dishes, setDishes, saveDishes }}>
-                        <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn, saveDishes: saveDishes }}>
+                    <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000) }}>
+                        <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
                             <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
                             <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
@@ -240,7 +262,7 @@ export default function App() {
                             </Activity>
 
                             <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
-                                <MainFlavorSelectionDialog reselectMainFlavorRef={reselectMainFlavorRef}></MainFlavorSelectionDialog>
+                                <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
                             </Activity>
 
                             <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
@@ -280,6 +302,10 @@ export default function App() {
                             <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
                                 <DishList />
                             </Activity>
+
+                            <div className="save-message" ref={savedMessageRef}>
+                                Saved Current Dish
+                            </div>
 
                             {/* {
 
@@ -330,13 +356,13 @@ async function checkIfDataDownloaded() {
 }
 
 function getLoggedInUser(): User | null {
-    const user = localStorage.getItem("user") as User | null;
+    const user = localStorage.getItem("user") as string | null;
     const allowedDate = localStorage.getItem("allowedUntil");
     if (!allowedDate) return null;
     if (!user) return null;
     const parsedUntil = parseInt(allowedDate) * 1000;
     if (Date.now() > parsedUntil) return null;
-    return user;
+    return JSON.parse(user);
 }
 
 export type ReturnPointWhenCancel = "flavorSynth" | "dishList" | "menu";

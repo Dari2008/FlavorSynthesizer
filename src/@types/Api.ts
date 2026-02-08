@@ -1,5 +1,6 @@
 import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import type { Flavor, MainFlavor } from "./Flavors";
+import type { DishVolumes, ServerDish } from "./User";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
 
@@ -61,10 +62,17 @@ export type OpenShareResponse = {
     dishCreationDate: number;
     createdBy: string;
     publishState: "private" | "published";
+    volumes: DishVolumes;
 }
 
 export type DishLoadResponse = {
-    dishes: OpenShareResponse[];
+    dishes: ServerDish[];
+}
+
+export type AddDishResponse = {
+    changedUUIDs: {
+        [key: string]: string;
+    };
 }
 
 export type FlavorsSelected = {

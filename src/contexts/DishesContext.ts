@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react";
-import type { Dish } from "../@types/User"
+import type { Dish, LocalDish } from "../@types/User"
 
 type DishesContextType = {
-    dishes: Dish[];
-    setDishes: (dishes: Dish[]) => void;
-    saveDishes: () => void;
+    dishes: Dish[] | LocalDish[];
+    setDishes: (dishes: Dish[] | LocalDish[]) => void;
+    saveCurrentDish: () => void;
 }
 
 export const DishesContext = createContext<DishesContextType | null>(null);

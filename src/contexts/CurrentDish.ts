@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import { useDishes } from "./DishesContext";
+import type { Dish, LocalDish } from "../@types/User";
 
 type CurrentDishIndexContextType = {
     val: number;
@@ -21,5 +22,5 @@ export function useCurrentDish() {
     const index = useCurrentDishIndex();
     if (dishes.dishes.length == 0) return undefined;
     if (index.val == -1) return undefined;
-    return dishes.dishes.at(index.val);
+    return dishes.dishes.at(index.val) as LocalDish | Dish | undefined;
 }

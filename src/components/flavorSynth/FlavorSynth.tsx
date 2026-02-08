@@ -20,9 +20,10 @@ import { SynthChangeContext } from "../../contexts/SynthChangeContext";
 import { useTitle } from "../../contexts/TitleContext";
 import { useUser } from "../../contexts/UserContext";
 import useJsObjectHook, { useJsObjectHookForArray } from "../../hooks/JsObjectHook";
-import type { Dish } from "../../@types/User";
+import type { Dish, LocalDish } from "../../@types/User";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
+import { useDishes } from "../../contexts/DishesContext";
 
 
 type EventListWithUUID<T> = {
@@ -70,10 +71,10 @@ export default function FlavorSynth() {
     const currentDraggingIsEmptyRef = useRef<(element: FlavorElement | null, from: number, to?: number) => boolean>(() => false);
 
     const { title, setTitle } = useTitle();
-    const { saveDishes } = useUser();
     const currentDish = useCurrentDish();
+    const dishes = useDishes();
 
-    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<FlavorSynthLine, Dish>([], currentDish, "data");
+    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<FlavorSynthLine, Dish | LocalDish>([], currentDish, "data");
 
     window.onresize = () => {
         widthRef.current = getCurrentTrackWidth();
@@ -362,7 +363,7 @@ export default function FlavorSynth() {
     };
 
     return <>
-        <SynthChangeContext.Provider value={{ changed: onSynthLineChanged, saveFlavorSynth: saveDishes }}>
+        <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
             <SynthLinesContext.Provider value={{
                 delete: deleteSynth,
                 onWheel,
@@ -440,7 +441,7 @@ export default function FlavorSynth() {
                     <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
                         <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                     </button>
-                    <button className="save" onClick={saveDishes}>
+                    <button className="save" onClick={dishes.saveCurrentDish}>
                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                     </button>
                     {/* <button className="openShared" onClick={openOpenShare}>

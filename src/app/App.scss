@@ -158,3 +158,20 @@ body {
 * {
     user-select: none;
 }
+
+.save-message {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 5px 10px;
+    border-top-right-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: none;
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+
+    &[data-open] {
+        opacity: 1;
+    }
+}

@@ -4,7 +4,7 @@ import LIST_DISHES_SELECTION from "./selections/listDishes.json";
 import BOX_DUNNO_SELECTION from "./selections/boxDunno.json";
 import { useEffect, useRef, useState } from "react";
 import type { SelectableElement } from "../initialMenu/InitialMenu";
-import { useGameState } from "../../contexts/GameStateContext";
+import withDebounce from "../../hooks/Debounce";
 
 
 const SELECTION_FILES: SelectionFiles = {
@@ -59,6 +59,8 @@ const IMAGE_HEIGHT = 344;
 
 export default function ImageMenu({ clicked }: { clicked: (element: SelectableElement) => void; }) {
 
+    const clickedWrapped = withDebounce(clicked, 1000);
+
     const imagesRef = useRef<HTMLDivElement>(null);
     const createNewDishRef = useRef<HTMLImageElement>(null);
     const openSharedDishRef = useRef<HTMLImageElement>(null);
@@ -89,6 +91,32 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     //             break;
     //     }
     // };
+
+    function deselectAll() {
+        createNewDishRef.current?.classList.remove("selected");
+        openSharedDishRef.current?.classList.remove("selected");
+        listDishesRef.current?.classList.remove("selected");
+        boxDunnoRef.current?.classList.remove("selected");
+    }
+
+
+    const select = (element: keyof SelectionFiles) => {
+        deselectAll();
+        switch (element) {
+            case "create-new-dish":
+                createNewDishRef.current?.classList.add("selected");
+                break;
+            case "list-dishes":
+                listDishesRef.current?.classList.add("selected");
+                break;
+            case "open-shared-dish":
+                openSharedDishRef.current?.classList.add("selected");
+                break;
+            case "box-dunno":
+                boxDunnoRef.current?.classList.add("selected");
+                break;
+        }
+    };
 
     useEffect(() => {
         const images = imagesRef.current;
@@ -197,30 +225,6 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
             ];
         }
 
-        function deselectAll() {
-            createNewDishRef.current?.classList.remove("selected");
-            openSharedDishRef.current?.classList.remove("selected");
-            listDishesRef.current?.classList.remove("selected");
-            boxDunnoRef.current?.classList.remove("selected");
-        }
-
-        function select(element: keyof SelectionFiles) {
-            deselectAll();
-            switch (element) {
-                case "create-new-dish":
-                    createNewDishRef.current?.classList.add("selected");
-                    break;
-                case "list-dishes":
-                    listDishesRef.current?.classList.add("selected");
-                    break;
-                case "open-shared-dish":
-                    openSharedDishRef.current?.classList.add("selected");
-                    break;
-                case "box-dunno":
-                    boxDunnoRef.current?.classList.add("selected");
-                    break;
-            }
-        }
 
         const set = (img: HTMLImageElement | null, label: HTMLSpanElement | null, key: keyof SelectionFiles) => {
 
@@ -276,13 +280,13 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
             setTimeout(() => {
                 switch (intersectionElement) {
                     case "create-new-dish":
-                        clicked("add");
+                        clickedWrapped("add");
                         break;
                     case "list-dishes":
-                        clicked("list");
+                        clickedWrapped("list");
                         break;
                     case "open-shared-dish":
-                        clicked("open");
+                        clickedWrapped("open");
                         break;
                     case "box-dunno":
                         break;

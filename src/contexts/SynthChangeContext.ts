@@ -2,7 +2,6 @@ import { createContext, useContext } from "react"
 
 export type SynthChangeContextType = {
     changed: () => void;
-    saveFlavorSynth: () => void;
 }
 
 export const SynthChangeContext = createContext<SynthChangeContextType | null>(null);
