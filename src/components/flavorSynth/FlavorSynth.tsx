@@ -56,6 +56,9 @@ export default function FlavorSynth() {
     const stopDraggingCallbacks = useRef<EventListWithUUID<() => void>>({});
     const cusorPos = useRef<number>(0);
 
+    const currentPlayingFlavorCountRef = useRef<HTMLSpanElement>(null)
+    const totalAmountOfFlavorsRef = useRef<HTMLSpanElement>(null)
+
     const currentDragingRef = useRef<FlavorElement | null>(null);
     const currentDragingOffsetRef = useRef<number>(0);
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
@@ -274,6 +277,7 @@ export default function FlavorSynth() {
         isPlayingRef.current = true;
         currentPlayingOffsetRef.current = Tone.now() - cusorPos.current;
         repaintAllCurrentPositions();
+        startStatisticLoop();
     };
 
     const stop = () => {
@@ -282,6 +286,7 @@ export default function FlavorSynth() {
         isPlayingRef.current = false;
         repaintAllCurrentPositions();
         mainFlavorsPlayer?.stop();
+        stopStatisticLoop();
     }
 
     const currentPlayChanged = () => {
@@ -356,11 +361,42 @@ export default function FlavorSynth() {
         };
     }, []);
 
+    let statisticLoopInterval = -1;
+
+    const startStatisticLoop = () => {
+        statisticLoopInterval = setInterval(() => {
+            updateCurrentPlayingStatistic();
+        }, 50);
+    };
+
+    const stopStatisticLoop = () => {
+        if (statisticLoopInterval != -1) {
+            clearInterval(statisticLoopInterval);
+            statisticLoopInterval = -1;
+        }
+    };
+
 
     const onSynthLineChanged = () => {
         if (title.startsWith("*")) return;
         setTitle("*" + title);
     };
+
+    const updateTotalStatistic = () => {
+        if (totalAmountOfFlavorsRef.current) {
+            totalAmountOfFlavorsRef.current.textContent = synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0) + " flavors";
+        }
+    }
+
+    const updateCurrentPlayingStatistic = () => {
+        if (currentPlayingFlavorCountRef.current) {
+            const now = Tone.now();
+            const currentPos = now - currentPlayingOffsetRef.current;
+            currentPlayingFlavorCountRef.current.textContent = synthLines.map(e => e.elements.filter(element => {
+                return element.from <= currentPos && currentPos <= element.to;
+            }).length).reduce((a, b) => a + b, 0) + " flavors";
+        }
+    }
 
     return <>
         <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
@@ -382,7 +418,9 @@ export default function FlavorSynth() {
                 deleteElement,
                 repaintAllTimelines,
                 repaintAllElements,
-                addStopDraggingCallback
+                addStopDraggingCallback,
+                updateTotalStatistic,
+                updateCurrentPlayingStatistic
             }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                     <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
@@ -401,10 +439,10 @@ export default function FlavorSynth() {
                             <div className="flavor-synth-controls">
                                 <div className="statistics">
                                     <div className="activeFlavorsPlaying">
-                                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors"></FlavorStatistic>
+                                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors" ref={currentPlayingFlavorCountRef} />
                                     </div>
                                     <div className="totalFlavorsUsed">
-                                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used"></FlavorStatistic>
+                                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
                                     </div>
                                 </div>
                                 <button className="skip-prev">

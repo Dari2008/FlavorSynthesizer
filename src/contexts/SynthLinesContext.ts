@@ -19,6 +19,8 @@ type SynthLines = {
     repaintAllTimelines: () => void;
     repaintAllElements: () => void;
     addStopDraggingCallback: (uuid: string, cb: () => void) => void;
+    updateTotalStatistic: () => void;
+    updateCurrentPlayingStatistic: () => void;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

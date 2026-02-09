@@ -60,7 +60,11 @@ export class FlavorFileMusic {
 
         const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
         this.files[bpm as BPM] = new Player();
-        this.promises.push(this.files[bpm as BPM].load(base64));
+        this.promises.push(new Promise<any>((res) => {
+            const data = atob(base64.replace("data:audio/wav;base64,", ""));
+            this.files[bpm as BPM].buffer.fromArray(Float32Array.from(data.split("").map(e => e), parseInt));
+            res(this.files[bpm as BPM]);
+        }));
         this.files[bpm as BPM].fadeIn = FADE_TIME;
         this.files[bpm as BPM].fadeOut = FADE_TIME;
         this.files[bpm as BPM].autostart = false;
@@ -95,7 +99,8 @@ export class FlavorFileMusic {
         for (const bpm of BPM_VALS) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
-            await player.load(base64);
+            const data = atob(base64.replace("data:audio/wav;base64,", ""));
+            this.files[bpm as BPM].buffer.fromArray(Float32Array.from(data.split("").map(e => e), parseInt));
             player.fadeIn = FADE_TIME;
             player.fadeOut = FADE_TIME;
             player.toDestination();
@@ -182,7 +187,10 @@ export class MainFlavorFileMusic {
         const dbPath = this.index.replace(".wav", "");
         const base64 = await loadAndSaveResource("audio", dbPath, file);
         this.player = new Player();
-        await this.player.load(base64);
+
+        const data = atob(base64.replace("data:audio/wav;base64,", ""));
+        this.player.buffer.fromArray(Float32Array.from(data.split("").map(e => e), parseInt));
+
         this.player.fadeIn = FADE_TIME;
         this.player.fadeOut = FADE_TIME;
         this.player.autostart = false;
@@ -212,7 +220,8 @@ export class MainFlavorFileMusic {
         for (const bpm of BPM_VALS) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
-            await player.load(base64);
+            const data = atob(base64.replace("data:audio/wav;base64,", ""));
+            player.buffer.fromArray(Float32Array.from(data.split("").map(e => e), parseInt));
             player.fadeIn = FADE_TIME;
             player.fadeOut = FADE_TIME;
             player.toDestination();

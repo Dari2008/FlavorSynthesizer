@@ -1,10 +1,11 @@
 import { createContext, useContext } from "react";
+import type { Dish, LocalDish } from "../@types/User";
 
 type GameStateContextType = {
     gameState: GameState;
     setGameState: (state: GameState) => void;
     goBack: () => void;
-    createNewActiveDish: () => void;
+    createNewActiveDish: (newDish?: Dish | LocalDish, setCurrent?: boolean, indexToInsertAt?: number) => void;
 };
 
 export const GameStateContext = createContext<GameStateContextType | null>(null);
@@ -17,4 +18,4 @@ export function useGameState() {
     return ctx;
 }
 
-export type GameState = "mainMenu" | "dishList" | "openShared" | "createDish-mainFlavor" | "createDish-create" | "createDish-create-viewonly" | "createDish-share";
+export type GameState = "loading" | "mainMenu" | "dishList" | "openShared" | "createDish-mainFlavor" | "createDish-create" | "createDish-create-viewonly" | "createDish-share";

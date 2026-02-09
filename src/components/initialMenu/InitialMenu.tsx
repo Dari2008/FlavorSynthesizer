@@ -6,58 +6,26 @@ import { downloadAll } from "../../download/DownloadManager";
 import ImageMenu from "../imageMenu/ImageMenu";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
+import { useLoadingAnimation } from "../../contexts/LoadingAnimationContext";
 
-export default function InitialMenu({ hasDownloadedAssets, downloadFinished, hasLoaded }: {
-    downloadWrapper: [DownloadProgress, React.Dispatch<React.SetStateAction<DownloadProgress>>];
-    hasDownloadedAssets: boolean; downloadFinished: () => void; hasLoaded: boolean;
-}) {
+export default function InitialMenu() {
 
     const [isDropDownOpen, setDropDownOpen] = useState<boolean>(false);
     const [isLoginOrRegister, setIsLoginOrRegsiter] = useState<"login" | "register">("login");
-    const [isDownloading, setIsDownloading] = useState<boolean>(false);
-    const [isSuccessfullDownload, setIsSuccessfullDownload] = useState<boolean>(false);
     const userProfileDivRef = useRef<HTMLDivElement>(null);
     const usernameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
     const emailRef = useRef<HTMLInputElement>(null);
-    const progressLabelRef = useRef<HTMLSpanElement>(null);
-    const currentDownloadingProgressRef = useRef<HTMLDivElement>(null);
 
     const gameState = useGameState();
     const user = useUser();
+    const loginOrRegisterLoading = useLoadingAnimation().withKey("loginOrRegister");
 
-    const download = () => {
-        if (hasDownloadedAssets) return;
-        downloadAll((max, curr, maxSize, size, mbSec) => {
-            // setDownloadProgres({
-            //     max: max,
-            //     val: curr,
-            //     maxSize,
-            //     size,
-            //     mbSec
-            // });
-            console.log(max, curr, maxSize, size, mbSec);
-            setIsDownloading(true);
-            if (curr >= max) {
-                setIsDownloading(false);
-                setIsSuccessfullDownload(true);
-                setTimeout(() => {
-                    downloadFinished();
-                }, 1000);
-            }
-            if (progressLabelRef.current) {
-                progressLabelRef.current.textContent = `${(size / 1000 / 1000).toFixed(1)} MB / ${(maxSize / 1000 / 1000).toFixed(1)} MB (${(mbSec / 1000 / 1000).toFixed(1)} MB/s)`;
-            }
-            if (currentDownloadingProgressRef.current) {
-                currentDownloadingProgressRef.current.style.setProperty("--progress-percentage", (size / maxSize) * 100 + "%");
-            }
-        });
-    };
 
     const login = async () => {
         const username = usernameRef.current?.value;
         const password = passwordRef.current?.value;
-
+        loginOrRegisterLoading.startLoading();
         const response = await loginUser(username ?? "", password ?? "");
 
         if (response) {
@@ -65,12 +33,14 @@ export default function InitialMenu({ hasDownloadedAssets, downloadFinished, has
         } else {
             user.setUser(null);
         }
+        loginOrRegisterLoading.stopLoading();
     };
 
     const register = async () => {
         const username = usernameRef.current?.value;
         const password = passwordRef.current?.value;
         const email = emailRef.current?.value;
+        loginOrRegisterLoading.startLoading();
 
         const response = await registerUser(username ?? "", password ?? "", email ?? "");
 
@@ -79,6 +49,7 @@ export default function InitialMenu({ hasDownloadedAssets, downloadFinished, has
         } else {
             user.setUser(null);
         }
+        loginOrRegisterLoading.stopLoading();
     };
 
     useEffect(() => {
@@ -177,24 +148,6 @@ export default function InitialMenu({ hasDownloadedAssets, downloadFinished, has
             </button>
         </div> */}
 
-        {!hasDownloadedAssets && hasLoaded && <div className="has-to-download">
-            <h3>Download Assets</h3>
-            <span>You have to download the assets of the game if you want to play it</span>
-            {!isDownloading && !isSuccessfullDownload && <button className="download" onClick={download}>Download</button>}
-            {
-                isDownloading && !isSuccessfullDownload && <>
-                    <div className="progress-bar" role="progressbar" ref={currentDownloadingProgressRef}>
-                        <div className="progress"></div>
-                        <span className="label" ref={progressLabelRef}>0 MB / 0 MB (0 MB/s)</span>
-                    </div>
-                </>
-            }
-            {
-                isSuccessfullDownload && <>
-                    <h2 className="successfull-download">Downloaded Successfully</h2>
-                </>
-            }
-        </div>}
     </div>;
 }
 

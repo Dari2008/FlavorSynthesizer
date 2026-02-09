@@ -14,13 +14,10 @@ export async function initCurrentPosImages() {
         await (async () => {
             const batchSize = 5;
             for (let i = 0; i < imageCount; i += batchSize) {
-                const batch = Array.from({ length: batchSize }, (_, j) => i + j).filter(x => x < imageCount);
-                await Promise.all(batch.map(async (idx) => {
-                    const img = new Image();
-                    img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
-                    await new Promise(res => img.onload = res);
-                    currentPosAnimationImages[idx] = img;
-                }));
+                const img = new Image();
+                img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
+                await new Promise(res => img.onload = res);
+                currentPosAnimationImages[i] = img;
             }
             console.log("Loaded all");
 

@@ -26,6 +26,22 @@ export default class DishManager {
         return dishes;
     }
 
+    public static async deleteDish(user: User, uuid: string): Promise<boolean> {
+        const jwt = user.jwt;
+        const response = await (await fetch(BASE_URL + "/dishes/update/delete.php", {
+            method: "POST",
+            body: JSON.stringify({
+                jwt,
+                uuid
+            })
+        })).json() as APIResponse<undefined>;
+
+        if (response.status == "error") {
+            Utils.error("Failed to delte the dish");
+            return false;
+        }
+        return true;
+    }
 
     public static async updateDish(user: User, updateData: UpdateName | UpdateData | UpdateMainFlavor): Promise<boolean> {
         const jwt = user.jwt;
@@ -59,7 +75,7 @@ export default class DishManager {
         return true;
     }
 
-    public static async addDish(user: User, dish: Dish): Promise<string | boolean> {
+    public static async addDish(user: User, dish: Dish | LocalDish): Promise<string | boolean> {
         const jwt = user.jwt;
         const response = await (await fetch(BASE_URL + "/dishes/update/addDish.php", {
             method: "POST",

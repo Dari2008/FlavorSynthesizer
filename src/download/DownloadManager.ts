@@ -1,6 +1,7 @@
 import FILE_SIZES_RAW from "../@types/downloadSizes.json";
 import type { BPM } from "../audio/FlavorMusic";
 import { FLAVORS, MAIN_FLAVORS } from "../audio/Flavors";
+import { LOADING_ANIMATION_IMAGE_COUNT, setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
 import { loadAndSaveResource } from "../components/ResourceSaver";
 const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
 
@@ -26,11 +27,26 @@ async function downloadCurrentPosAnimationFrame(frame: number) {
     await loadAndSaveResource("currentCursorPositionAnimation", "image_" + frame, ROOT_PATH + frame.toString().padStart(4, "0") + ".png");
 }
 
+async function downloadLoadingAnimationFrame(frame: number) {
+    setLoadingFrame(await loadAndSaveResource("pot-animation", "image_" + frame, "./animations/pot-animation/image_" + frame + ".png"), frame);
+}
+
 export async function downloadAll(onProgress: (max: number, curr: number, downloadSize: number, downloadedSize: number, mbSec: number) => void) {
-    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT;
+    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT;
     let curr = 0;
     let downloadedContentSize = 0;
     let maxDownloadedContent = calculateMaxDownloadSize();
+
+    for (let i = 0; i < LOADING_ANIMATION_IMAGE_COUNT; i++) {
+        downloadStart();
+        await downloadLoadingAnimationFrame(i);
+        const size = getSizeOf("pot-animation", "image_" + i);
+        const sizePerSec = downloadEnd(size);
+        downloadedContentSize += size;
+        onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+        curr++
+    }
+
     for (const mainFlavor of MAIN_FLAVORS) {
         downloadStart();
         await mainFlavor.download();

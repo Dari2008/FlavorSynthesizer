@@ -110,9 +110,11 @@
         opacity: 0;
         transition: opacity 0.2s ease-in-out;
         z-index: 100000;
+        pointer-events: none;
 
         &.opened {
             opacity: 1;
+            pointer-events: all;
         }
 
         button {
@@ -162,7 +164,7 @@
             margin-inline: auto;
             padding: 20px;
             display: grid;
-            grid-template-columns: max-content 1fr 0.5fr;
+            grid-template-columns: 10% calc(60% - 40px) 30%;
             grid-template-rows: repeat(2, auto);
             grid-column-gap: 20px;
             grid-row-gap: 0px;
@@ -241,9 +243,13 @@
             grid-area: 1 / 2 / 2 / 3;
             width: max-content;
             font-size: 2rem;
-            display: flex;
-            justify-content: center;
-            align-content: center;
+            max-width: 100%;
+            height: max-content;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: left;
+            display: block;
         }
 
         .dish-creation-date {
@@ -333,9 +339,13 @@
             grid-area: 1 / 2 / 2 / 3;
             width: max-content;
             font-size: 2rem;
-            display: flex;
-            justify-content: center;
-            align-content: center;
+            max-width: 100%;
+            height: max-content;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: left;
+            display: block;
         }
 
         .dish-creation-date {

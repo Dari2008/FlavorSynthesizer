@@ -12,107 +12,137 @@ import type { Digit } from "../../@types/Api";
 dayjs.extend(customFormat);
 
 export default function DishList() {
-    const { dishes, setDishes } = useDishes();
+    const { dishes, setDishes, deleteDisheWithUUID } = useDishes();
     const currentElement = useCurrentDishIndex();
     const gameState = useGameState();
 
     const listRef = useRef<HTMLUListElement>(null);
+    const lastClickOffsetRef = useRef({ x: 0, y: 0 });
     const currentSelectedElementRef = useRef<Dish | LocalDish>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    const hideOptions = () => {
+        if (!optionsRef.current) return;
+        optionsRef.current.classList.remove("opened");
+    }
 
-        if (!listRef.current) return;
+    const showOptions = (x: number, y: number) => {
+        if (!optionsRef.current) return;
+        optionsRef.current.style.setProperty("--left", x + "px");
+        optionsRef.current.style.setProperty("--top", y + "px");
+        optionsRef.current.classList.add("opened");
+    };
 
-        const getClickedEntryElement = (element: HTMLElement) => {
-            if (!element) return undefined;
-            if (!listRef.current) return undefined;
-            if (!listRef.current.contains(element)) return undefined;
-            if (element.getAttribute("data-list-entry-name") != null) {
-                return element.getAttribute("data-list-entry-name");
-            }
-
-            let currentElement: HTMLElement | null = element;
-
-            while (currentElement?.getAttribute("data-list-entry-name") == null) {
-                currentElement = currentElement?.parentElement ?? null;
-                if (!currentElement) return undefined;
-            }
-
-            if (currentElement.getAttribute("data-list-entry-name") != null) {
-                return currentElement.getAttribute("data-list-entry-name");
-            }
-
-            return undefined;
+    const getClickedEntryElement = (element: HTMLElement) => {
+        if (!element) return undefined;
+        if (!listRef.current) return undefined;
+        if (!listRef.current.contains(element)) return undefined;
+        if (element.getAttribute("data-list-entry-uuid") != null) {
+            return element.getAttribute("data-list-entry-uuid");
         }
 
-        const onClickOutside = (e: MouseEvent) => {
-            if (!(e.target instanceof HTMLElement)) {
-                hideOptions();
-                return;
-            }
+        let currentElement: HTMLElement | null = element;
 
-            if (optionsRef.current?.contains(e.target) === true) return;
-            if (listRef.current?.contains(e.target) && e.button != 0) return;
+        while (currentElement?.getAttribute("data-list-entry-uuid") == null) {
+            currentElement = currentElement?.parentElement ?? null;
+            if (!currentElement) return undefined;
+        }
+
+        if (currentElement.getAttribute("data-list-entry-uuid") != null) {
+            return currentElement.getAttribute("data-list-entry-uuid");
+        }
+
+        return undefined;
+    }
+
+    const onClickOutside = (e: MouseEvent) => {
+        if (!(e.target instanceof HTMLElement)) {
             hideOptions();
-        };
-
-        const hideOptions = () => {
-            if (!optionsRef.current) return;
-            optionsRef.current.classList.remove("opened");
+            return;
         }
 
-        const showOptions = (x: number, y: number) => {
-            if (!optionsRef.current) return;
-            optionsRef.current.style.setProperty("--left", x + "px");
-            optionsRef.current.style.setProperty("--top", y + "px");
-            optionsRef.current.classList.add("opened");
-        };
+        if (optionsRef.current?.contains(e.target) === true) return;
+        if (listRef.current?.contains(e.target) && e.button != 0) return;
+        hideOptions();
+    };
 
-        const onMenu = (e: MouseEvent) => {
+    const onMenu = (e: MouseEvent) => {
 
-            const box = listRef.current?.getBoundingClientRect();
-            if (!box) return;
+        const box = listRef.current?.getBoundingClientRect();
+        if (!box) return;
 
-            if (!(e.target instanceof HTMLElement)) {
-                hideOptions();
-                return;
-            }
+        if (!(e.target instanceof HTMLElement)) {
+            hideOptions();
+            return;
+        }
 
-            const x = e.clientX;
-            const y = e.clientY;
+        const x = e.clientX - lastClickOffsetRef.current.x;
+        const y = e.clientY - lastClickOffsetRef.current.y;
 
-            const listEntryName = getClickedEntryElement(e.target);
-            if (!listEntryName) {
-                hideOptions();
-                return;
-            }
-
-            currentSelectedElementRef.current = dishes.find(e => e.name == listEntryName) ?? null;
-            showOptions(x, y);
-
+        const listEntryUUID = getClickedEntryElement(e.target);
+        if (!listEntryUUID) {
+            hideOptions();
             e.preventDefault();
-        };
+            return;
+        }
+        currentSelectedElementRef.current = dishes.find(e => e.uuid == listEntryUUID) ?? null;
+        showOptions(x, y);
 
+        e.preventDefault();
+    };
+
+    const onClickInsideMenu = (e: MouseEvent) => {
+        const box = optionsRef.current?.getBoundingClientRect();
+        if (!box) return;
+
+        if (!(e.target instanceof HTMLElement)) {
+            return;
+        }
+
+        const x = e.clientX - box.left;
+        const y = e.clientY - box.top;
+        if (x < 0 || y < 0) {
+            lastClickOffsetRef.current = { x: 0, y: 0 };
+            return;
+        }
+        lastClickOffsetRef.current = { x, y };
+    };
+
+    useEffect(() => {
+        optionsRef.current?.addEventListener("mousedown", onClickInsideMenu);
         window.addEventListener("contextmenu", onMenu);
         window.addEventListener("mousedown", onClickOutside);
 
         return () => {
             window.removeEventListener("contextmenu", onMenu);
-            window.addEventListener("mousedown", onClickOutside);
+            window.removeEventListener("mousedown", onClickOutside);
+            optionsRef.current?.removeEventListener("mousedown", onClickInsideMenu);
         }
 
-    }, [listRef]);
+    }, []);
 
     const deleteCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        setDishes([...dishes.filter(e => e.name != currentSelectedElementRef.current?.name)]);
+        console.log(currentSelectedElementRef.current?.uuid);
+        const uuid = dishes.find(e => e.uuid == currentSelectedElementRef.current?.uuid)?.uuid;
+        console.log(dishes, uuid);
+        if (!uuid) return;
+        deleteDisheWithUUID(uuid);
+        hideOptions();
     };
 
     const shareCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
         const element = currentSelectedElementRef.current;
         if (!element) return;
+
+        const indexOf = dishes.indexOf(element);
+        if (indexOf == -1) return;
+
+        currentElement.setIndex(indexOf);
+        gameState.setGameState("createDish-share");
+
+        hideOptions();
     };
 
     const duplicateCurrentSelected = () => {
@@ -120,13 +150,46 @@ export default function DishList() {
         const element = currentSelectedElementRef.current;
         if (!element) return;
 
+        const indexOf = dishes.indexOf(element);
+
+        let index = 1;
+        let newName = element.name + ` (${index})`;
+
+        const names = dishes.map(e => e.name);
+
+        while (names.includes(newName)) {
+            index++;
+            newName = element.name + ` (${index})`;
+        }
+
+        let newUUID = crypto.randomUUID();
+
+        const uuids = dishes.map(e => e.uuid);
+
+        while (uuids.includes(newUUID)) {
+            newUUID = crypto.randomUUID();
+        }
+
+        const newDish = {
+            ...element,
+            uuid: newUUID,
+            name: newName,
+            shares: undefined,
+            aiImage: undefined
+        };
+        gameState.createNewActiveDish(newDish, false, indexOf == -1 ? undefined : indexOf);
+
+        hideOptions();
     };
+
+    console.log(dishes);
 
     const openCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
         // currentElement.setIndex((dishes as any[]).indexOf(currentSelectedElementRef.current));
         currentElement.openDishFromObj(currentSelectedElementRef.current);
         gameState.setGameState("createDish-create");
+        hideOptions();
     };
 
 
@@ -159,7 +222,7 @@ export default function DishList() {
                 dishes.length > 0 && <ul className="list" ref={listRef}>
                     {
                         dishes.filter(e => !(e as any).temporary).map((dish, i) => {
-                            return <li key={dish.name + i} className={((dish as any).publishState ?? "private") == "private" ? "" : "public"} data-list-entry-name={dish.name}>
+                            return <li key={dish.name + i} className={((dish as any).publishState ?? "private") == "private" ? "" : "public"} data-list-entry-uuid={dish.uuid}>
                                 <img src={((dish as any).aiImage && (dish as any).aiImage.length != 0 ? (dish as any).aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image" />
                                 <span className="dish-name">{dish.name}</span>
                                 <span className="dish-creation-date">{dayjs((dish as any).dishCreationDate).format("YYYY/MM/DD hh:mm")}</span>

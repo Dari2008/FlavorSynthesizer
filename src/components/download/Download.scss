@@ -1,0 +1,126 @@
+@use "../../utils/Variables.scss" as *;
+
+.download-prompt {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    .has-to-download {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #350000;
+        border-radius: 20px;
+        border: 1px solid white;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+
+        h3 {
+            width: 100%;
+            font-size: 2.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            line-height: 2rem;
+            margin-bottom: 10px;
+        }
+
+        span {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+
+        button {
+            font-size: 1.4rem;
+            line-height: 1.1rem;
+        }
+
+        .successfull-download {
+            color: #008600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            margin: 0;
+        }
+    }
+
+    .progress-bar {
+        width: 90%;
+        height: 25px;
+        position: fixed;
+        // background-color: $gray-800;
+        // display: flex;
+        // justify-content: center;
+        // align-items: center;
+        overflow: hidden;
+        left: 50%;
+        bottom: 10px;
+        transform: translateX(-50%);
+        z-index: 1000000000;
+
+
+        // .progress {
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     display: grid;
+        //     z-index: -1;
+        //     grid-template-columns: max-content 1fr max-content;
+        //     grid-template-rows: 1fr;
+
+        //     .left {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+        //         mask-position: left;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         background-color: $themeColor2;
+        //         height: 100%;
+        //     }
+
+        //     .center {
+        //         width: 100%;
+        //         background-color: $themeColor2;
+        //     }
+
+        //     .right {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+        //         mask-position: right;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         background-color: $themeColor2;
+        //         height: 100%;
+        //     }
+        // }
+
+        .label {
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            z-index: 10000;
+            font-size: 1.5rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .progress {
+            width: var(--progress-percentage);
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+    }
+}

@@ -5,6 +5,7 @@ type DishesContextType = {
     dishes: (Dish | LocalDish)[];
     setDishes: (dishes: Dish[] | LocalDish[]) => void;
     saveCurrentDish: () => void;
+    deleteDisheWithUUID: (uuid: string) => void;
 }
 
 export const DishesContext = createContext<DishesContextType | null>(null);

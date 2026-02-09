@@ -784,6 +784,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
         const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
+
         if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
             let startPos = -1;
             let endPos = -1;
@@ -808,6 +809,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             currentDraggingElementRef.current = null;
             // repaint();
             renderElementsWDebounce();
+            synthLines.updateTotalStatistic();
             return;
         }
 
@@ -818,6 +820,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         currentDraggingElementRef.current = null;
         // repaint();
         renderElementsWDebounce();
+        synthLines.updateTotalStatistic();
     };
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {

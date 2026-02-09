@@ -28,6 +28,9 @@ FOLDER_GROUPS = {
     ],
     "currentPosFrames": [
         "../blender/outputs/CurrentPositionPlayer/"
+    ],
+    "pot-animation": [
+        "../animations/pot-animation/"
     ]
 }
 
