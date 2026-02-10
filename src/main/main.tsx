@@ -5,7 +5,10 @@ import "./index.scss";
 import ConfirmDialog from '../components/dialogs/ConfirmDialog';
 import { TitleManager } from '../contexts/TitleContext';
 
-createRoot(document.getElementById('root')!).render(
+
+const rootElement = document.getElementById('root');
+
+createRoot(rootElement!).render(
   <StrictMode>
     <TitleManager>
       <ConfirmDialog>

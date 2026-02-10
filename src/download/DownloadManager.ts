@@ -1,9 +1,12 @@
 import FILE_SIZES_RAW from "../@types/downloadSizes.json";
+import FILE_SIZES_IMAGES_RAW from "../@types/downloadImageSizes.json";
 import type { BPM } from "../audio/FlavorMusic";
 import { FLAVORS, MAIN_FLAVORS } from "../audio/Flavors";
 import { LOADING_ANIMATION_IMAGE_COUNT, setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
 import { loadAndSaveResource } from "../components/ResourceSaver";
+import { IMAGES_TO_LOAD, loadImage, type ImageName } from "./ImageDownloadManager";
 const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
+const FILE_SIZES_IMAGES = FILE_SIZES_IMAGES_RAW as ImageFileSizes;
 
 let startTime = 0;
 let timeTaken = 0;
@@ -32,7 +35,7 @@ async function downloadLoadingAnimationFrame(frame: number) {
 }
 
 export async function downloadAll(onProgress: (max: number, curr: number, downloadSize: number, downloadedSize: number, mbSec: number) => void) {
-    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT;
+    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT + Object.keys(IMAGES_TO_LOAD).length;
     let curr = 0;
     let downloadedContentSize = 0;
     let maxDownloadedContent = calculateMaxDownloadSize();
@@ -45,6 +48,16 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
         downloadedContentSize += size;
         onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
         curr++
+    }
+
+    for (const key of Object.keys(IMAGES_TO_LOAD) as ImageName[]) {
+        downloadStart();
+        await loadImage(key);
+        const size = getSizeOfImage(key);
+        const sizePerSec = downloadEnd(size);
+        downloadedContentSize += size;
+        onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+        curr++;
     }
 
     for (const mainFlavor of MAIN_FLAVORS) {
@@ -101,8 +114,19 @@ function calculateMaxDownloadSize() {
 }
 
 function getSizeOf(mainGroup: string, fileName: string): number {
-    if (!FILE_SIZES[mainGroup][fileName]) console.log(mainGroup, fileName);
+    if (!FILE_SIZES[mainGroup][fileName]) {
+        console.log(mainGroup, fileName);
+        return 0;
+    }
     return FILE_SIZES[mainGroup][fileName];
+}
+
+function getSizeOfImage(name: ImageName): number {
+    if (!FILE_SIZES_IMAGES[name]) {
+        console.log(name);
+        return 0;
+    }
+    return FILE_SIZES_IMAGES[name];
 }
 
 const BPM_VALS = [
@@ -116,4 +140,8 @@ export type FileSizes = {
     [key: string]: {
         [key: string]: number;
     };
+};
+
+export type ImageFileSizes = {
+    [key in ImageName]: number;
 };

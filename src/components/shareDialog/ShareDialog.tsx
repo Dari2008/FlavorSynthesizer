@@ -10,6 +10,7 @@ import { useUser } from "../../contexts/UserContext";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
+import { getImage, loadImage, setCallbackForImageLoad } from "../../download/ImageDownloadManager";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -31,7 +32,7 @@ export default function ShareDialog() {
     const [isPublished, setPublished] = useState<boolean>(false);
     // const [isLoggedIn, setLoggedIn] = useState<boolean>(false);
     const [accepedUnchangable, setAcceptedUnchangable] = useState<boolean>(false);
-    const imageIdRef = useRef<string>(generateRandomBackgroundImage());
+    const imageIdRef = useRef<number>(generateRandomBackgroundImage());
     const [isLogin, setIsLogin] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -43,6 +44,20 @@ export default function ShareDialog() {
     const currentDish = useCurrentDish();
     const mainFlavor = useMainFlavor();
     const gameState = useGameState();
+
+    const [BG_IMAGES, setBgImages] = useState<(string | undefined)[]>([]);
+
+    setCallbackForImageLoad([
+        "share_dish_bg_workbench",
+        "share_dish_bg_fruits",
+        "share_dish_bg_dish"
+    ], async () => {
+        setBgImages([
+            await loadImage("share_dish_bg_workbench"),
+            await loadImage("share_dish_bg_fruits"),
+            await loadImage("share_dish_bg_dish")
+        ]);
+    });
 
     const setShareDigits = (numbers: Digit[]) => {
         setSD(numbers);
@@ -216,7 +231,7 @@ export default function ShareDialog() {
 
     return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
         <div role="dialog" className="share-dialog">
-            <img src={"./imgs/shareDish-bgs/" + imageIdRef.current} alt={imageIdRef.current.replace(".png", "")} className="background-image" />
+            <img src={BG_IMAGES.length > 0 ? BG_IMAGES[imageIdRef.current] : undefined} className="background-image" />
 
             <h1>Share your dish</h1>
 
@@ -403,12 +418,7 @@ export default function ShareDialog() {
 }
 
 function generateRandomBackgroundImage() {
-    const all = [
-        "dish.png",
-        "fruits.png",
-        "workbench.png"
-    ];
-    return all[Math.round(Math.random() * (all.length - 1))];
+    return Math.round(Math.random() * (3 - 1));
 }
 
 function copyShareUrl(url: string) {

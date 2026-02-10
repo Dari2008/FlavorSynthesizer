@@ -2,13 +2,13 @@ import * as Tone from "tone";
 import type { FlavorElement } from "./PlayerTrack";
 import { FLAVORS, getFlavorByName } from "../../audio/Flavors";
 import type { FlavorFileMusic } from "../../audio/FlavorMusic";
-import type { Volumes } from "../../contexts/VolumeContext";
+import type { DishVolumes } from "../../@types/User";
 
 export class ElementPlayer {
     private elements: (FlavorElement & { lineUuid: string })[] = [];
     private players: ElementPlayerPlayer[] = [];
     private cloningPromise: Promise<void[]> = Promise.resolve([]);
-    private volumes: Volumes = {
+    private volumes: DishVolumes = {
         flavors: 100,
         mainFlavor: 100,
         master: 100
@@ -19,9 +19,8 @@ export class ElementPlayer {
     constructor() {
     }
 
-    public setVolumes(volumes: Volumes) {
+    public setVolumes(volumes: DishVolumes) {
         this.volumes = volumes;
-        console.log("Volume set to ", this.getVolumeFor("flavors"));
         this.players.forEach(({ player }) => {
             player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
         });
@@ -39,7 +38,7 @@ export class ElementPlayer {
                 element: el,
                 player: clonedPlayer,
                 play: (from: number, to: number) => {
-                    clonedPlayer.playSegment(from, to, 81);
+                    clonedPlayer.playSegment(from, to, 110);
                 }
             });
         }));

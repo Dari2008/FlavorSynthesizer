@@ -309,8 +309,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     });
 
     return <div className="images" ref={imagesRef}>
-        <img src="./mainMenu/bg/main_menu_background_background.png" alt="background Image" className="background-image" ></img>
-
+        <img src="./mainMenu/bg/main_menu_background_background.png" alt="background Image" className="background-image"></img>
 
         <img src="./mainMenu/bg/create_new_dish.png" alt="create new dish image" className={"create-new-dish" + (chosenOne == "create-new-dish" ? " chosen" : undefined)} ref={createNewDishRef} />
         <span className="label-for-image above label-for-create-new-dish" ref={createNewDishLabelRef}>Create New Dish</span>

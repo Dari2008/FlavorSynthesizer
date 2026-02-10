@@ -443,7 +443,7 @@ function toRGB(hex: string): string {
 
 async function checkIfDataDownloaded() {
     const dbs = await indexedDB.databases();
-    return dbs.length == 3;
+    return dbs.length == 4;
 }
 
 function getLoggedInUser(): User | null {
