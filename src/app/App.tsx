@@ -313,7 +313,6 @@ export default function App() {
             _setGameState("loading");
         }
         if (key) currentlyLoading.push(key);
-        console.log("Loading... ", key);
     };
     const stopLoading = (key?: string) => {
         if (key) currentlyLoading = currentlyLoading.filter(e => e !== key);
@@ -321,7 +320,6 @@ export default function App() {
             setOldGameStates(oldGameStates.filter(e => e !== "loading"));
             _setGameState(oldGameState);
         }
-        console.log("Finished loading... ", key, oldGameStates, gameState);
     };
 
     return <>

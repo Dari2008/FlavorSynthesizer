@@ -17,6 +17,54 @@ var pixelsPerSecond = 100;
 var span = { from: 0, to: 10 };
 var offsetX = 0;
 
+const starMask = new Image();
+starMask.src = STAR_MASK_IMAGE;
+
+var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
+    return {
+        colors: FLAVOR_COLOR[flavor],
+        imageObj: loadImage(FLAVOR_IMAGES[flavor]),
+        image: FLAVOR_IMAGES[flavor],
+        name: flavor,
+        contrastColor: contrastColor(darkenIfBright(FLAVOR_COLOR[flavor][0])),
+        bgColor: darkenIfBright(FLAVOR_COLOR[flavor][0]),
+        renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+            if (!starMask.complete) return;
+
+
+            const off = document.createElement("canvas");
+            off.width = w;
+            off.height = h;
+
+            const octx = off.getContext("2d")!;
+            octx.save();
+
+
+            // 1) Draw solid background color
+            octx.fillStyle = FLAVOR_COLOR[flavor][0];
+            octx.fillRect(0, 0, w, h);
+
+            // 2) Apply star mask
+            octx.globalCompositeOperation = "destination-in";
+
+            const pattern = octx.createPattern(starMask, "repeat");
+            if (pattern) {
+                octx.fillStyle = pattern;
+                ctx.beginPath();
+                octx.roundRect(0, 0, w, h, 10);
+                octx.fill();
+                ctx.closePath();
+            }
+
+            octx.restore();
+
+
+            ctx.drawImage(off, x, y);
+
+        }
+    }
+})
+
 export function getFlavorHeight() {
     return FLAVOR_HEIGHT;
 }
@@ -89,58 +137,14 @@ export function constrainSpan(s: { from: number; to: number; }): { from: number;
 }
 
 
-export function createElementForFlavor(flavor: Flavor, from: number, to: number): FlavorElement {
+export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: string = crypto.randomUUID()): FlavorElement {
 
-    const starMask = new Image();
-    starMask.src = STAR_MASK_IMAGE;
-    console.log(flavor);
 
     const d: FlavorElement = {
         from: from,
         to: to,
-        uuid: crypto.randomUUID(),
-        flavor: {
-            colors: FLAVOR_COLOR[flavor],
-            imageObj: loadImage(FLAVOR_IMAGES[flavor]),
-            image: FLAVOR_IMAGES[flavor],
-            name: flavor,
-            contrastColor: contrastColor(darkenIfBright(FLAVOR_COLOR[flavor][0])),
-            bgColor: darkenIfBright(FLAVOR_COLOR[flavor][0]),
-            renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
-                if (!starMask.complete) return;
-
-
-                const off = document.createElement("canvas");
-                off.width = w;
-                off.height = h;
-
-                const octx = off.getContext("2d")!;
-                octx.save();
-
-
-                // 1) Draw solid background color
-                octx.fillStyle = FLAVOR_COLOR[flavor][0];
-                octx.fillRect(0, 0, w, h);
-
-                // 2) Apply star mask
-                octx.globalCompositeOperation = "destination-in";
-
-                const pattern = octx.createPattern(starMask, "repeat");
-                if (pattern) {
-                    octx.fillStyle = pattern;
-                    ctx.beginPath();
-                    octx.roundRect(0, 0, w, h, 10);
-                    octx.fill();
-                    ctx.closePath();
-                }
-
-                octx.restore();
-
-
-                ctx.drawImage(off, x, y);
-
-            }
-        }
+        uuid: uuid,
+        flavor: flavor
     }
     return d;
 }
@@ -153,6 +157,10 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     const rectHeight = FLAVOR_HEIGHT;
     const y = offsetY;
     const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
+
+    const FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
+    if (!FLAVOR_RENDERER) return false;
+
     drawBackgroundImage();
 
     drawBorder();
@@ -162,7 +170,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.fillStyle = "rgb(40, 40, 40)";
     ctx.fill();
     ctx.closePath();
-    ctx.drawImage(element.flavor.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
+    ctx.drawImage(FLAVOR_RENDERER.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
 
 
     if (isSelected) {
@@ -174,7 +182,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
         ctx.closePath();
     }
 
-    if (ctx.measureText(element.flavor.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
+    if (ctx.measureText(FLAVOR_RENDERER.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
         return false;
     }
 
@@ -182,12 +190,13 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = "500 15px Arial";
-    ctx.fillStyle = element.flavor.contrastColor;
-    ctx.fillText(element.flavor.name.toUpperCase(), textX + 5 - xOffset, y + rectHeight / 2);
+    ctx.fillStyle = FLAVOR_RENDERER.contrastColor;
+    ctx.fillText(FLAVOR_RENDERER.name.toUpperCase(), textX + 5 - xOffset, y + rectHeight / 2);
     return true;
 
     function drawBorder() {
-        drawGradientBorder(fromPos - xOffset, y, width, rectHeight, 10, 2, element.flavor.colors[0], element.flavor.colors[1])
+        if (!FLAVOR_RENDERER) return;
+        drawGradientBorder(fromPos - xOffset, y, width, rectHeight, 10, 2, FLAVOR_RENDERER.colors[0], FLAVOR_RENDERER.colors[1])
         function drawGradientBorder(
             x: number,
             y: number,
@@ -262,7 +271,8 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     }
 
     function drawBackgroundImage() {
-        element.flavor.renderBackgroundMask(ctx, fromPos - xOffset, y, width, rectHeight);
+        if (!FLAVOR_RENDERER) return;
+        FLAVOR_RENDERER.renderBackgroundMask(ctx, fromPos - xOffset, y, width, rectHeight);
     }
 
 }

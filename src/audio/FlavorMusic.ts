@@ -81,11 +81,11 @@ export class FlavorFileMusic {
     }
 
     public play(bpm: BPM) {
-        Tone.Transport.stop();
-        Tone.Transport.bpm.value = bpm;
+        // Tone.Transport.stop();
+        // Tone.Transport.bpm.value = bpm;
         this.stopAllBpms();
 
-        Tone.Transport.start();
+        // Tone.Transport.start();
         // this.files[bpm].toDestination();
         this.files[bpm].start()
         MUSIC_PLAYERS.push(this.files[bpm]);
@@ -119,11 +119,9 @@ export class FlavorFileMusic {
 
     public playSegment(from: number, to: number, bpm: BPM) {
         this.stopAllBpms();
-        Tone.Transport.stop();
-        Tone.Transport.bpm.value = bpm;
-        Tone.Transport.start();
         this.files[bpm].toDestination();
         this.files[bpm].loop = true;
+        console.log("flavor", from, to);
         this.files[bpm].start(from);
         this.files[bpm].stop(to);
         MUSIC_PLAYERS.push(this.files[bpm]);
@@ -139,10 +137,7 @@ export class FlavorFileMusic {
     }
 
     public stopAllBpms() {
-        for (const file of Object.values(this.files)) {
-            if (file.state == "started") file.stop();
-        }
-        MUSIC_PLAYERS = MUSIC_PLAYERS.filter(e => !Object.values(this.files).includes(e));
+        this.files[110].stop();
     }
 
     public dispose() {
@@ -205,13 +200,10 @@ export class MainFlavorFileMusic {
     }
 
     public play(offset: number = 0) {
-        Tone.Transport.stop();
-        Tone.Transport.bpm.value = this.BPM;
         this.stop();
 
         const now = Tone.now();
 
-        Tone.Transport.start();
         this.player?.start(now, offset);
     }
 
@@ -236,9 +228,9 @@ export class MainFlavorFileMusic {
 
     public playSegment(from: number, to: number, bpm: BPM) {
         this.stop();
-        Tone.Transport.stop();
-        Tone.Transport.bpm.value = bpm;
-        Tone.Transport.start();
+        // Tone.Transport.stop();
+        // Tone.Transport.bpm.value = bpm;
+        // Tone.Transport.start();
         if (!this.player) return;
         this.player.toDestination();
         this.player.loop = true;

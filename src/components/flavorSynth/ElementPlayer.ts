@@ -38,6 +38,7 @@ export class ElementPlayer {
                 element: el,
                 player: clonedPlayer,
                 play: (from: number, to: number) => {
+                    clonedPlayer.stopAllBpms();
                     clonedPlayer.playSegment(from, to, 110);
                 }
             });
@@ -66,7 +67,6 @@ export class ElementPlayer {
 
     async play(offset: number = 0) {
         await this.cloningPromise;
-        await Tone.start();
         const now = Tone.now() - offset;
         this.players.forEach(({ element, player, play }) => {
             if (element.to <= offset) return;
@@ -75,7 +75,7 @@ export class ElementPlayer {
         });
         const lastElement = this.findLastPlayer();
         if (lastElement) {
-            lastElement.player.getPlayer(81).onstop = () => {
+            lastElement.player.getPlayer(110).onstop = () => {
                 this.onStop?.();
             };
             if (lastElement.element.to <= offset) {

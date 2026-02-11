@@ -9,6 +9,7 @@ import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext
 import { useCurrentlyPlaying } from "../../contexts/CurrentlyPlayingContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 import { useSynthChange } from "../../contexts/SynthChangeContext";
+import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -100,7 +101,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         if (!ctx) return;
         const span = currentScrolledRef.current;
         clearCanvas(ctx, allElementsOffCanvasRef.current);
-
         for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current]) {
             if (element == null) continue;
             if (element.uuid === interPlayerDrag.ref.current?.uuid && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
@@ -346,7 +346,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
                         const width = (element.to - element.from) * getPixelsPerSecond();
 
-                        tooltip.current.textContent = element.flavor.name;
+                        tooltip.current.textContent = element.flavor;
                         tooltip.current.style.left = (xOfElement + width / 2) + "px";
                         // tooltip.current.style.setProperty("--offset-y",)
                         tooltip.current.style.display = "block";
@@ -414,10 +414,27 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             if (!foundOneWhereMouseOver) {
                 canvas.style.cursor = "default";
             }
+
+            if (targetElement != null) {
+                interPlayerDrag.originalStartPos.current = [targetElement.from, targetElement.to];
+            }
             // repaint();
         };
 
         let lastPos = -1;
+        let beforeElements: {
+            flavors: FlavorElement[];
+            trackUUID: string;
+        }[] | undefined = undefined;
+
+        let startPosses: {
+            trackUUID: string;
+            flavors: {
+                from: number;
+                to: number;
+                uuid: string;
+            }[];
+        }[] | undefined = undefined;
 
         const onDrag = (e: MouseEvent) => {
             if (!targetElement) return;
@@ -427,6 +444,20 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             const mouse = mousePosRef.current;
             if (mouse.y < timelineOffCanvasRef.current.height) return;
             didDrag = true;
+            if (startPosses == undefined) {
+                startPosses = synthLines.synthLines.map(e => {
+                    const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.map(e => e.uuid).includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
+                    if (flavors.length == 0) return undefined;
+                    return {
+                        flavors: flavors.map(e => ({
+                            from: e.from,
+                            to: e.to,
+                            uuid: e.uuid
+                        })),
+                        trackUUID: e.uuid
+                    };
+                }).filter(e => !!e).flat();
+            }
 
             const currentPos = calculateCurrentPosSeconds(mouse.x);
             const selectedCount = synthSelector.selectedElementsRef.current.length;
@@ -508,7 +539,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 y: y
             };
             if (y < timelineOffCanvasRef.current.height && isMouseDown && targetElement == null && currentDraggingElementRef.current == null && interPlayerDrag.ref.current == null && !currentPlaying.isPlayingRef.current) {
-                console.log(isMouseDown);
                 onTimelineDrag(e);
                 return;
             }
@@ -527,12 +557,72 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             onDragStart(e);
         };
 
-        const onMouseUp = () => {
+        const onMouseUpReset = () => {
             isMouseDown = false;
-            // console.log("Mouse up!!");
         };
 
-        const onRelease = (e: MouseEvent) => {
+        const onMouseUp = () => {
+
+            if (!didDrag) return;
+            let selectedFlavors = synthLines.synthLines.map(e => {
+                const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.map(e => e.uuid).includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
+                if (flavors.length == 0) return undefined;
+                return {
+                    flavors: flavors,
+                    trackUUID: e.uuid
+                };
+            }).filter(e => !!e).flat();
+
+            if (startPosses !== undefined && startPosses[0] != undefined && selectedFlavors[0] != undefined) {
+                const offset = selectedFlavors[0].flavors[0].from - startPosses[0].flavors[0].from;
+                const keptSize = (startPosses[0].flavors[0].to - startPosses[0].flavors[0].from) == (selectedFlavors[0].flavors[0].to - selectedFlavors[0].flavors[0].from);
+                if (keptSize && offset == 0) return;
+                if (keptSize) {
+                    ActionHistoryManager.didAction({
+                        type: "move",
+                        elements: selectedFlavors.map((track, iTracks) => ({
+                            trackUUID: track.trackUUID,
+                            flavors: track.flavors.map((flavor, iFlavor) => ({
+                                flavor: flavor,
+                                oldFrom: startPosses![iTracks].flavors[iFlavor].from,
+                                oldTo: startPosses![iTracks].flavors[iFlavor].to,
+                                newFrom: selectedFlavors[iTracks].flavors[iFlavor].from,
+                                newTo: selectedFlavors[iTracks].flavors[iFlavor].to,
+                            }))
+                        }))
+                    })
+                } else {
+                    ActionHistoryManager.didAction({
+                        type: "resize",
+                        axis: offset == 0 ? "right" : "left",
+                        elements: (
+                            offset == 0
+                                ?
+                                selectedFlavors.map((track, iTracks) => ({
+                                    trackUUID: track.trackUUID,
+                                    flavors: track.flavors.map((flavor, iFlavor) => ({
+                                        flavor: flavor,
+                                        oldPos: startPosses![iTracks].flavors[iFlavor].to,
+                                        newPos: flavor.to
+                                    }))
+                                }))
+                                :
+                                selectedFlavors.map((track, iTracks) => ({
+                                    trackUUID: track.trackUUID,
+                                    flavors: track.flavors.map((flavor, iFlavor) => ({
+                                        flavor: flavor,
+                                        oldPos: startPosses![iTracks].flavors[iFlavor].from,
+                                        newPos: flavor.from
+                                    }))
+                                }))
+                        )
+                    });
+                }
+                startPosses = undefined;
+            }
+        };
+
+        const onClick = (e: MouseEvent) => {
             e.stopPropagation();
             e.preventDefault();
             if (didDrag) {
@@ -615,6 +705,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                     startPositionOfElement = -1;
                     moveStartOffsetToEnd = -1;
                     interPlayerDrag.ref.current = null;
+                    interPlayerDrag.originalStartPos.current = null;
                     interPlayerDrag.offsetLeft.current = 0;
                     currentDraggingElementRef.current = null;
                     renderElements();
@@ -627,6 +718,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         const onMouseEnter = (e: MouseEvent) => {
             if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.includes(interPlayerDrag.ref.current)) {
                 interPlayerDrag.ref.current = null;
+                interPlayerDrag.originalStartPos.current = null;
                 interPlayerDrag.offsetLeft.current = 0;
             }
         };
@@ -669,6 +761,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 const currentDragPos = seconds - offset;
                 const element = interPlayerDrag.ref.current;
                 const elementSpan = element.to - element.from;
+                const originalPos = interPlayerDrag.originalStartPos.current;
 
                 const newFrom = currentDragPos;
                 const newTo = currentDragPos + elementSpan
@@ -679,6 +772,23 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 }
 
                 console.log(flavorSynthLine);
+                const fromTrack = synthLines.synthLines.find(track => track.elements.map(e => e.uuid).includes(element.uuid));
+
+                ActionHistoryManager.didAction({
+                    type: "moveBetweenTracks",
+                    flavor: element,
+                    from: {
+                        from: originalPos?.[0] ?? 0,
+                        to: originalPos?.[1] ?? 0
+                    },
+                    to: {
+                        from: newFrom,
+                        to: newTo
+                    },
+                    fromTrackUUID: fromTrack?.uuid ?? "",
+                    toTrackUUID: synthLineUUID
+                });
+
                 synthLines.deleteElement(element.uuid);
 
                 element.from = newFrom;
@@ -703,13 +813,14 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         canvas.addEventListener("mousemove", onMouseMove);
         canvas.addEventListener("mousedown", onMouseDown);
         canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("mouseup", onMouseUpReset);
         canvas.addEventListener("mouseleave", onMouseLeave);
         canvas.addEventListener("mouseenter", onMouseEnter);
         canvas.addEventListener("mouseup", onReleaseExternalElement);
         canvas.addEventListener("mousemove", onMouseMoveExternalElement);
         canvas.addEventListener("wheel", onWheel);
-        canvas.addEventListener("click", onRelease);
-        window.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("click", onClick);
+        window.addEventListener("mouseup", onMouseUpReset);
         window.addEventListener("keydown", onKeyPress);
         // repaint();
 
@@ -717,13 +828,14 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             canvas.removeEventListener("mousemove", onMouseMove);
             canvas.removeEventListener("mousedown", onMouseDown);
             canvas.removeEventListener("mouseup", onMouseUp);
+            canvas.removeEventListener("mouseup", onMouseUpReset);
             canvas.removeEventListener("mouseleave", onMouseLeave);
             canvas.removeEventListener("mouseenter", onMouseEnter);
             canvas.removeEventListener("mouseup", onReleaseExternalElement);
             canvas.removeEventListener("mousemove", onMouseMoveExternalElement);
             canvas.removeEventListener("wheel", onWheel);
-            canvas.removeEventListener("click", onRelease);
-            window.removeEventListener("mouseup", onMouseUp);
+            canvas.removeEventListener("click", onClick);
+            window.removeEventListener("mouseup", onMouseUpReset);
             window.removeEventListener("keydown", onKeyPress);
         };
 
@@ -790,7 +902,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             let endPos = -1;
             for (let start = 0; start <= elementLength; start++) {
                 if (isEmpty(null, currentPos + start)) {
-                    console.log("Found possible position at:", currentPos + start);
                     startPos = startPos == -1 ? currentPos + start : Math.min(startPos, currentPos + start);
                     endPos = Math.max(endPos, currentPos + start);
                 } else {
@@ -798,30 +909,34 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 }
             }
 
-            console.log("Suggested position at:", startPos, endPos);
 
             if (startPos != -1 && endPos != -1 && startPos != endPos) {
-                flavorSynthLine.elements.push(createElementForFlavor(flavorName, startPos, endPos));
-                console.log("Dropped at seconds:", startPos, flavorSynthLine.elements);
+                const element = createElementForFlavor(flavorName, startPos, endPos);
+                flavorSynthLine.elements.push(element);
+                droppedNewFlavor(element)
                 change.changed();
-                // synthLines.setSynthLines([...synthLines.synthLines]);
             }
             currentDraggingElementRef.current = null;
-            // repaint();
             renderElementsWDebounce();
             synthLines.updateTotalStatistic();
             return;
         }
-
-        flavorSynthLine.elements.push(createElementForFlavor(flavorName, currentPos, currentPos + elementLength));
+        const element = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
+        flavorSynthLine.elements.push(element);
         change.changed();
-        console.log("Dropped at seconds:", currentPos, flavorSynthLine.elements);
-        // synthLines.setSynthLines([...synthLines.synthLines]);
+        droppedNewFlavor(element);
         currentDraggingElementRef.current = null;
-        // repaint();
         renderElementsWDebounce();
         synthLines.updateTotalStatistic();
     };
+
+    const droppedNewFlavor = (element: FlavorElement) => {
+        ActionHistoryManager.didAction({
+            type: "insert",
+            flavor: element,
+            trackUUID: synthLineUUID
+        });
+    }
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
         try {
@@ -903,7 +1018,7 @@ export type FlavorElement = {
     from: number;
     to: number;
     uuid: string;
-    flavor: FlavorData;
+    flavor: Flavor;
 }
 
 export type FlavorData = {

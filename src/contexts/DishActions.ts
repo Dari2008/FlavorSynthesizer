@@ -1,10 +1,10 @@
 import { createContext, useContext } from "react";
 import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
-import type { Volumes } from "./VolumeContext";
+import type { DishVolumes } from "../@types/User";
 
 export type CurrentDishactionsContextType = {
-    synthLines: [FlavorSynthLine[], (vs: FlavorSynthLine[]) => void, (v: FlavorSynthLine) => void];
-    volumes: [React.RefObject<Volumes>, (v: Volumes) => void];
+    synthLines: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>, (v: FlavorSynthLine) => void];
+    volumes: [React.RefObject<DishVolumes>, (f: ((v: DishVolumes) => DishVolumes) | DishVolumes) => void];
 }
 
 export const CurrentDishActionsContext = createContext<CurrentDishactionsContextType | null>(null);

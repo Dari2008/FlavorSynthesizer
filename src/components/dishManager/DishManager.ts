@@ -118,7 +118,7 @@ export default class DishManager {
         return {
             tracks: dish.data.map(e => ({
                 elements: e.elements.map(el => ({
-                    flavor: el.flavor.name,
+                    flavor: el.flavor,
                     from: el.from,
                     to: el.to
                 } as ServerFlavorElement)),

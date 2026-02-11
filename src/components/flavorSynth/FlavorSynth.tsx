@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
 import { calculateCurrentPosSeconds, constrainSpan, setSpan } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
@@ -6,25 +6,28 @@ import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
 import "./FlavorSynth.scss"
 import "./FlavorSynthControls.scss";
-import { getMainFlavorByName, MAIN_FLAVORS } from "../../audio/Flavors";
+import { getMainFlavorByName } from "../../audio/Flavors";
 import { CurrentInterPlayerDragContext } from "../../contexts/CurrentInterPlayerDragContext";
 import { SynthSelectorContext } from "../../contexts/SynthSelectorContext";
 import { CurrentlyPlayingContext } from "../../contexts/CurrentlyPlayingContext";
 import SynthLine from "./synthLine/SynthLine";
 import FlavorStatistic from "./flavorStatistic/FlavorStatistic";
 import ControlKnob from "./controlKnob/ControlKnob";
-import { useCurrentDish } from "../../contexts/CurrentDish";
-import { SynthChangeContext, useSynthChange } from "../../contexts/SynthChangeContext";
+import { SynthChangeContext } from "../../contexts/SynthChangeContext";
 import { useTitle } from "../../contexts/TitleContext";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useDishes } from "../../contexts/DishesContext";
 import { useCurrentDishActions } from "../../contexts/DishActions";
+import type { Flavor } from "../../@types/Flavors";
+import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
+import { useCurrentDish } from "../../contexts/CurrentDish";
 
 
 type EventListWithUUID<T> = {
     [uuid: string]: T;
 };
+const SKIP_SIZE = 1;
 
 export default function FlavorSynth() {
     // const [synthLines, setSynthLines] = synthLinesWrapped;
@@ -59,13 +62,15 @@ export default function FlavorSynth() {
     const currentPlayingFlavorCountRef = useRef<HTMLSpanElement>(null)
     const totalAmountOfFlavorsRef = useRef<HTMLSpanElement>(null)
 
-    const currentDragingRef = useRef<FlavorElement | null>(null);
+    const currentDragingRef = useRef<FlavorElement>(null);
+    const originalStartPos = useRef<[number, number]>(null);
     const currentDragingOffsetRef = useRef<number>(0);
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
     const currentDraggingIsEmptyRef = useRef<(element: FlavorElement | null, from: number, to?: number) => boolean>(() => false);
 
+    const statisticLoopInterval = useRef<number>(-1);
+
     const { title, setTitle } = useTitle();
-    const currentDish = useCurrentDish();
     const dishes = useDishes();
     const dishActions = useCurrentDishActions();
 
@@ -73,9 +78,6 @@ export default function FlavorSynth() {
     const [volumes, setVolumes] = dishActions.volumes;
 
 
-    window.onresize = () => {
-        widthRef.current = getCurrentTrackWidth();
-    };
 
     playerRef.current.onStop = () => {
         setPlaying(false);
@@ -93,12 +95,22 @@ export default function FlavorSynth() {
             solo: false
         };
         addSynthLine(synthLine);
+        ActionHistoryManager.didAction({
+            type: "addedTrack",
+            track: structuredClone(synthLine)
+        });
     };
 
     const deleteSynth = (uuid: string) => {
         // if (!currentDish) return;
         // currentDish.data = currentDish.data.filter(e => e.uuid !== uuid);
-        setSynthLines([...synthLines.filter(e => e.uuid !== uuid)]);
+        const track = synthLines.find(e => e.uuid === uuid);
+        if (!track) return;
+        ActionHistoryManager.didAction({
+            type: "removedTrack",
+            track: structuredClone(track)
+        });
+        setSynthLines(synthLines => synthLines.filter(e => e.uuid !== uuid));
     }
 
     const deleteElement = (uuid: string) => {
@@ -107,10 +119,9 @@ export default function FlavorSynth() {
         //     e.elements = e.elements.filter(e => e.uuid !== uuid);
         //     return e;
         // });
-        setSynthLines([...synthLines.map(e => {
-            e.elements = e.elements.filter(e => e.uuid !== uuid);
-            return e;
-        })]);
+        setSynthLines(synthLines => synthLines.map(e => {
+            return { ...e, elements: e.elements.filter(e => e.uuid !== uuid) };
+        }));
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -123,7 +134,6 @@ export default function FlavorSynth() {
             let newSpanWidth = (currentSpanRef.current.to - currentSpanRef.current.from) * zoomFactor;
             if (newSpanWidth < 10) return;
             if (newSpanWidth > 300) return;
-            console.log(getCurrentControlsWidth());
             const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX - getCurrentControlsWidth());
             const distanceLeftSeconds = zoomInOnSecond - currentSpanRef.current.from;
             const distanceRightSeconds = currentSpanRef.current.to - zoomInOnSecond;
@@ -166,7 +176,9 @@ export default function FlavorSynth() {
         // Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
-    setSpan(widthRef.current, currentSpanRef.current);
+    useEffect(() => {
+        setSpan(widthRef.current, currentSpanRef.current);
+    }, []);
 
     const repaintAllTimelines = () => {
         Object.values(timelineRepainters.current).forEach(e => e());
@@ -195,10 +207,24 @@ export default function FlavorSynth() {
 
     const deleteSelectedElements = () => {
         const selectedUUIDs = selectedElementsRef.current.map(e => e.uuid);
-        synthLines.forEach(synthLine => {
-            synthLine.elements = synthLine.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1);
-        });
-        setSynthLines([...synthLines]);
+
+        const elementsDeleted = synthLines.map(synthLine => {
+            const elements = synthLine.elements.filter(el => selectedUUIDs.indexOf(el.uuid) !== -1);
+            if (elements.length == 0) return undefined;
+            return {
+                trackUUID: synthLine.uuid,
+                flavors: structuredClone(elements)
+            };
+        }).filter(e => !!e);
+
+        if (!elementsDeleted || elementsDeleted.length == 0) return;
+        ActionHistoryManager.didAction({
+            type: "delete",
+            elements: elementsDeleted
+        })
+        setSynthLines(lines => lines.map(line => {
+            return { ...line, elements: line.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1) };
+        }));
     };
 
     const addCollisionCheckerCallback = (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => {
@@ -245,6 +271,15 @@ export default function FlavorSynth() {
         return true;
     };
 
+    const undo = () => {
+        ActionHistoryManager.undo(setSynthLines);
+    };
+
+    const redo = () => {
+        console.log(synthLines);
+        ActionHistoryManager.redo(setSynthLines);
+    };
+
     useEffect(() => {
         const render = () => {
             repaintAll();
@@ -258,6 +293,10 @@ export default function FlavorSynth() {
     }, []);
 
     const play = () => {
+
+        Tone.getTransport().stop();
+        Tone.getTransport().position = "0:0:0";
+        Tone.getTransport().bpm.value = 110;
 
         const containsSolo = synthLines.filter(e => e.solo).length > 0;
         isSoloPlay.current = containsSolo;
@@ -278,6 +317,23 @@ export default function FlavorSynth() {
         currentPlayingOffsetRef.current = Tone.now() - cusorPos.current;
         repaintAllCurrentPositions();
         startStatisticLoop();
+        Tone.getTransport().start("0", "0:0:0");
+        Tone.start();
+    };
+
+    const skip = (n: number) => {
+
+        const containsSolo = synthLines.filter(e => e.solo).length > 0;
+        isSoloPlay.current = containsSolo;
+
+        currentPlayingOffsetRef.current = currentPlayingOffsetRef.current + n;
+
+        playerRef.current.stop();
+        playerRef.current.play(currentPlayingOffsetRef.current);
+        if (!containsSolo) {
+            mainFlavorsPlayer?.setVolumes(volumes.current);
+            mainFlavorsPlayer?.play(currentPlayingOffsetRef.current);
+        }
     };
 
     const stop = () => {
@@ -287,6 +343,7 @@ export default function FlavorSynth() {
         repaintAllCurrentPositions();
         mainFlavorsPlayer?.stop();
         stopStatisticLoop();
+        Tone.getTransport().stop();
     }
 
     const currentPlayChanged = () => {
@@ -295,35 +352,55 @@ export default function FlavorSynth() {
         repaintAllCurrentPositions();
     };
 
-    const clock = new Tone.Clock(() => {
-        currentPlayChanged();
-    }, 100)
-    clock.start();
+    useEffect(() => {
+        const clock = new Tone.Clock(() => {
+            currentPlayChanged();
+        }, 100)
+        clock.start();
+
+        return () => {
+            clock.stop();
+            clock.dispose();
+        };
+    }, []);
+
 
     const mainFlavorVolumeChanged = (volume: number) => {
-        volumes.current.mainFlavor = volume;
-        setVolumes(volumes.current);
-        playerRef.current.setVolumes(volumes.current);
-        mainFlavorsPlayer?.setVolumes(volumes.current);
+        setVolumes(volumes => {
+            playerRef.current.setVolumes(volumes);
+            mainFlavorsPlayer?.setVolumes(volumes);
+            return { ...volumes, mainFlavor: volume };
+        });
         onSynthLineChanged();
     };
 
 
     const masterVolumeChanged = (volume: number) => {
-        volumes.current.master = volume;
-        setVolumes(volumes.current);
-        playerRef.current.setVolumes(volumes.current);
-        mainFlavorsPlayer?.setVolumes(volumes.current);
+        setVolumes(volumes => {
+            playerRef.current.setVolumes(volumes);
+            mainFlavorsPlayer?.setVolumes(volumes);
+            return { ...volumes, master: volume };
+        });
         onSynthLineChanged();
     };
 
 
     const flavorsVolumeChanged = (volume: number) => {
-        volumes.current.flavors = volume;
-        setVolumes(volumes.current);
-        playerRef.current.setVolumes(volumes.current);
-        mainFlavorsPlayer?.setVolumes(volumes.current);
+        setVolumes(volumes => {
+            playerRef.current.setVolumes(volumes);
+            mainFlavorsPlayer?.setVolumes(volumes);
+            return { ...volumes, flavors: volume };
+        });
         onSynthLineChanged();
+    };
+
+
+    const onSkipPrev = () => {
+        skip(-SKIP_SIZE);
+    };
+
+    const onSkipNext = () => {
+        skip(SKIP_SIZE);
     };
 
 
@@ -337,13 +414,20 @@ export default function FlavorSynth() {
 
     useEffect(() => {
         const keydown = (e: KeyboardEvent) => {
-            if (e.key == " ") {
-                if (isPlayingRef.current) {
-                    stop();
-                } else {
-                    play();
-                }
+            if (e.code == "Space") {
+                setPlaying(playing => {
+                    playing ? stop() : play();
+                    return !playing;
+                })
+                e.preventDefault();
+            } else if (e.key == "z" && e.ctrlKey) {
+                undo();
+                e.preventDefault();
+            } else if (e.key == "y" && e.ctrlKey) {
+                redo();
+                e.preventDefault();
             }
+
         };
 
         const mouseRelease = (e: MouseEvent) => {
@@ -359,20 +443,30 @@ export default function FlavorSynth() {
             window.removeEventListener("keydown", keydown);
             window.removeEventListener("mouseup", mouseRelease);
         };
+    }, [synthLines]);
+
+    useEffect(() => {
+        const onResize = () => {
+            widthRef.current = getCurrentTrackWidth();
+        };
+
+        window.addEventListener("resize", onResize);
+        return () => {
+            window.removeEventListener("resize", onResize);
+        }
     }, []);
 
-    let statisticLoopInterval = -1;
 
     const startStatisticLoop = () => {
-        statisticLoopInterval = setInterval(() => {
+        statisticLoopInterval.current = setInterval(() => {
             updateCurrentPlayingStatistic();
         }, 50);
     };
 
     const stopStatisticLoop = () => {
-        if (statisticLoopInterval != -1) {
-            clearInterval(statisticLoopInterval);
-            statisticLoopInterval = -1;
+        if (statisticLoopInterval.current != -1) {
+            clearInterval(statisticLoopInterval.current);
+            statisticLoopInterval.current = -1;
         }
     };
 
@@ -420,11 +514,12 @@ export default function FlavorSynth() {
                 repaintAllElements,
                 addStopDraggingCallback,
                 updateTotalStatistic,
-                updateCurrentPlayingStatistic
+                updateCurrentPlayingStatistic,
+                synthLines
             }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                     <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
-                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
                             <div className="flavor-synth">
                                 <div className="lines">
                                     {
@@ -445,7 +540,7 @@ export default function FlavorSynth() {
                                         <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
                                     </div>
                                 </div>
-                                <button className="skip-prev">
+                                <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
                                     <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
                                 </button>
                                 <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
@@ -456,7 +551,7 @@ export default function FlavorSynth() {
                                         <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
                                 }
                                 </button>
-                                <button className="skip-next">
+                                <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
                                     <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
                                 </button>
                                 <div className="volumes">

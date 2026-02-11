@@ -1,4 +1,5 @@
 import { createContext, useContext } from "react";
+import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 
 type SynthLines = {
     delete: (uuid: string) => void;
@@ -21,6 +22,7 @@ type SynthLines = {
     addStopDraggingCallback: (uuid: string, cb: () => void) => void;
     updateTotalStatistic: () => void;
     updateCurrentPlayingStatistic: () => void;
+    synthLines: FlavorSynthLine[];
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);
