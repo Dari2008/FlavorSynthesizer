@@ -23,8 +23,8 @@ export default function SynthLine({ widthRef, synthLineUUID, currentScrolledRef 
 
     // const [isMuted, setMuted] = dishActions.muted;
 
-    const [isMuted, setMuted] = useJsObjectHook<boolean, FlavorSynthLine>(false, flavorSynthLine, "muted", (e) => { change.changed(); return e; });
-    const [isSolo, setSolo] = useJsObjectHook<boolean, FlavorSynthLine>(false, flavorSynthLine, "solo", (e) => { change.changed(); return e; });
+    const [isMuted, setMuted] = useJsObjectHook<FlavorSynthLine, "muted">(flavorSynthLine, "muted", false, (e) => { change.changed(); return e; });
+    const [isSolo, setSolo] = useJsObjectHook<FlavorSynthLine, "solo">(flavorSynthLine, "solo", false, (e) => { change.changed(); return e; });
     // const setSolo = (s: boolean) => {
     //     if (isSolo != s) setS(s);
     //     flavorSynthLine.solo = s;

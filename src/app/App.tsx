@@ -50,16 +50,16 @@ export default function App() {
 
     const currentDish = dishes.at(currentDishIndex);
 
-    const [currentDishName, setCurrentDishName] = useJsRefObjectHook<string, Dish | LocalDish>(generateNewDishTitle(), currentDish, "name");
-    const [mainFlavor, setMF] = useJsObjectHook<MainFlavor, Dish | LocalDish>("Savory", currentDish, "mainFlavor");
+    const [currentDishName, setCurrentDishName] = useJsRefObjectHook<Dish | LocalDish, "name">(currentDish, "name", generateNewDishTitle());
+    const [mainFlavor, setMF] = useJsObjectHook<Dish | LocalDish, "mainFlavor">(currentDish, "mainFlavor", "Savory");
 
-    const [volumes, setVolumes] = useJsRefObjectHook<DishVolumes, Dish | LocalDish>(currentDish?.volumes ?? ({
+    const [volumes, setVolumes] = useJsRefObjectHook<Dish | LocalDish, "volumes">(currentDish, "volumes", {
         flavors: 100,
         mainFlavor: 100,
         master: 100
-    }), currentDish, "volumes");
+    });
 
-    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<FlavorSynthLine, Dish | LocalDish>([], currentDish, "data");
+    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<Dish | LocalDish, "data">(currentDish, "data", []);
 
     const { setTitle, title } = useTitle();
 

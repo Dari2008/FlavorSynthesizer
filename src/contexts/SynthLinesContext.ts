@@ -23,6 +23,7 @@ type SynthLines = {
     updateTotalStatistic: () => void;
     updateCurrentPlayingStatistic: () => void;
     synthLines: FlavorSynthLine[];
+    setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

@@ -49,6 +49,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         volume: 1
     };
 
+    console.log("flavorSynthLine.elements", flavorSynthLine.elements, currentDraggingElementRef.current, interPlayerDrag.ref.current);
+
     const renderTimeline = () => {
         const ctx = timelineOffCanvasRef.current.getContext("2d");
         if (!ctx) return;
@@ -422,10 +424,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         let lastPos = -1;
-        let beforeElements: {
-            flavors: FlavorElement[];
-            trackUUID: string;
-        }[] | undefined = undefined;
 
         let startPosses: {
             trackUUID: string;
@@ -767,10 +765,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 const newTo = currentDragPos + elementSpan
 
                 if (!isEmpty(element, newFrom, newTo)) {
+                    console.log("Not empty");
                     synthLines.repaintAllElements();
                     return;
                 }
 
+                console.log("Empty");
                 console.log(flavorSynthLine);
                 const fromTrack = synthLines.synthLines.find(track => track.elements.map(e => e.uuid).includes(element.uuid));
 
@@ -789,11 +789,16 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                     toTrackUUID: synthLineUUID
                 });
 
-                synthLines.deleteElement(element.uuid);
+                // synthLines.deleteElement(element.uuid);
 
-                element.from = newFrom;
-                element.to = newTo;
-                flavorSynthLine.elements.push(element);
+                // element.from = newFrom;
+                // element.to = newTo;
+                synthLines.setSynthLines(synthLines => synthLines.map(line => {
+                    if (line.elements.find(e => e.uuid == element.uuid)) return { ...line, elements: line.elements.filter(e => e.uuid !== element.uuid) };
+                    if (line.uuid !== flavorSynthLine.uuid) return line;
+                    return { ...line, elements: [...line.elements, { ...element, from: newFrom, to: newTo }] };
+                }))
+                // flavorSynthLine.elements.push(element);
 
                 console.log(flavorSynthLine);
 
@@ -839,7 +844,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             window.removeEventListener("keydown", onKeyPress);
         };
 
-    }, [canvasRef.current]);
+    }, [canvasRef.current, flavorSynthLine.elements]);
 
     const render = () => {
         const span = currentScrolledRef.current;

@@ -1,87 +1,110 @@
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from "react"
 
-export default function useJsObjectHook<T, E>(initialValue: T, jsonObject: E | undefined, key: keyof E, wrapper?: (val: T) => any): [T, React.Dispatch<React.SetStateAction<T>>] {
-    const [val, setVal] = useState<T>(initialValue);
-    const setValWrapper = (v: (T) | ((t: T) => T)) => {
-        if (typeof v == "function") {
-            const vRes = (v as (t: T) => T)(val);
-            if (!jsonObject) {
-                setVal(wrapper ? wrapper(vRes) : vRes);
-                return;
-            }
-            const wrappedV = wrapper ? wrapper(vRes) : vRes;
-            jsonObject[key] = structuredClone(wrappedV) as any;
-            setVal(vRes);
-        } else {
-            if (!jsonObject) {
-                setVal(wrapper ? wrapper(v) : v);
-                return;
-            }
-            const wrappedV = wrapper ? wrapper(v) : v;
-            jsonObject[key] = structuredClone(wrappedV) as any;
-            setVal(v);
-        }
-    };
-    return [val, setValWrapper];
+export default function useJsObject<E, K extends keyof E>(
+    jsonObject: E | undefined,
+    key: K,
+    defaultValue: E[K],
+    wrapper?: (value: E[K]) => E[K]
+): [E[K], React.Dispatch<React.SetStateAction<E[K]>>] {
+
+    const initial = jsonObject?.[key];
+
+    const [value, setValue] = useState<E[K] | undefined>(initial);
+
+    const setValueWrapped: React.Dispatch<React.SetStateAction<E[K]>> =
+        useCallback((update) => {
+            setValue(prev => {
+                const next =
+                    typeof update === "function"
+                        ? (update as (v: E[K] | undefined) => E[K])(prev)
+                        : update;
+
+                const finalValue = wrapper ? wrapper(next) : next;
+
+                if (jsonObject) {
+                    jsonObject[key] = structuredClone(finalValue) as any;
+                }
+
+                return finalValue;
+            });
+        }, [jsonObject, key, wrapper]);
+
+    return [(value ?? defaultValue), setValueWrapped];
 }
 
-export function useJsObjectHookForArray<T, E>(initialValue: T[], jsonObject: E | undefined, key: keyof E, wrapper?: (t: T[]) => any): [T[], React.Dispatch<React.SetStateAction<T[]>>, (v: T) => void] {
-    const [vals, setVals] = useState<T[]>(initialValue);
-    const setValsWrapper = (v: (T[]) | ((t: T[]) => T[])) => {
-        if (typeof v == "function") {
-            if (!jsonObject) {
-                setVals(v(vals));
-                return;
-            }
-            const r = v(vals);
-            const wrappedR = wrapper ? wrapper(r) : r;
-            jsonObject[key] = structuredClone(wrappedR) as any;
-            setVals(r);
-        } else {
-            if (!jsonObject) {
-                setVals(v);
-                return;
-            }
-            const wrappedR = wrapper ? wrapper(v) : v;
-            jsonObject[key] = structuredClone(wrappedR) as any;
-            setVals(v);
-        }
-    };
 
-    const addValWrapper = (v: T) => {
-        const newVals = [...vals, v];
-        if (!jsonObject) {
-            setVals(newVals);
-            return;
-        }
-        jsonObject[key] = structuredClone(newVals) as any;
-        setVals(newVals);
-    };
+export function useJsObjectHookForArray<E, K extends keyof E>(
+    jsonObject: E | undefined,
+    key: K,
+    defaultValue: (E[K] extends Array<infer T> ? T : never)[],
+    wrapper?: (value: E[K]) => E[K]
+): [
+        (E[K] extends Array<infer T> ? T : never)[],
+        Dispatch<SetStateAction<(E[K] extends Array<infer T> ? T : never)[]>>,
+        (item: E[K] extends Array<infer T> ? T : never) => void
+    ] {
 
-    return [vals, setValsWrapper, addValWrapper];
+    type Item = E[K] extends Array<infer T> ? T : never;
+    type ArrayType = Item[];
+
+    const initial = (jsonObject?.[key] ?? []) as ArrayType;
+
+    const [values, setValues] = useState<ArrayType>(initial);
+
+    const setValuesWrapped: React.Dispatch<React.SetStateAction<ArrayType>> =
+        useCallback((update) => {
+            setValues(prev => {
+                const next =
+                    typeof update === "function"
+                        ? (update as (v: ArrayType) => ArrayType)(prev)
+                        : update;
+
+                const finalValue = wrapper ? wrapper(next as any) : next;
+
+                if (jsonObject) {
+                    jsonObject[key] = structuredClone(finalValue) as any;
+                }
+
+                return finalValue as ArrayType;
+            });
+        }, [jsonObject, key, wrapper]);
+
+    const add = useCallback((item: Item) => {
+        setValuesWrapped(prev => [...prev, item]);
+    }, [setValuesWrapped]);
+
+    return [values ?? defaultValue, setValuesWrapped, add];
 }
 
-export function useJsRefObjectHook<T, E>(initialValue: T, jsonObject: E | undefined, key: keyof E, wrapper?: (val: T) => T): [React.RefObject<T>, (f: ((v: T) => T) | T) => void] {
-    const val = useRef<T>(initialValue);
-    const setValWrapper = (v: T | ((t: T) => T)) => {
-        if (typeof v === "function") {
-            const result = (v as (t: T) => T)(val.current);
-            if (!jsonObject) {
-                val.current = wrapper ? wrapper(result) : result;
-                return;
-            }
-            const wrappedV = wrapper ? wrapper(result) : result;
-            jsonObject[key] = structuredClone(wrappedV) as any;
-            val.current = wrappedV;
-        } else {
-            if (!jsonObject) {
-                val.current = wrapper ? wrapper(v) : v;
-                return;
-            }
-            const wrappedV = wrapper ? wrapper(v) : v;
-            jsonObject[key] = structuredClone(wrappedV) as any;
-            val.current = wrappedV;
+
+
+export function useJsRefObjectHook<E, K extends keyof E>(
+    jsonObject: E | undefined,
+    key: K,
+    defaultValue: E[K],
+    wrapper?: (value: E[K]) => E[K]
+): [
+        React.RefObject<E[K]>,
+        (update: React.SetStateAction<E[K]>) => void
+    ] {
+
+    const ref = useRef<E[K]>(jsonObject?.[key] ?? defaultValue);
+
+    const set = useCallback((update: React.SetStateAction<E[K]>) => {
+        const next =
+            typeof update === "function"
+                ? (update as (v: E[K] | undefined) => E[K])(ref.current)
+                : update;
+
+        const finalValue = wrapper ? wrapper(next) : next;
+
+        ref.current = finalValue;
+
+        if (jsonObject) {
+            jsonObject[key] = structuredClone(finalValue) as any;
         }
-    };
-    return [val, setValWrapper];
+
+    }, [jsonObject, key, wrapper]);
+
+    return [ref, set];
 }

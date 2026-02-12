@@ -515,7 +515,8 @@ export default function FlavorSynth() {
                 addStopDraggingCallback,
                 updateTotalStatistic,
                 updateCurrentPlayingStatistic,
-                synthLines
+                synthLines,
+                setSynthLines
             }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
                     <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>

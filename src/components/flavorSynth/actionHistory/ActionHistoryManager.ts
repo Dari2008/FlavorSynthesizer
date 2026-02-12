@@ -11,6 +11,7 @@ export class ActionHistoryManager {
     }
 
     public static didAction(action: HistoryAction) {
+        console.log(action);
         this.redoActionHistory = [];
         this.undoActionHistory.push(structuredClone(action));
     }
@@ -76,16 +77,15 @@ export class ActionHistoryManager {
     }
 
     private static _undo(setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>) {
-        setSynthLines(synthLines => {
-            console.log(synthLines);
-            return synthLines;
-        });
         return {
             undoInsert(undo: HistoryActionInsert) {
-                setSynthLines(synthLines => synthLines.map(track => {
-                    if (track.uuid !== undo.trackUUID) return track;
-                    return { ...track, elements: track.elements.filter(e => e.uuid !== undo.flavor.uuid) };
-                }));
+                setSynthLines(synthLines => {
+                    console.log("synthLines", structuredClone(synthLines));
+                    return synthLines.map(track => {
+                        if (track.uuid !== undo.trackUUID) return track;
+                        return { ...track, elements: track.elements.filter(e => e.uuid !== undo.flavor.uuid) };
+                    });
+                });
             },
 
             undoDelete(undo: HistoryActionDelete) {
@@ -160,13 +160,15 @@ export class ActionHistoryManager {
     private static _redo(setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>) {
         return {
             redoInsert(redo: HistoryActionInsert) {
-                setSynthLines(synthLines => synthLines.map(e => {
-                    if (e.uuid !== redo.trackUUID) return e;
-                    console.log(e);
-                    const s = { ...e, elements: [...e.elements, redo.flavor] };
-                    console.log("s", s);
-                    return s;
-                }));
+                setSynthLines(synthLines => {
+                    const ss = synthLines.map(e => {
+                        if (e.uuid !== redo.trackUUID) return e;
+                        const s = { ...e, elements: [...e.elements, redo.flavor] };
+                        return s;
+                    });
+                    console.log("synthLines", structuredClone(ss));
+                    return ss;
+                });
             },
             redoDelete(redo: HistoryActionDelete) {
                 setSynthLines(synthLines => synthLines.map(e => {
