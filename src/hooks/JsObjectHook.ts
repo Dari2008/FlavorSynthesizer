@@ -98,6 +98,8 @@ export function useJsRefObjectHook<E, K extends keyof E>(
 
         const finalValue = wrapper ? wrapper(next) : next;
 
+        console.log("finalValue", finalValue, jsonObject);
+
         ref.current = finalValue;
 
         if (jsonObject) {
@@ -105,6 +107,36 @@ export function useJsRefObjectHook<E, K extends keyof E>(
         }
 
     }, [jsonObject, key, wrapper]);
+
+    return [ref, set];
+}
+
+
+
+export function useJsRefObjectWithFunctionHook<E>(
+    setVal: (e: E) => void,
+    defaultValue: E,
+    wrapper?: (value: E) => E
+): [
+        React.RefObject<E>,
+        (update: React.SetStateAction<E>) => void
+    ] {
+
+    const ref = useRef<E>(defaultValue);
+
+    const set = useCallback((update: React.SetStateAction<E>) => {
+        const next =
+            typeof update === "function"
+                ? (update as (v: E | undefined) => E)(ref.current)
+                : update;
+
+        const finalValue = wrapper ? wrapper(next) : next;
+
+        ref.current = finalValue;
+
+        setVal(structuredClone(finalValue));
+
+    }, [setVal, wrapper]);
 
     return [ref, set];
 }

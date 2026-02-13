@@ -1,4 +1,6 @@
 @use "sass:color";
+@use "./Images.scss" as *;
+
 $white: #FFFFFF;
 $black: #000000;
 $gray-50: #f9f9f9; //$gray-950
@@ -90,6 +92,43 @@ $maxContentWidth: 90vw;
     // backdrop-filter: blur(8px);
 }
 
+//Aspect Left 3/13
+@mixin pixeled-div($totalWidth, $totalHeight) {
+    --masks-width: calc(#{$totalHeight} * 3 / 13);
+
+    mask-image: $MASK_LEFT_PIXELATED,
+    linear-gradient(to right, black 0px, black calc(#{$totalWidth} - var(--masks-width))),
+    $MASK_RIGHT_PIXELATED;
+
+    mask-position: left, center, right;
+
+    mask-size: var(--masks-width) 100%,
+    calc(#{$totalWidth} - var(--masks-width)) 100%,
+    var(--masks-width) 100%;
+
+    mask-mode: alpha;
+    mask-repeat: no-repeat;
+}
+
+.pixeled-div {
+    --masks-width: calc(var(--height) * 3 / 13);
+
+    mask-image:
+        $MASK_LEFT_PIXELATED,
+        linear-gradient(to right, black 0px, black calc(var(--width) - var(--masks-width))),
+        $MASK_RIGHT_PIXELATED;
+
+    mask-position: left, center, right;
+
+    mask-size:
+        var(--masks-width) 100%,
+        calc(var(--width) - var(--masks-width)) 100%,
+        var(--masks-width) 100%;
+
+    mask-mode: alpha;
+    mask-repeat: no-repeat;
+
+}
 
 // @mixin glass-themeColor-opacity-w-color($color, $strength) {
 //     // backdrop-filter: blur(10px);

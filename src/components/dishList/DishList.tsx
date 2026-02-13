@@ -8,11 +8,12 @@ import type { Dish, LocalDish } from "../../@types/User";
 import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish";
 import { useGameState } from "../../contexts/GameStateContext";
 import type { Digit } from "../../@types/Api";
+import PixelDiv from "../pixelDiv/PixelDiv";
 
 dayjs.extend(customFormat);
 
 export default function DishList() {
-    const { dishes, setDishes, deleteDisheWithUUID } = useDishes();
+    const { dishes, deleteDisheWithUUID } = useDishes();
     const currentElement = useCurrentDishIndex();
     const gameState = useGameState();
 
@@ -20,6 +21,7 @@ export default function DishList() {
     const lastClickOffsetRef = useRef({ x: 0, y: 0 });
     const currentSelectedElementRef = useRef<Dish | LocalDish>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
+    const dishListRef = useRef<HTMLDivElement>(null);
 
     const hideOptions = () => {
         if (!optionsRef.current) return;
@@ -27,6 +29,7 @@ export default function DishList() {
     }
 
     const showOptions = (x: number, y: number) => {
+        y += (dishListRef.current?.scrollTop ?? 0);
         if (!optionsRef.current) return;
         optionsRef.current.style.setProperty("--left", x + "px");
         optionsRef.current.style.setProperty("--top", y + "px");
@@ -123,9 +126,7 @@ export default function DishList() {
 
     const deleteCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        console.log(currentSelectedElementRef.current?.uuid);
         const uuid = dishes.find(e => e.uuid == currentSelectedElementRef.current?.uuid)?.uuid;
-        console.log(dishes, uuid);
         if (!uuid) return;
         deleteDisheWithUUID(uuid);
         hideOptions();
@@ -182,8 +183,6 @@ export default function DishList() {
         hideOptions();
     };
 
-    console.log(dishes);
-
     const openCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
         // currentElement.setIndex((dishes as any[]).indexOf(currentSelectedElementRef.current));
@@ -192,9 +191,8 @@ export default function DishList() {
         hideOptions();
     };
 
-
-    return <div className={"dish-list" + (gameState.gameState == "dishList" ? " visible" : "")}>
-        <div className="options" ref={optionsRef}>
+    return <div className={"dish-list" + (gameState.gameState == "dishList" ? " visible" : "")} ref={dishListRef}>
+        <PixelDiv className="options" ref={optionsRef}>
             <div className="top-options">
                 <button className="delete" onClick={deleteCurrentSelected}>
                     {"\uf1f8"}
@@ -210,7 +208,7 @@ export default function DishList() {
                 <img src="" alt="" className="open-img" />
                 <span className="label">Open</span>
             </button>
-        </div>
+        </PixelDiv>
 
 
 

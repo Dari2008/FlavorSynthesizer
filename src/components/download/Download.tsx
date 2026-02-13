@@ -59,8 +59,8 @@ export default function Download({ hasDownloadedAssets, downloadFinished, hasLoa
 
             {
                 isDownloading && !isSuccessfullDownload && <>
-                    <PixelDiv className="progress-bar" bgColor="#212121" role="progressbar" ref={currentDownloadingProgressRef}>
-                        <PixelDiv className="progress" bgColor="#540863">
+                    <PixelDiv className="progress-bar" role="progressbar" ref={currentDownloadingProgressRef}>
+                        <PixelDiv className="progress">
                         </PixelDiv>
                         {/* <div className="progress">
                             <div className="left"></div>

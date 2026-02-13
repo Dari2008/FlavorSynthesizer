@@ -22,7 +22,7 @@ import { UserContext } from "../contexts/UserContext";
 import { DishesContext } from "../contexts/DishesContext";
 import { useTitle } from "../contexts/TitleContext";
 import { CurrentDishIndexContext } from "../contexts/CurrentDish";
-import useJsObjectHook, { useJsObjectHookForArray, useJsRefObjectHook } from "../hooks/JsObjectHook";
+import useJsObjectHook, { useJsObjectHookForArray, useJsRefObjectHook, useJsRefObjectWithFunctionHook } from "../hooks/JsObjectHook";
 import { GameStateContext, type GameState } from "../contexts/GameStateContext";
 import { MainFlavorContext } from "../contexts/MainFlavorContext";
 import DishManager from "../components/dishManager/DishManager";
@@ -32,6 +32,7 @@ import { LoadingAnimationContext } from "../contexts/LoadingAnimationContext";
 import Loading from "../components/loading/Loading";
 import Download from "../components/download/Download";
 import { initLoadingAnimation } from "../components/loading/LoadingAnimationDownloads";
+import { DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -50,14 +51,37 @@ export default function App() {
 
     const currentDish = dishes.at(currentDishIndex);
 
-    const [currentDishName, setCurrentDishName] = useJsRefObjectHook<Dish | LocalDish, "name">(currentDish, "name", generateNewDishTitle());
-    const [mainFlavor, setMF] = useJsObjectHook<Dish | LocalDish, "mainFlavor">(currentDish, "mainFlavor", "Savory");
+    const currentDishName = useRef(generateNewDishTitle());
+    const setCurrentDishName = (v: string) => {
+        currentDishName.current = v;
+        setDishes(dishes => dishes.map(dish => {
+            if (dish.uuid !== currentDish?.uuid) return dish;
+            return { ...dish, name: v };
+        }));
+    };
 
-    const [volumes, setVolumes] = useJsRefObjectHook<Dish | LocalDish, "volumes">(currentDish, "volumes", {
+    const [mainFlavor, _setMF] = useState<MainFlavor>("Savory");
+    const setMF = (v: MainFlavor) => {
+        setDishes(dishes => dishes.map(dish => {
+            if (dish.uuid !== currentDish?.uuid) return dish;
+            return { ...dish, mainFlavor: v };
+        }));
+        _setMF(v);
+    };
+
+    const volumes = useRef<DishVolumes>({
         flavors: 100,
         mainFlavor: 100,
         master: 100
     });
+    const setVolumes = (v: (DishVolumes | ((v: DishVolumes) => DishVolumes))) => {
+        const val = typeof v == "function" ? v(volumes.current) : v;
+        volumes.current = val;
+        setDishes(dishes => dishes.map(dish => {
+            if (dish.uuid !== currentDish?.uuid) return dish;
+            return { ...dish, volumes: val };
+        }));
+    };
 
     const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<Dish | LocalDish, "data">(currentDish, "data", []);
 
@@ -79,6 +103,7 @@ export default function App() {
     }
 
     useEffect(() => {
+        console.log(userLoggedIn);
         if (userLoggedIn) {
             (async () => {
                 startLoading("loadingDishes");
@@ -126,6 +151,7 @@ export default function App() {
             }
             await DishManager.updateEntireDish(userLoggedIn, currentDish as Dish);
         } else {
+            console.log("dishes", dishes);
             const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary));
             localStorage.setItem("dishes", jsonData);
         }
@@ -176,9 +202,10 @@ export default function App() {
         setDishes([...dishes]);
         const index = dishes.indexOf(newDish);
         if (setCurrent) {
-            setCurrentDishName(newDish.name)
-            setCurrentDishTitleToElement(newDish.name);
             setCurrentDishIndex(index);
+            // setCurrentDishName(newDish.name)
+            currentDishName.current = newDish.name;
+            setCurrentDishTitleToElement(newDish.name);
             setSynthLines(newDish.data);
         }
         addedNewDish(newDish, index);
@@ -276,7 +303,7 @@ export default function App() {
         setCurrentDishIndex(index);
 
         setCurrentDishTitleToElement(dish.name);
-        setCurrentDishName(dish.name);
+        currentDishName.current = dish.name;
         setMainFlavor(dish.mainFlavor);
 
         setVolumes(dish.volumes);
@@ -296,12 +323,13 @@ export default function App() {
     const deleteDisheWithUUID = async (uuid: string) => {
         const newDishes = dishes.filter(e => e.uuid !== uuid);
         if (userLoggedIn) {
-            await DishManager.deleteDish(userLoggedIn, uuid);
+            DishManager.deleteDish(userLoggedIn, uuid);
         } else {
             localStorage.setItem("dishes", JSON.stringify(newDishes));
         }
-        setDishes(newDishes);
+        // setDishes(newDishes);
         Utils.success("Deleted Dish");
+        setDishes(dishes => dishes.filter(e => e.uuid !== uuid));
     };
 
     let currentlyLoading: string[] = [];
@@ -440,6 +468,9 @@ function toRGB(hex: string): string {
 
 
 async function checkIfDataDownloaded() {
+    const val = localStorage.getItem(DOWNLOAD_PROGRESS_KEY);
+    if (val != null) return false;
+
     const dbs = await indexedDB.databases();
     return dbs.length == 4;
 }

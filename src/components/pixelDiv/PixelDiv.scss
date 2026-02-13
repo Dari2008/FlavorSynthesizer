@@ -1,35 +1,38 @@
+@use "../../utils/Variables.scss" as *;
+
 .pixel-div {
-    display: grid;
-    grid-template-columns: max-content 1fr max-content;
-    grid-template-rows: 1fr;
+    @include pixeled-div(var(--width), var(--height));
+    // display: grid;
+    // grid-template-columns: max-content 1fr max-content;
+    // grid-template-rows: 1fr;
 
-    .left {
-        mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
-        mask-position: left;
-        mask-size: auto 100%;
-        mask-mode: alpha;
-        aspect-ratio: 3 / 13;
-        mask-repeat: no-repeat;
-        background-color: var(--bg-color);
-        height: 100%;
-        z-index: -1;
-    }
+    // .left {
+    //     mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+    //     mask-position: left;
+    //     mask-size: auto 100%;
+    //     mask-mode: alpha;
+    //     aspect-ratio: 3 / 13;
+    //     mask-repeat: no-repeat;
+    //     background-color: var(--bg-color);
+    //     height: 100%;
+    //     z-index: -1;
+    // }
 
-    .center {
-        width: 100%;
-        background-color: var(--bg-color);
-        z-index: -1;
-    }
+    // .center {
+    //     width: 100%;
+    //     background-color: var(--bg-color);
+    //     z-index: -1;
+    // }
 
-    .right {
-        mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
-        mask-position: right;
-        mask-size: auto 100%;
-        mask-mode: alpha;
-        aspect-ratio: 3 / 13;
-        mask-repeat: no-repeat;
-        background-color: var(--bg-color);
-        height: 100%;
-        z-index: -1;
-    }
+    // .right {
+    //     mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+    //     mask-position: right;
+    //     mask-size: auto 100%;
+    //     mask-mode: alpha;
+    //     aspect-ratio: 3 / 13;
+    //     mask-repeat: no-repeat;
+    //     background-color: var(--bg-color);
+    //     height: 100%;
+    //     z-index: -1;
+    // }
 }

@@ -95,8 +95,9 @@
     }
 
     .options {
-        padding: 2px;
-        border-radius: 10px;
+        @extend .pixeled-div;
+        // @include pixeled-div(var(--width), var(--height));
+        padding: 10px;
         background-color: $gray-500;
         width: max-content;
         position: fixed;
