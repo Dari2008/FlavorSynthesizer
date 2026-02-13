@@ -6,21 +6,20 @@ export class ActionHistoryManager {
     private static redoActionHistory: HistoryAction[] = [];
 
     public static reset() {
-        this.undoActionHistory = [];
-        this.redoActionHistory = [];
+        ActionHistoryManager.undoActionHistory = [];
+        ActionHistoryManager.redoActionHistory = [];
     }
 
     public static didAction(action: HistoryAction) {
-        console.log(action);
-        this.redoActionHistory = [];
-        this.undoActionHistory.push(structuredClone(action));
+        ActionHistoryManager.redoActionHistory = [];
+        ActionHistoryManager.undoActionHistory.push(structuredClone(action));
     }
 
     public static undo(setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>) {
-        const actionToUndo = this.undoActionHistory.pop();
+        const actionToUndo = ActionHistoryManager.undoActionHistory.pop();
         if (!actionToUndo) return;
-        this.redoActionHistory.push(actionToUndo);
-        const undo = this._undo(setSynthLines);
+        ActionHistoryManager.redoActionHistory.push(actionToUndo);
+        const undo = ActionHistoryManager._undo(setSynthLines);
         switch (actionToUndo.type) {
             case "insert":
                 undo.undoInsert(actionToUndo);
@@ -47,10 +46,10 @@ export class ActionHistoryManager {
     }
 
     public static redo(setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>) {
-        const actionToRedo = this.redoActionHistory.pop();
+        const actionToRedo = ActionHistoryManager.redoActionHistory.pop();
         if (!actionToRedo) return;
-        this.undoActionHistory.push(actionToRedo);
-        const redo = this._redo(setSynthLines);
+        ActionHistoryManager.undoActionHistory.push(actionToRedo);
+        const redo = ActionHistoryManager._redo(setSynthLines);
         switch (actionToRedo.type) {
             case "insert":
                 redo.redoInsert(actionToRedo);
