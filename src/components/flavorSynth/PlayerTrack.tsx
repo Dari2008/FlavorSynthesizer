@@ -49,8 +49,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         volume: 1
     };
 
-    console.log("flavorSynthLine.elements", flavorSynthLine.elements, currentDraggingElementRef.current, interPlayerDrag.ref.current);
-
     const renderTimeline = () => {
         const ctx = timelineOffCanvasRef.current.getContext("2d");
         if (!ctx) return;
@@ -59,6 +57,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
         ctx.strokeStyle = STROKES_COLORS;
         ctx.lineWidth = 1;
+        console.log(span);
 
         for (let i = Math.floor(span.from); i <= span.to; i++) {
             const x = i * getPixelsPerSecond() - getOffsetX();

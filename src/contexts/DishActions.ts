@@ -3,7 +3,7 @@ import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import type { DishVolumes } from "../@types/User";
 
 export type CurrentDishactionsContextType = {
-    synthLines: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>, (v: FlavorSynthLine) => void];
+    synthLines: [FlavorSynthLine[], React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>];
     volumes: [React.RefObject<DishVolumes>, (f: ((v: DishVolumes) => DishVolumes) | DishVolumes) => void];
 }
 

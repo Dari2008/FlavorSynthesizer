@@ -11,6 +11,7 @@ import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 import { getImage, loadImage, setCallbackForImageLoad } from "../../download/ImageDownloadManager";
+import type { ServerDish } from "../../@types/User";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -21,6 +22,14 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
+
+const ROOT_PATH = "./imgs/shareDish-bgs/"
+
+const BG_IMAGES = [
+    "dish.png",
+    "fruits.png",
+    "workbench.png"
+];
 
 export default function ShareDialog() {
 
@@ -45,19 +54,19 @@ export default function ShareDialog() {
     const mainFlavor = useMainFlavor();
     const gameState = useGameState();
 
-    const [BG_IMAGES, setBgImages] = useState<(string | undefined)[]>([]);
+    // const [BG_IMAGES, setBgImages] = useState<(string | undefined)[]>([]);
 
-    setCallbackForImageLoad([
-        "share_dish_bg_workbench",
-        "share_dish_bg_fruits",
-        "share_dish_bg_dish"
-    ], async () => {
-        setBgImages([
-            await loadImage("share_dish_bg_workbench"),
-            await loadImage("share_dish_bg_fruits"),
-            await loadImage("share_dish_bg_dish")
-        ]);
-    });
+    // setCallbackForImageLoad([
+    //     "dish.png",
+    //     "fruits.png",
+    //     "workbench.png"
+    // ], async () => {
+    //     setBgImages([
+    //         await loadImage("share_dish_bg_workbench"),
+    //         await loadImage("share_dish_bg_fruits"),
+    //         await loadImage("share_dish_bg_dish")
+    //     ]);
+    // });
 
     const setShareDigits = (numbers: Digit[]) => {
         setSD(numbers);
@@ -128,29 +137,34 @@ export default function ShareDialog() {
             return;
         }
 
-        const compiledTracks = tracks.map(track => {
-            const compiledTrack = {
-                volume: track.volume,
-                muted: track.muted,
-                solo: track.solo,
-                elements: track.elements.map(element => {
-                    const compiledElement = {
-                        from: element.from,
-                        to: element.to,
-                        flavor: element.flavor.name
-                    };
-                    return compiledElement;
-                })
-            };
-            return compiledTrack;
-        })
+        const compiledDish = {
+            name: currentDish.name,
+            mainFlavor: currentDish.mainFlavor,
+            volumes: currentDish.volumes,
+            uuid: currentDish.uuid,
+            tracks: tracks.map(track => {
+                const compiledTrack = {
+                    volume: track.volume,
+                    muted: track.muted,
+                    solo: track.solo,
+                    elements: track.elements.map(element => {
+                        const compiledElement = {
+                            from: element.from,
+                            to: element.to,
+                            flavor: element.flavor
+                        };
+                        return compiledElement;
+                    })
+                };
+                return compiledTrack;
+            })
+        } as ServerDish;
         setIsLoading(true);
         const response = await (await fetch(BASE_URL + "/share/share.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt: user.user?.jwt ?? undefined,
-                tracks: compiledTracks,
-                mainFlavor: mainFlavor.mainFlavor,
+                dish: compiledDish,
                 flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
             })
         })).json() as APIResponse<ShareResponse, ShareErrorResponse>;
@@ -231,7 +245,7 @@ export default function ShareDialog() {
 
     return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
         <div role="dialog" className="share-dialog">
-            <img src={BG_IMAGES.length > 0 ? BG_IMAGES[imageIdRef.current] : undefined} className="background-image" />
+            <img src={BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : undefined} className="background-image" />
 
             <h1>Share your dish</h1>
 

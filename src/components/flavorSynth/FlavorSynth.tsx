@@ -74,7 +74,7 @@ export default function FlavorSynth() {
     const dishes = useDishes();
     const dishActions = useCurrentDishActions();
 
-    const [synthLines, setSynthLines, addSynthLine] = dishActions.synthLines;
+    const [synthLines, setSynthLines] = dishActions.synthLines;
     const [volumes, setVolumes] = dishActions.volumes;
 
 
@@ -94,7 +94,7 @@ export default function FlavorSynth() {
             volume: 1,
             solo: false
         };
-        addSynthLine(synthLine);
+        setSynthLines(synthLines => [...synthLines, synthLine]);
         ActionHistoryManager.didAction({
             type: "addedTrack",
             track: structuredClone(synthLine)
@@ -178,6 +178,8 @@ export default function FlavorSynth() {
 
     useEffect(() => {
         setSpan(widthRef.current, currentSpanRef.current);
+        repaintAllTimelines();
+        repaintAllElements();
     }, []);
 
     const repaintAllTimelines = () => {

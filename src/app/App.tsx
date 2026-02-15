@@ -74,6 +74,7 @@ export default function App() {
         mainFlavor: 100,
         master: 100
     });
+
     const setVolumes = (v: (DishVolumes | ((v: DishVolumes) => DishVolumes))) => {
         const val = typeof v == "function" ? v(volumes.current) : v;
         volumes.current = val;
@@ -83,7 +84,7 @@ export default function App() {
         }));
     };
 
-    const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<Dish | LocalDish, "data">(currentDish, "data", []);
+    // const [synthLines, setSynthLines, addSynthLine] = useJsObjectHookForArray<Dish | LocalDish, "data">(currentDish, "data", []);
 
     const { setTitle, title } = useTitle();
 
@@ -275,9 +276,13 @@ export default function App() {
             return;
         }
 
-        setMainFlavor(response.mainFlavor);
+        setMainFlavor(response.dish.mainFlavor);
         const dish: Dish = {
-            data: response.tracks.map(e => {
+            ...{
+                ...response.dish,
+                tracks: undefined
+            },
+            data: response.dish.tracks.map(e => {
                 return {
                     uuid: Utils.uuidv4(),
                     muted: e.muted,
@@ -288,12 +293,17 @@ export default function App() {
                     })
                 }
             }),
-            ...response,
             temporary: true
-        }
-        const newD = [...dishes, dish];
-        setDishes(newD);
-        setCurrentDishIndex(newD.length - 1);
+        };
+        delete (dish as any).tracks;
+        console.log(dish);
+        // const newD = [...dishes, dish];
+        setDishes(dishes => {
+            const newD = [...dishes, dish];
+            setCurrentDishTitleToElement(dish.name);
+            return newD;
+        });
+        setCurrentDishIndex(dishes.length);//kein -1
         setGameState("createDish-create-viewonly");
     };
 
@@ -350,9 +360,23 @@ export default function App() {
         }
     };
 
+    const setSynthLines = (v: (FlavorSynthLine[] | ((s: FlavorSynthLine[]) => FlavorSynthLine[]))) => {
+        if (!currentDish) return;
+        const val = typeof v == "function" ? v(currentDish.data) : v;
+        setDishes(dishes => {
+            return dishes.map(dish => {
+                if (dish.uuid != currentDish.uuid) return dish;
+                return {
+                    ...dish,
+                    data: val
+                };
+            });
+        })
+    }
+
     return <>
         <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>
-            <CurrentDishActionsContext value={{ synthLines: [synthLines, setSynthLines, addSynthLine], volumes: [volumes, setVolumes] }}>
+            <CurrentDishActionsContext value={{ synthLines: [currentDish?.data ?? [], setSynthLines], volumes: [volumes, setVolumes] }}>
                 <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
                     <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
                         <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>

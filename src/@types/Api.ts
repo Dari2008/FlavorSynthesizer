@@ -41,17 +41,7 @@ export type ShareResponse = {
 };
 
 export type OpenShareResponse = {
-    tracks: {
-        solo: boolean;
-        muted: boolean;
-        volume: number;
-        elements: {
-            from: number;
-            to: number;
-            flavor: Flavor;
-        }[];
-    }[];
-    mainFlavor: MainFlavor;
+    dish: ServerDish;
     aiImage: string;
     uuid: string;
     share: {
