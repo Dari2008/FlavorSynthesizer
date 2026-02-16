@@ -13,7 +13,7 @@ import { CurrentlyPlayingContext } from "../../contexts/CurrentlyPlayingContext"
 import SynthLine from "./synthLine/SynthLine";
 import FlavorStatistic from "./flavorStatistic/FlavorStatistic";
 import ControlKnob from "./controlKnob/ControlKnob";
-import { SynthChangeContext } from "../../contexts/SynthChangeContext";
+import { SynthChangeContext, useSynthChange } from "../../contexts/SynthChangeContext";
 import { useTitle } from "../../contexts/TitleContext";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
@@ -70,14 +70,16 @@ export default function FlavorSynth() {
 
     const statisticLoopInterval = useRef<number>(-1);
 
-    const { title, setTitle } = useTitle();
     const dishes = useDishes();
     const dishActions = useCurrentDishActions();
+
+    const change = useSynthChange();
 
     const [synthLines, setSynthLines] = dishActions.synthLines;
     const [volumes, setVolumes] = dishActions.volumes;
 
 
+    const isReadonly = gameState.gameState == "createDish-create-viewonly";
 
     playerRef.current.onStop = () => {
         setPlaying(false);
@@ -86,6 +88,7 @@ export default function FlavorSynth() {
     };
 
     const addSynth = () => {
+        if (isReadonly) return;
         const uuid = crypto.randomUUID();
         const synthLine: FlavorSynthLine = {
             uuid: uuid,
@@ -102,6 +105,7 @@ export default function FlavorSynth() {
     };
 
     const deleteSynth = (uuid: string) => {
+        if (isReadonly) return;
         // if (!currentDish) return;
         // currentDish.data = currentDish.data.filter(e => e.uuid !== uuid);
         const track = synthLines.find(e => e.uuid === uuid);
@@ -114,6 +118,7 @@ export default function FlavorSynth() {
     }
 
     const deleteElement = (uuid: string) => {
+        if (isReadonly) return;
         // if (!currentDish) return;
         // currentDish.data = currentDish.data.map(e => {
         //     e.elements = e.elements.filter(e => e.uuid !== uuid);
@@ -208,6 +213,7 @@ export default function FlavorSynth() {
     };
 
     const deleteSelectedElements = () => {
+        if (isReadonly) return;
         const selectedUUIDs = selectedElementsRef.current.map(e => e.uuid);
 
         const elementsDeleted = synthLines.map(synthLine => {
@@ -274,11 +280,12 @@ export default function FlavorSynth() {
     };
 
     const undo = () => {
+        if (isReadonly) return;
         ActionHistoryManager.undo(setSynthLines);
     };
 
     const redo = () => {
-        console.log(synthLines);
+        if (isReadonly) return;
         ActionHistoryManager.redo(setSynthLines);
     };
 
@@ -368,32 +375,35 @@ export default function FlavorSynth() {
 
 
     const mainFlavorVolumeChanged = (volume: number) => {
+        if (isReadonly) return;
         setVolumes(volumes => {
             playerRef.current.setVolumes(volumes);
             mainFlavorsPlayer?.setVolumes(volumes);
             return { ...volumes, mainFlavor: volume };
         });
-        onSynthLineChanged();
+        change.changed();
     };
 
 
     const masterVolumeChanged = (volume: number) => {
+        if (isReadonly) return;
         setVolumes(volumes => {
             playerRef.current.setVolumes(volumes);
             mainFlavorsPlayer?.setVolumes(volumes);
             return { ...volumes, master: volume };
         });
-        onSynthLineChanged();
+        change.changed();
     };
 
 
     const flavorsVolumeChanged = (volume: number) => {
+        if (isReadonly) return;
         setVolumes(volumes => {
             playerRef.current.setVolumes(volumes);
             mainFlavorsPlayer?.setVolumes(volumes);
             return { ...volumes, flavors: volume };
         });
-        onSynthLineChanged();
+        change.changed();
     };
 
 
@@ -472,12 +482,6 @@ export default function FlavorSynth() {
         }
     };
 
-
-    const onSynthLineChanged = () => {
-        if (title.startsWith("*")) return;
-        setTitle("*" + title);
-    };
-
     const updateTotalStatistic = () => {
         if (totalAmountOfFlavorsRef.current) {
             totalAmountOfFlavorsRef.current.textContent = synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0) + " flavors";
@@ -495,94 +499,100 @@ export default function FlavorSynth() {
     }
 
     return <>
-        <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
-            <SynthLinesContext.Provider value={{
-                delete: deleteSynth,
-                onWheel,
-                addSynthRepainter,
-                repaintAll,
-                deleteSelectedElements,
-                addCollisionCheckerCallback,
-                addOnElementMove,
-                addOnElementResize,
-                moveAll,
-                resizeAll,
-                canOffsetAll,
-                addCurrentPositionRepainter,
-                addTimelineRepainter,
-                addElementsRepainter,
-                deleteElement,
-                repaintAllTimelines,
-                repaintAllElements,
-                addStopDraggingCallback,
-                updateTotalStatistic,
-                updateCurrentPlayingStatistic,
-                synthLines,
-                setSynthLines
-            }}>
-                <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-                    <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
-                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
-                            <div className="flavor-synth">
-                                <div className="lines">
-                                    {
-                                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
-                                    }
-                                </div>
-                                <button className="addLine" onClick={() => addSynth()}>
+        <SynthLinesContext.Provider value={{
+            delete: deleteSynth,
+            onWheel,
+            addSynthRepainter,
+            repaintAll,
+            deleteSelectedElements,
+            addCollisionCheckerCallback,
+            addOnElementMove,
+            addOnElementResize,
+            moveAll,
+            resizeAll,
+            canOffsetAll,
+            addCurrentPositionRepainter,
+            addTimelineRepainter,
+            addElementsRepainter,
+            deleteElement,
+            repaintAllTimelines,
+            repaintAllElements,
+            addStopDraggingCallback,
+            updateTotalStatistic,
+            updateCurrentPlayingStatistic,
+            synthLines,
+            setSynthLines
+        }}>
+            <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
+                <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
+                    <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                        <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
+                            <div className="lines">
+                                {
+                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                                }
+                            </div>
+                            {
+                                !isReadonly && <button className="addLine" onClick={() => addSynth()}>
                                     <img src="./imgs/plus/plus.png" alt="+" className="plus" />
                                 </button>
-                            </div>
+                            }
+                        </div>
 
-                            <div className="flavor-synth-controls">
-                                <div className="statistics">
-                                    <div className="activeFlavorsPlaying">
-                                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors" ref={currentPlayingFlavorCountRef} />
-                                    </div>
-                                    <div className="totalFlavorsUsed">
-                                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
-                                    </div>
+                        <div className="flavor-synth-controls" data-readonly={isReadonly ? true : undefined}>
+                            <div className="statistics">
+                                <div className="activeFlavorsPlaying">
+                                    <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors" ref={currentPlayingFlavorCountRef} />
                                 </div>
-                                <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
-                                    <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+                                <div className="totalFlavorsUsed">
+                                    <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
+                                </div>
+                            </div>
+                            <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
+                                <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+                            </button>
+                            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                                isPlaying
+                                    ?
+                                    <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                    :
+                                    <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                            }
+                            </button>
+                            <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
+                                <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
+                            </button>
+                            <div className="volumes">
+                                <div className="volume">
+                                    <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
+                                </div>
+                                <div className="mainFlavorVolume">
+                                    <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
+                                </div>
+                                <div className="masterVolume">
+                                    <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
+                                </div>
+                            </div>
+                            <div className="buttons">
+                                <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                    <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                 </button>
-                                <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
-                                    isPlaying
-                                        ?
-                                        <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
-                                        :
-                                        <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                                <button className="save" onClick={dishes.saveCurrentDish}>
+                                    <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
+                                </button>
+                                {
+                                    isReadonly &&
+                                    <button className="fork" onClick={dishes.forkCurrentDish}>
+                                        <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
+                                    </button>
                                 }
-                                </button>
-                                <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
-                                    <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
-                                </button>
-                                <div className="volumes">
-                                    <div className="volume">
-                                        <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
-                                    </div>
-                                    <div className="mainFlavorVolume">
-                                        <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
-                                    </div>
-                                    <div className="masterVolume">
-                                        <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
-                                    </div>
-                                </div>
-                                <div className="buttons">
-                                    <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
-                                        <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
-                                    </button>
-                                    <button className="save" onClick={dishes.saveCurrentDish}>
-                                        <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
-                                    </button>
-                                </div>
                             </div>
+                        </div>
 
-                        </CurrentInterPlayerDragContext.Provider>
-                    </CurrentlyPlayingContext.Provider>
-                </SynthSelectorContext.Provider>
-            </SynthLinesContext.Provider>
-        </SynthChangeContext.Provider>
+                    </CurrentInterPlayerDragContext.Provider>
+                </CurrentlyPlayingContext.Provider>
+            </SynthSelectorContext.Provider>
+        </SynthLinesContext.Provider>
     </>
 }
 

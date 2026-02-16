@@ -100,9 +100,7 @@ export class FlavorFileMusic {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
             player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.replace("data:audio/wav;base64,", "")));
-            console.log("Loading...");
             await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
-            console.log("Loaded...");
             player.fadeIn = FADE_TIME;
             player.fadeOut = FADE_TIME;
             player.toDestination();
@@ -121,7 +119,6 @@ export class FlavorFileMusic {
         this.stopAllBpms();
         this.files[bpm].toDestination();
         this.files[bpm].loop = true;
-        console.log("flavor", from, to);
         this.files[bpm].start(from);
         this.files[bpm].stop(to);
         MUSIC_PLAYERS.push(this.files[bpm]);

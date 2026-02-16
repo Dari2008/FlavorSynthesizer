@@ -13,6 +13,15 @@ maskImageVines.src = "./masks/background-main-flavor-vines-mask_alpha.png";
 const maskImageMainVines = new Image();
 maskImageMainVines.src = "./masks/background-main-flavor-main-mask_alpha.png";
 
+const ROOT_PATH = "./imgs/shareDish-bgs/"
+
+const BG_IMAGES = [
+    "dish.png",
+    "fruits.png",
+    "workbench.png"
+];
+
+
 export default function OpenShareDialog({ open }: { open: (openData: OpenData) => void }) {
 
     const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
@@ -25,6 +34,8 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     const [isOkButtonCodeIsDisabled, setOkButtonCodeIsDisabled] = useState<boolean>(true);
     const [isOkButtonFlavorsIsDisabled, setOkButtonFlavorsIsDisabled] = useState<boolean>(true);
     const [isOkButtonUploadedIsDisabled, setOkButtonUploadedIsDisabled] = useState<boolean>(true);
+
+    const bgImageIndex = useRef<number>(generateRandomBackgroundImage());
 
     const gameState = useGameState();
 
@@ -119,6 +130,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     return <div className={"open-share-dialog-wrapper" + (gameState.gameState == "openShared" ? " visible" : "")}>
         <div role="dialog" className="open-share-dialog">
             <h1>Open Shared Dish</h1>
+            <img src={ROOT_PATH + BG_IMAGES[bgImageIndex.current]} alt="Bg Image" className="background-image" />
 
 
             <div className="open-share-flavors open-share-default-layout">
@@ -337,6 +349,10 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
         </div>
     </div>;
+}
+
+function generateRandomBackgroundImage() {
+    return Math.round(Math.random() * (3 - 1));
 }
 
 function fileToBase64(file: File): Promise<string> {

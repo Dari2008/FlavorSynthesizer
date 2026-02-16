@@ -82,6 +82,17 @@
 
         }
 
+        .bg-wrapper:has(.title-input.unsaved-changes) {
+            position: relative;
+
+            &::before {
+                content: "*";
+                position: absolute;
+                top: 0;
+                left: 10%;
+            }
+        }
+
         .title-input {
             grid-area: 1/1/2/2;
             margin: 0;
@@ -98,6 +109,7 @@
             background-color: transparent;
             width: calc(100% - 50px);
             margin-left: auto;
+            color: white;
 
 
             // background-image:

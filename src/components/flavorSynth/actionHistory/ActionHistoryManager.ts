@@ -79,7 +79,6 @@ export class ActionHistoryManager {
         return {
             undoInsert(undo: HistoryActionInsert) {
                 setSynthLines(synthLines => {
-                    console.log("synthLines", structuredClone(synthLines));
                     return synthLines.map(track => {
                         if (track.uuid !== undo.trackUUID) return track;
                         return { ...track, elements: track.elements.filter(e => e.uuid !== undo.flavor.uuid) };
@@ -165,7 +164,6 @@ export class ActionHistoryManager {
                         const s = { ...e, elements: [...e.elements, redo.flavor] };
                         return s;
                     });
-                    console.log("synthLines", structuredClone(ss));
                     return ss;
                 });
             },

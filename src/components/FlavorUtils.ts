@@ -328,7 +328,6 @@ function loadImage(src: string): HTMLImageElement {
 
 function parseTime(time: string): number {
     const parts = time.split(":");
-    console.log(parts);
     switch (parts.length) {
         case 1:
             return parseInt(parts[0]);

@@ -3,6 +3,10 @@
     position: relative;
     z-index: 10000;
 
+    &:not([data-disabled]) {
+        cursor: pointer;
+    }
+
     .main-flavor-label {
         font-size: 2rem;
     }
@@ -12,7 +16,7 @@
         flex-direction: row;
         width: 5vw;
         padding: 10px;
-        cursor: pointer;
+
 
 
         .main-flavor {

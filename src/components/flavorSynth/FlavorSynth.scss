@@ -6,6 +6,14 @@
     overflow-x: hidden;
     scrollbar-width: thin;
 
+    &[data-readonly] {
+        .lines .synth-line-controls {
+            button {
+                pointer-events: none;
+            }
+        }
+    }
+
     .lines {
         margin-left: 10px;
         background-color: rgba(black, 0.5);

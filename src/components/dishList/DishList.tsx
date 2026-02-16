@@ -9,6 +9,7 @@ import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish"
 import { useGameState } from "../../contexts/GameStateContext";
 import type { Digit } from "../../@types/Api";
 import PixelDiv from "../pixelDiv/PixelDiv";
+import PixelButton from "../pixelDiv/PixelButton";
 
 dayjs.extend(customFormat);
 
@@ -194,20 +195,22 @@ export default function DishList() {
     return <div className={"dish-list" + (gameState.gameState == "dishList" ? " visible" : "")} ref={dishListRef}>
         <PixelDiv className="options" ref={optionsRef}>
             <div className="top-options">
-                <button className="delete" onClick={deleteCurrentSelected}>
-                    {"\uf1f8"}
-                </button>
-                <button className="share" onClick={shareCurrentSelected}>
-                    {"\uf064"}
-                </button>
-                <button className="duplicate" onClick={duplicateCurrentSelected}>
-                    {"\uf24d"}
-                </button>
+                <PixelButton className="delete" onClick={deleteCurrentSelected}>
+                    <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete Button" className="action-btn" />
+                    {/* {"\uf1f8"} */}
+                </PixelButton>
+                <PixelButton className="share" onClick={shareCurrentSelected}>
+                    <img src="./imgs/actionButtons/dishList/share.png" alt="Share Button" className="action-btn" />
+                    {/* {"\uf064"} */}
+                </PixelButton>
+                <PixelButton className="duplicate" onClick={duplicateCurrentSelected}>
+                    <img src="./imgs/actionButtons/dishList/duplicate.png" alt="Duplicate button" className="action-btn" />
+                    {/* {"\uf24d"} */}
+                </PixelButton>
             </div>
-            <button className="open" onClick={openCurrentSelected}>
-                <img src="" alt="" className="open-img" />
+            <PixelButton className="open" onClick={openCurrentSelected}>
                 <span className="label">Open</span>
-            </button>
+            </PixelButton>
         </PixelDiv>
 
 

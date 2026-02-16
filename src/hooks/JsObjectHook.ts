@@ -98,8 +98,6 @@ export function useJsRefObjectHook<E, K extends keyof E>(
 
         const finalValue = wrapper ? wrapper(next) : next;
 
-        console.log("finalValue", finalValue, jsonObject);
-
         ref.current = finalValue;
 
         if (jsonObject) {

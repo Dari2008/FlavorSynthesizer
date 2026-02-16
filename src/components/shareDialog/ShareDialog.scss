@@ -11,6 +11,11 @@
     grid-area: 1/1/5/4;
 }
 
+#root:has(.share-dialog-wrapper.visible) .flavor-drag-n-drop-list {
+    backdrop-filter: brightness(30%) contrast(110%);
+    filter: brightness(75%);
+}
+
 .share-dialog-wrapper {
     grid-area: 1/1/5/3;
     background-color: rgba(0, 0, 0, 0.5);
@@ -19,11 +24,12 @@
     transition: opacity 0.3s ease-in-out;
     backdrop-filter: blur(10px);
 
-    &:not(.login) {
-        .background-image {
-            opacity: 0 !important;
-        }
-    }
+    // &:not(.login) {
+    //     .background-image {
+    //         opacity: 0 !important;
+    //     }
+    // }
+
 
 
     .share-dialog {
@@ -57,7 +63,7 @@
             object-fit: contain;
             image-rendering: pixelated;
             z-index: 0;
-            filter: blur(12px) brightness(40%);
+            filter: blur(12px) brightness(30%);
             opacity: 1;
             transition: opacity 0.5s ease-in-out;
 

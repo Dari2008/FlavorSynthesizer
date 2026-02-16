@@ -8,6 +8,20 @@
     grid-column-gap: 40px;
     grid-row-gap: 0px;
 
+    &[data-readonly] {
+
+        .share,
+        .save {
+            display: none;
+            pointer-events: none;
+        }
+
+        .fork {
+            display: block !important;
+            pointer-events: all !important;
+        }
+    }
+
     button {
         // color: var(--main-color);
         border: none;
@@ -120,6 +134,12 @@
         display: grid;
         grid-template-columns: max-content;
 
+        .fork {
+            display: none;
+            pointer-events: none;
+            scale: 1.2;
+        }
+
         .action-btn,
         .action-share {
             object-fit: cover;
@@ -129,8 +149,6 @@
     }
 
 }
-
-
 
 .div1 {
     grid-area: 1 / 3 / 3 / 4;

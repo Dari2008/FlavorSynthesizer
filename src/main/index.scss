@@ -310,3 +310,9 @@ a:not([role]):focus-visible {
         z-index: 100;
     }
 }
+
+.Toastify__toast {
+    @extend .pixeled-div;
+    font-family: PixelFont !important;
+    font-size: 1.5rem;
+}

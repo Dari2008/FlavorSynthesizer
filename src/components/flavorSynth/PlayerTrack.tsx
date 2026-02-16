@@ -10,6 +10,7 @@ import { useCurrentlyPlaying } from "../../contexts/CurrentlyPlayingContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 import { useSynthChange } from "../../contexts/SynthChangeContext";
 import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
+import { useGameState } from "../../contexts/GameStateContext";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -26,6 +27,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     const synthSelector = useSynthSelector();
     const currentPlaying = useCurrentlyPlaying();
     const interPlayerDrag = useInterPlayerDrag();
+    const gameState = useGameState().gameState;
+    const isReadonly = gameState == "createDish-create-viewonly";
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mousePosRef = useRef<{ x: number; y: number; }>({ x: -1, y: -1 });
@@ -57,7 +60,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
         ctx.strokeStyle = STROKES_COLORS;
         ctx.lineWidth = 1;
-        console.log(span);
 
         for (let i = Math.floor(span.from); i <= span.to; i++) {
             const x = i * getPixelsPerSecond() - getOffsetX();
@@ -206,7 +208,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 let newTo = element.to + toOffset;
 
                 if (fromOffset == 0) {
-                    console.log(newFrom, newTo);
                     if (newTo <= newFrom) {
                         newTo = newFrom;
                         newFrom = newTo - 1;
@@ -343,7 +344,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 if (isAbove) {
                     if (tooltip.current && tooSmallToDisplayUUIDs.current.indexOf(element.uuid) != -1) {
                         const xOfElement = element.from * getPixelsPerSecond() - getOffsetX();
-                        const yOfElement = LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS;
+                        // const yOfElement = LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS;
 
                         const width = (element.to - element.from) * getPixelsPerSecond();
 
@@ -360,6 +361,10 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 if (tooltip.current) tooltip.current.style.display = "none";
             }
 
+            if (isReadonly) {
+                canvas.style.cursor = "default";
+            }
+
         };
 
         let targetElement: null | FlavorElement = null;
@@ -369,6 +374,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         let moveStartOffsetToEnd = -1;
 
         const onDragStart = (e: MouseEvent) => {
+            if (isReadonly) return;
             const span = currentScrolledRef.current;
             if (!span) return;
 
@@ -387,7 +393,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 function updateCursorForElement() {
                     if (!(mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(toPos))) return false;
                     const TOLERANCE = 5;
-                    console.log(mouse, convertTimelineXToScreen(fromPos), convertTimelineXToScreen(toPos));
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
                         action = "resizeL";
                         targetElement = element;
@@ -434,6 +439,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         }[] | undefined = undefined;
 
         const onDrag = (e: MouseEvent) => {
+            if (isReadonly) return;
             if (!targetElement) return;
             if (action == "move" && startPosition == -1) return;
             const span = currentScrolledRef.current;
@@ -491,12 +497,10 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 switch (action) {
                     case "move":
                         {
-                            console.log(currentPos, lastPos);
                             const delta = currentPos - lastPos;
                             lastPos = currentPos;
                             if (delta == 0) return;
                             if (synthLines.canOffsetAll(delta, delta)) {
-                                console.log("Moving all by", delta, flavorSynthLine.uuid);
                                 synthLines.moveAll(delta);
                             }
                             break;
@@ -547,6 +551,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         }
 
         const onMouseDown = (e: MouseEvent) => {
+            if (isReadonly) return;
             isMouseDown = true;
             const box = canvasRef.current?.getBoundingClientRect();
             const y = e.y - (box?.top ?? 0);
@@ -559,6 +564,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onMouseUp = () => {
+            if (isReadonly) return;
 
             if (!didDrag) return;
             let selectedFlavors = synthLines.synthLines.map(e => {
@@ -620,6 +626,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onClick = (e: MouseEvent) => {
+            if (isReadonly) return;
             e.stopPropagation();
             e.preventDefault();
             if (didDrag) {
@@ -663,6 +670,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
+            if (isReadonly) return;
             if (synthSelector.focusedSynthRef.current != flavorSynthLine.uuid) return;
             switch (e.key) {
                 case "Delete":
@@ -682,7 +690,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                     // synthLines.repaintAll();
                     break;
             }
-            console.log("Key pressed:", e.key);
             // repaint();
         };
 
@@ -692,6 +699,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onMouseLeave = (e: MouseEvent) => {
+            if (isReadonly) return;
             if (!isMouseDown) return;
             if (targetElement != null) {
                 interPlayerDrag.ref.current = targetElement;
@@ -713,6 +721,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onMouseEnter = (e: MouseEvent) => {
+            if (isReadonly) return;
             if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.includes(interPlayerDrag.ref.current)) {
                 interPlayerDrag.ref.current = null;
                 interPlayerDrag.originalStartPos.current = null;
@@ -721,6 +730,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onMouseMoveExternalElement = (e: MouseEvent) => {
+            if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
@@ -749,6 +759,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         };
 
         const onReleaseExternalElement = (e: MouseEvent) => {
+            if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
@@ -764,13 +775,10 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 const newTo = currentDragPos + elementSpan
 
                 if (!isEmpty(element, newFrom, newTo)) {
-                    console.log("Not empty");
                     synthLines.repaintAllElements();
                     return;
                 }
 
-                console.log("Empty");
-                console.log(flavorSynthLine);
                 const fromTrack = synthLines.synthLines.find(track => track.elements.map(e => e.uuid).includes(element.uuid));
 
                 ActionHistoryManager.didAction({
@@ -799,7 +807,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 }))
                 // flavorSynthLine.elements.push(element);
 
-                console.log(flavorSynthLine);
 
                 interPlayerDrag.onPlaced.current();
                 currentDraggingElementRef.current = null;
@@ -882,6 +889,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
 
     const onDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
+        if (isReadonly) return;
         e.preventDefault();
         const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
         const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
@@ -935,6 +943,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     };
 
     const droppedNewFlavor = (element: FlavorElement) => {
+        if (isReadonly) return;
         ActionHistoryManager.didAction({
             type: "insert",
             flavor: element,
@@ -943,6 +952,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     }
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
+        if (isReadonly) return;
         try {
             const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
             const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
@@ -968,7 +978,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                 let endPos = -1;
                 for (let start = 0; start <= elementLength; start++) {
                     if (isEmpty(null, currentPos + start)) {
-                        console.log("Found possible position at:", currentPos + start);
                         startPos = startPos == -1 ? currentPos + start : Math.min(startPos, currentPos + start);
                         endPos = Math.max(endPos, currentPos + start);
                     } else {
@@ -976,11 +985,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
                     }
                 }
 
-                console.log("Suggested position at:", startPos, endPos);
 
                 if (startPos != -1 && endPos != -1 && startPos != endPos) {
                     currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
-                    console.log("Dragging over at seconds (adjusted):", startPos);
                     e.preventDefault();
                     renderElementsWDebounce();
                     return;
@@ -993,7 +1000,6 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
 
             currentDraggingElementRef.current = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
 
-            console.log("Dragging over at seconds:", currentPos);
             e.preventDefault();
         } catch (ex) {
             currentDraggingElementRef.current = null;
@@ -1002,6 +1008,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     };
 
     const onDragLeave = () => {
+        if (isReadonly) return;
         currentDraggingElementRef.current = null;
         // repaint();
         renderElementsWDebounce();

@@ -75,7 +75,6 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     const boxDunnoLabelRef = useRef<HTMLSpanElement>(null);
 
     // selectedElementWrapper.current = (e) => {
-    //     console.log(e);
     //     switch (e) {
     //         case "add":
     //             setChosenOne("create-new-dish");
@@ -294,8 +293,6 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
                 setChosenOne("none");
             }, 300);
         };
-
-        console.log("Added event");
 
 
         images.addEventListener("mousemove", onMouseMove);

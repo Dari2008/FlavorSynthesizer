@@ -158,7 +158,7 @@ function calculateMaxDownloadSize() {
 
 function getSizeOf(mainGroup: string, fileName: string): number {
     if (!FILE_SIZES[mainGroup][fileName]) {
-        console.log(mainGroup, fileName);
+        console.error(mainGroup, fileName);
         return 0;
     }
     return FILE_SIZES[mainGroup][fileName];
@@ -166,7 +166,7 @@ function getSizeOf(mainGroup: string, fileName: string): number {
 
 function getSizeOfImage(name: ImageName): number {
     if (!FILE_SIZES_IMAGES[name]) {
-        console.log(name);
+        console.error(name);
         return 0;
     }
     return FILE_SIZES_IMAGES[name];

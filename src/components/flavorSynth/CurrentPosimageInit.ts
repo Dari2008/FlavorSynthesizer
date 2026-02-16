@@ -19,7 +19,6 @@ export async function initCurrentPosImages() {
                 await new Promise(res => img.onload = res);
                 currentPosAnimationImages[i] = img;
             }
-            console.log("Loaded all");
 
         })();
         (window as any).CURRENT_ANIMATIONS_IMAGES = currentPosAnimationImages;

@@ -119,15 +119,15 @@
         }
 
         button {
-            font-family: Fontawesome;
-            background-color: $gray-800;
             border: none;
             padding: 0;
             font-size: 20px;
             padding: 5px;
+            background-color: transparent;
+            transition: scale 0.3s ease-in-out;
 
             &:hover {
-                background-color: $gray-700;
+                scale: 1.1;
             }
         }
 
@@ -137,7 +137,6 @@
             gap: 2px;
 
             button {
-                background-color: $gray-800;
                 border: none;
                 padding: 0;
                 font-size: 20px;
@@ -149,6 +148,12 @@
             width: 100%;
             padding-inline: 0;
             padding-block: 5px;
+            position: relative;
+            border: 6px solid #351a1b;
+            mask-image: none;
+            border-radius: 0px;
+            width: 80%;
+            background-color: #b68163;
         }
     }
 
