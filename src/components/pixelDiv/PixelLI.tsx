@@ -17,12 +17,12 @@
 import { useEffect, useRef, type DetailedHTMLProps, type HTMLAttributes, type ReactNode } from "react";
 import "./PixelDiv.scss";
 
-type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
+type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLLIElement>, HTMLLIElement> & { children?: ReactNode; "max-pixel-width"?: number; };
 
-export default function PixelDiv({ children, ...rest }: PixelDivType) {
+export default function PixelLI({ children, ...rest }: PixelDivType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div";
     const originalFunction = rest.ref;
-    const divRef = useRef<HTMLDivElement>(null);
+    const divRef = useRef<HTMLLIElement>(null);
     rest.ref = (r) => {
         if (originalFunction !== undefined) {
             if (typeof originalFunction == "function") {
@@ -59,10 +59,10 @@ export default function PixelDiv({ children, ...rest }: PixelDivType) {
 
     }, [divRef.current]);
 
-    return <div {...rest} >
+    return <li {...rest} >
         {/* <div className="left"></div>
         <div className="center"></div>
         <div className="right"></div> */}
         {children}
-    </div>
+    </li>
 }

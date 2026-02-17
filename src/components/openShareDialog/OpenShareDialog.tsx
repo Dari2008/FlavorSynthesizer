@@ -3,6 +3,7 @@ import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
+import PixelDiv from "../pixelDiv/PixelDiv";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;

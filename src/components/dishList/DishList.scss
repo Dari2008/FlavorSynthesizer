@@ -4,6 +4,8 @@
     overflow-y: auto;
 }
 
+$listBG: $gray-400;
+
 .dish-list {
     grid-area: 1/1/5/6;
     width: 100%;
@@ -97,7 +99,7 @@
     .options {
         @extend .pixeled-div;
         // @include pixeled-div(var(--width), var(--height));
-        padding: 10px;
+        padding: 5px 10px;
         background-color: $gray-500;
         width: max-content;
         position: fixed;
@@ -122,39 +124,19 @@
             border: none;
             padding: 0;
             font-size: 20px;
-            padding: 5px;
             background-color: transparent;
             transition: scale 0.3s ease-in-out;
+            margin: 0px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
 
             &:hover {
                 scale: 1.1;
             }
         }
 
-        .top-options {
-            display: flex;
-            flex-direction: row;
-            gap: 2px;
 
-            button {
-                border: none;
-                padding: 0;
-                font-size: 20px;
-                padding: 5px;
-            }
-        }
-
-        .open {
-            width: 100%;
-            padding-inline: 0;
-            padding-block: 5px;
-            position: relative;
-            border: 6px solid #351a1b;
-            mask-image: none;
-            border-radius: 0px;
-            width: 80%;
-            background-color: #b68163;
-        }
     }
 
     .list {
@@ -180,6 +162,7 @@
             background-color: transparent;
             z-index: 10;
             color: $gray-700;
+            background-color: $listBG;
         }
     }
 
@@ -199,50 +182,93 @@
 
         $bg: rgba(0, 0, 0, 0.4);
 
-        .bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: grid;
-            z-index: -1;
-            grid-template-columns: max-content 1fr max-content;
-            grid-template-rows: 1fr;
+        // .bg {
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     width: 100%;
+        //     height: 100%;
+        //     display: grid;
+        //     z-index: -1;
+        //     grid-template-columns: max-content 1fr max-content;
+        //     grid-template-rows: 1fr;
 
-            .left {
-                mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
-                mask-position: left;
-                mask-size: auto 100%;
-                mask-mode: alpha;
-                background-color: $bg;
-                aspect-ratio: 3 / 13;
-                mask-repeat: no-repeat;
-                height: 100%;
-            }
+        //     .left {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+        //         mask-position: left;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         background-color: $bg;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         height: 100%;
+        //     }
 
-            .center {
-                background-color: $bg;
-                width: 100%;
-            }
+        //     .center {
+        //         background-color: $bg;
+        //         width: 100%;
+        //     }
 
-            .right {
-                mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
-                mask-position: right;
-                mask-size: auto 100%;
-                mask-mode: alpha;
-                background-color: $bg;
-                aspect-ratio: 3 / 13;
-                mask-repeat: no-repeat;
-                height: 100%;
-            }
-        }
+        //     .right {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+        //         mask-position: right;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         background-color: $bg;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         height: 100%;
+        //     }
+        // }
 
-        img {
+        .ai-image {
             grid-area: 1 / 1 / 3 / 2;
-            height: 100%;
-            opacity: 0.6;
-            filter: grayscale(90%);
+            display: grid;
+            // grid-template-columns: 100%;
+            // grid-template-rows: 1fr;
+            // justify-content: center;
+            // align-items: center;
+            position: relative;
+
+            img {
+                height: 90%;
+                opacity: 0.6;
+                filter: grayscale(90%);
+                margin: auto;
+                // grid-area: 1 / 1 / 2 / 2;
+            }
+
+            .image-btn {
+                // grid-area: 1 / 1 / 2 / 2;
+                background-color: transparent !important;
+                border: none !important;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 100%;
+                height: 100%;
+                transform: translate(-50%, -50%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                &:hover {
+                    img {
+                        scale: 1.1;
+                        opacity: 1 !important;
+                    }
+                }
+
+                img {
+                    aspect-ratio: 1 / 1;
+                    object-fit: contain;
+                    max-width: 60%;
+                    max-height: 60%;
+                    transition: scale 0.2s ease-in-out, opacity 0.2s ease-in-out;
+                    filter: none;
+                }
+
+            }
         }
 
         .dish-name {
@@ -272,10 +298,13 @@
 
         .dish-publish-state {
             grid-area: 2 / 3 / 3 / 4;
-            opacity: 0.4;
-            font-size: 1.5rem;
             text-align: right;
             width: 100%;
+
+            img {
+                height: 20px;
+                aspect-ratio: 46 / 16;
+            }
         }
     }
 
@@ -295,44 +324,44 @@
 
         $bg: rgba(0, 0, 0, 0.4);
 
-        .bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: grid;
-            z-index: -1;
-            grid-template-columns: max-content 1fr max-content;
-            grid-template-rows: 1fr;
+        // .bg {
+        //     position: absolute;
+        //     top: 0;
+        //     left: 0;
+        //     width: 100%;
+        //     height: 100%;
+        //     display: grid;
+        //     z-index: -1;
+        //     grid-template-columns: max-content 1fr max-content;
+        //     grid-template-rows: 1fr;
 
-            .left {
-                mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
-                mask-position: left;
-                mask-size: auto 100%;
-                mask-mode: alpha;
-                background-color: $bg;
-                aspect-ratio: 3 / 13;
-                mask-repeat: no-repeat;
-                height: 100%;
-            }
+        //     .left {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-left_alpha.png");
+        //         mask-position: left;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         background-color: $bg;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         height: 100%;
+        //     }
 
-            .center {
-                background-color: $bg;
-                width: 100%;
-            }
+        //     .center {
+        //         background-color: $bg;
+        //         width: 100%;
+        //     }
 
-            .right {
-                mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
-                mask-position: right;
-                mask-size: auto 100%;
-                mask-mode: alpha;
-                background-color: $bg;
-                aspect-ratio: 3 / 13;
-                mask-repeat: no-repeat;
-                height: 100%;
-            }
-        }
+        //     .right {
+        //         mask-image: url("./imgs/dishList/list-entry-mask-right_alpha.png");
+        //         mask-position: right;
+        //         mask-size: auto 100%;
+        //         mask-mode: alpha;
+        //         background-color: $bg;
+        //         aspect-ratio: 3 / 13;
+        //         mask-repeat: no-repeat;
+        //         height: 100%;
+        //     }
+        // }
 
         img {
             grid-area: 1 / 1 / 3 / 2;
@@ -374,5 +403,34 @@
             width: 100%;
         }
     }
+
+    .progress-panel-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        --border-w: 5px;
+        z-index: -1;
+
+        .progress-panel {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+
+        }
+
+        .bg {
+            position: absolute;
+            top: var(--border-w) !important;
+            left: var(--border-w) !important;
+            width: calc(100% - var(--border-w) * 2) !important;
+            height: calc(100% - var(--border-w) * 2) !important;
+            background-color: $listBG;
+        }
+    }
+
 
 }

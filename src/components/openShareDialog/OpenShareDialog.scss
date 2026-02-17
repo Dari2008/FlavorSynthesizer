@@ -1,5 +1,11 @@
 @use "../../utils/Variables.scss" as *;
 
+
+#root:has(.open-share-dialog-wrapper.visible) .flavor-drag-n-drop-list {
+    backdrop-filter: brightness(30%) contrast(110%);
+    filter: brightness(75%);
+}
+
 .open-share-dialog-wrapper {
     grid-area: 1/1/5/3;
     background-color: rgba(0, 0, 0, 0.5);

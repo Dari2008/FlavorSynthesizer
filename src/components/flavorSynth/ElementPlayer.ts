@@ -19,6 +19,10 @@ export class ElementPlayer {
     constructor() {
     }
 
+    public connect(recorder: Tone.Recorder) {
+        this.players.forEach(e => e.player.connect(recorder));
+    }
+
     public setVolumes(volumes: DishVolumes) {
         this.volumes = volumes;
         this.players.forEach(({ player }) => {
@@ -31,7 +35,7 @@ export class ElementPlayer {
         this.players = [];
         this.elements = elements;
         this.cloningPromise = Promise.all(this.elements.map(async el => {
-            const flavor = getFlavorByName(el.flavor.name);
+            const flavor = getFlavorByName(el.flavor);
             if (!flavor) return;
             const clonedPlayer = await flavor.clone();
             this.players.push({
@@ -81,7 +85,9 @@ export class ElementPlayer {
             if (lastElement.element.to <= offset) {
                 this.onStop?.();
             }
+            return lastElement.element.to;
         }
+        return -1;
     }
 
     percentToDb(percent: number) {

@@ -93,25 +93,25 @@ $maxContentWidth: 90vw;
 }
 
 //Aspect Left 3/13
-@mixin pixeled-div($totalWidth, $totalHeight) {
-    --masks-width: calc(#{$totalHeight} * 3 / 13);
+// @mixin pixeled-div($totalWidth, $totalHeight) {
+//     --masks-width: calc(#{$totalHeight} * 3 / 13);
 
-    mask-image: $MASK_LEFT_PIXELATED,
-    linear-gradient(to right, black 0px, black calc(#{$totalWidth} - var(--masks-width))),
-    $MASK_RIGHT_PIXELATED;
+//     mask-image: $MASK_LEFT_PIXELATED,
+//     linear-gradient(to right, black 0px, black calc(#{$totalWidth} - var(--masks-width))),
+//     $MASK_RIGHT_PIXELATED;
 
-    mask-position: left, center, right;
+//     mask-position: left, center, right;
 
-    mask-size: var(--masks-width) 100%,
-    calc(#{$totalWidth} - var(--masks-width)) 100%,
-    var(--masks-width) 100%;
+//     mask-size: var(--masks-width) 100%,
+//     calc(#{$totalWidth} - var(--masks-width)) 100%,
+//     var(--masks-width) 100%;
 
-    mask-mode: alpha;
-    mask-repeat: no-repeat;
-}
+//     mask-mode: alpha;
+//     mask-repeat: no-repeat;
+// }
 
 .pixeled-div {
-    --masks-width: calc(var(--height) * 3 / 13);
+    --masks-width: min(calc(var(--height) * 3 / 13), var(--max-pixel-width, 100%));
 
     mask-image:
         $MASK_LEFT_PIXELATED,

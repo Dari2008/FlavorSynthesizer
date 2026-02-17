@@ -47,6 +47,10 @@ export class FlavorFileMusic {
         }
     }
 
+    public connect(recorder: Tone.Recorder) {
+        Object.values(this.files).forEach(e => e.connect(recorder));
+    }
+
     public async downloadSingle(bpm: BPM): Promise<void> {
         if (!FILES_CACHE[this.NAME]) FILES_CACHE[this.NAME] = {} as any;
         if (FILES_CACHE[this.NAME][bpm] !== undefined) return;
@@ -172,6 +176,10 @@ export class MainFlavorFileMusic {
         if (load) {
             this.download();
         }
+    }
+
+    public connect(recorder: Tone.Recorder) {
+        this.player?.connect(recorder);
     }
 
     public async download(): Promise<void> {

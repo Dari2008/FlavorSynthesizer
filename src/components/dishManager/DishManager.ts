@@ -1,6 +1,7 @@
 import type { AddDishResponse, APIResponse, DishLoadResponse } from "../../@types/Api";
 import type { MainFlavor } from "../../@types/Flavors";
 import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynthLine, User } from "../../@types/User";
+import { Network } from "../../utils/Network";
 import { BASE_URL } from "../../utils/Statics";
 import Utils from "../../utils/Utils";
 import { createElementForFlavor } from "../FlavorUtils";
@@ -9,13 +10,13 @@ export default class DishManager {
 
     public static async loadDishesFromServer(user: User, integDishes: (LocalDish[]) | undefined = undefined): Promise<Dish[] | false> {
         const jwt = user.jwt;
-        const response = await (await fetch(BASE_URL + "/dishes/loadDishes.php", {
+        const response = await Network.loadJson<APIResponse<DishLoadResponse>>(BASE_URL + "/dishes/loadDishes.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,
                 integDishes: integDishes ? (integDishes.map(DishManager.convertDishToServerDish)) : integDishes
             })
-        })).json() as APIResponse<DishLoadResponse>;
+        });
 
         if (response.status == "error") {
             Utils.error("Failed to load dishes from server!");
@@ -28,13 +29,13 @@ export default class DishManager {
 
     public static async deleteDish(user: User, uuid: string): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await (await fetch(BASE_URL + "/dishes/update/delete.php", {
+        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/delete.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,
                 uuid
             })
-        })).json() as APIResponse<undefined>;
+        });
 
         if (response.status == "error") {
             Utils.error("Failed to delte the dish");
@@ -45,13 +46,14 @@ export default class DishManager {
 
     public static async updateDish(user: User, updateData: UpdateName | UpdateData | UpdateMainFlavor): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await (await fetch(BASE_URL + "/dishes/update/updateDish.php", {
+        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/updateDish.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,
                 ...updateData
             })
-        })).json() as APIResponse<undefined>;
+        });
+
         if (response.status == "error") {
             Utils.error(response.message);
             return false;
@@ -61,13 +63,13 @@ export default class DishManager {
 
     public static async updateEntireDish(user: User, dish: Dish): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await (await fetch(BASE_URL + "/dishes/update/replaceEntireDish.php", {
+        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/replaceEntireDish.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,
                 ...this.convertDishToServerDish(dish)
             })
-        })).json() as APIResponse<undefined>;
+        });
         if (response.status == "error") {
             Utils.error(response.message);
             return false;
@@ -77,13 +79,13 @@ export default class DishManager {
 
     public static async addDish(user: User, dish: Dish | LocalDish): Promise<string | boolean> {
         const jwt = user.jwt;
-        const response = await (await fetch(BASE_URL + "/dishes/update/addDish.php", {
+        const response = await Network.loadJson<APIResponse<AddDishResponse>>(BASE_URL + "/dishes/update/addDish.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,
                 ...this.convertDishToServerDish(dish)
             })
-        })).json() as APIResponse<AddDishResponse>;
+        });
 
         if (response.status == "error") {
             Utils.error(response.message);
