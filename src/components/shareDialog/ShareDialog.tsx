@@ -138,6 +138,8 @@ export default function ShareDialog() {
             return;
         }
 
+        console.log("currentDish", currentDish);
+
         const compiledDish = {
             name: currentDish.name,
             mainFlavor: currentDish.mainFlavor,
@@ -266,7 +268,7 @@ export default function ShareDialog() {
                             <PixelButton className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
                             <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
                         </div>
-                        <span className="microcopy">Edit later · Track stats · Keep ownership · AI Image for Sharing</span>
+                        <span className="microcopy">Edit later · Track stats · Keep ownership · 1x AI Image for Sharing</span>
 
                         <div className="buttons-below-first-share">
                             <PixelButton className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</PixelButton>

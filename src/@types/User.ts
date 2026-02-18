@@ -14,14 +14,14 @@ export type Dish = {
     name: string;
     mainFlavor: MainFlavor;
     volumes: DishVolumes;
-    aiImage: string;
-    publishState: "published" | "private";
+    publishState: "public" | "private";
     dishCreationDate: number;
     createdBy: string;
     uuid: string;
     share: {
         code: [Digit, Digit, Digit, Digit, Digit, Digit],
         flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
+        aiImage: string;
     } | undefined;
     temporary: true | undefined;
 }

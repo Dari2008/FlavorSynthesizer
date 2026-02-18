@@ -120,6 +120,14 @@ $listBG: $gray-400;
             pointer-events: all;
         }
 
+        &:not(.opened) {
+
+            .toggle-head,
+            .progress-darken {
+                transition: none !important;
+            }
+        }
+
         button {
             border: none;
             padding: 0;

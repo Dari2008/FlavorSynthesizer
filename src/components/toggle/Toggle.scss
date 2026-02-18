@@ -1,0 +1,87 @@
+.toggle-wrapper {
+    display: flex;
+    flex-direction: row;
+    padding: 5px;
+    gap: 10px;
+
+    label {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.4rem;
+    }
+
+
+    .toggle {
+        position: relative;
+        width: 60px;
+        aspect-ratio: 3/1.6;
+        background-image: url(./imgs/toggle/toggle-slide-bg.png);
+        background-size: 100% 100%;
+
+        $transitionTime: 0.4s;
+
+        .progress-darken {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            background-color: rgba(0, 0, 0, 0);
+
+            mask-image: url(./imgs/toggle/toggle-slide-bg.png);
+            mask-mode: luminance;
+            mask-size: 100% 100%;
+            transition: background-color $transitionTime ease-in-out;
+
+        }
+
+        .toggle-head {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            height: 90%;
+            aspect-ratio: 1 / 1;
+            transform: translateY(-50%);
+
+            background-image: url(./imgs/toggle/toggle-off.png);
+            background-size: auto 100%;
+            background-position: center;
+            transition: left $transitionTime ease-in-out, transform $transitionTime ease-in-out;
+            z-index: 1000;
+
+        }
+
+        &.toggled {
+            .progress-darken {
+                background-color: rgba(0, 0, 0, 0.5);
+            }
+
+            .toggle-head {
+                background-image: url(./imgs/toggle/toggle-on.png);
+                background-size: auto 100%;
+                background-position: center;
+                left: 100%;
+                transform: translateY(-50%) translateX(-100%);
+            }
+        }
+
+        .toggle-element {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            outline: none;
+            background-color: transparent;
+            color: transparent;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+            cursor: pointer;
+            z-index: 1000000;
+        }
+    }
+}

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Dish, LocalDish } from "../../@types/User";
 import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish";
 import { useGameState } from "../../contexts/GameStateContext";
-import type { Digit } from "../../@types/Api";
+import type { APIResponse, Digit, VisibilityStateChangeResponse } from "../../@types/Api";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import PixelButton from "../pixelDiv/PixelButton";
 import { ElementPlayer } from "../flavorSynth/ElementPlayer";
@@ -15,17 +15,22 @@ import * as Tone from "tone";
 import { getMainFlavorByName } from "../../audio/Flavors";
 import PixelLI from "../pixelDiv/PixelLI";
 import ProgressCanvas from "./ProgressCanvas";
+import Toggle from "../toggle/Toggle";
+import { Network } from "../../utils/Network";
+import { BASE_URL } from "../../utils/Statics";
+import { useUser } from "../../contexts/UserContext";
+import Utils from "../../utils/Utils";
 
 dayjs.extend(customFormat);
 
 export default function DishList() {
-    const { dishes, deleteDisheWithUUID } = useDishes();
+    const { dishes, deleteDisheWithUUID, setDishes } = useDishes();
     const currentElement = useCurrentDishIndex();
     const gameState = useGameState();
 
     const listRef = useRef<HTMLUListElement>(null);
     const lastClickOffsetRef = useRef({ x: 0, y: 0 });
-    const currentSelectedElementRef = useRef<Dish | LocalDish>(null);
+    const currentSelectedElementRef = useRef<string>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
     const dishListRef = useRef<HTMLDivElement>(null);
 
@@ -33,6 +38,9 @@ export default function DishList() {
     const currentStopCallbackFunction = useRef<() => void>(() => 0);
     const progressChangeRef = useRef<(p: number) => void>(() => 0);
     const recordPlayback = useRef<boolean>(false);
+    const setPublicToggleRef = useRef<(val: boolean) => void>(() => 0);
+
+    const user = useUser();
 
     const hideOptions = () => {
         if (!optionsRef.current) return;
@@ -44,7 +52,16 @@ export default function DishList() {
         if (!optionsRef.current) return;
         optionsRef.current.style.setProperty("--left", x + "px");
         optionsRef.current.style.setProperty("--top", y + "px");
+
+        if (currentSelectedElementRef.current) {
+            const element = dishes.find(e => e.uuid == currentSelectedElementRef.current);
+            if (!element) return;
+            console.log(element);
+            setPublicToggleRef.current((element as Dish).publishState == "public");
+        }
+
         optionsRef.current.classList.add("opened");
+
     };
 
     const getClickedEntryElement = (element: HTMLElement) => {
@@ -99,7 +116,7 @@ export default function DishList() {
             e.preventDefault();
             return;
         }
-        currentSelectedElementRef.current = dishes.find(e => e.uuid == listEntryUUID) ?? null;
+        currentSelectedElementRef.current = dishes.find(e => e.uuid == listEntryUUID)?.uuid ?? null;
         showOptions(x, y);
 
         e.preventDefault();
@@ -133,11 +150,11 @@ export default function DishList() {
             optionsRef.current?.removeEventListener("mousedown", onClickInsideMenu);
         }
 
-    }, []);
+    }, [dishes]);
 
     const deleteCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const uuid = dishes.find(e => e.uuid == currentSelectedElementRef.current?.uuid)?.uuid;
+        const uuid = dishes.find(e => e.uuid == currentSelectedElementRef.current)?.uuid;
         if (!uuid) return;
         deleteDisheWithUUID(uuid);
         hideOptions();
@@ -145,7 +162,7 @@ export default function DishList() {
 
     const shareCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const element = currentSelectedElementRef.current;
+        const element = dishes.find(e => e.uuid == currentSelectedElementRef.current);
         if (!element) return;
 
         const indexOf = dishes.indexOf(element);
@@ -159,7 +176,7 @@ export default function DishList() {
 
     const duplicateCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
-        const element = currentSelectedElementRef.current;
+        const element = dishes.find(e => e.uuid == currentSelectedElementRef.current);
         if (!element) return;
 
         const indexOf = dishes.indexOf(element);
@@ -197,7 +214,9 @@ export default function DishList() {
     const openCurrentSelected = () => {
         if (!currentSelectedElementRef.current) return;
         // currentElement.setIndex((dishes as any[]).indexOf(currentSelectedElementRef.current));
-        currentElement.openDishFromObj(currentSelectedElementRef.current);
+        const element = dishes.find(e => e.uuid == currentSelectedElementRef.current);
+        if (!element) return;
+        currentElement.openDishFromObj(element);
         gameState.setGameState("createDish-create");
         hideOptions();
     };
@@ -237,16 +256,14 @@ export default function DishList() {
         const endTime = await player.play(0);
         Tone.getTransport().start("0", "0:0:0");
         Tone.start();
-        console.log(endTime);
 
         const clock = new Tone.Clock(() => {
             if (endTime == -1) return;
             const time = Tone.now();
             const timeTaken = time - startTime;
-            console.log(timeTaken);
             const percentage = timeTaken / endTime;
             progressChangeRef.current?.(percentage * 100);
-        }, 100);
+        }, 60);
         clock.start();
 
 
@@ -268,7 +285,6 @@ export default function DishList() {
                 a.click();
                 recordPlayback.current = false;
             };
-
         }
 
 
@@ -284,12 +300,50 @@ export default function DishList() {
     };
 
     const exportAsAudio = () => {
-        const dish = currentSelectedElementRef.current;
+        const dish = dishes.find(e => e.uuid == currentSelectedElementRef.current);
         if (!dish) return;
         recordPlayback.current = true;
         playDish(dish);
         hideOptions();
     };
+
+    const onPublicToggleChanged = async (val: boolean) => {
+        if (currentSelectedElementRef.current) {
+            setDishes(dishes => dishes.map(dish => {
+                if (dish.uuid !== currentSelectedElementRef.current) return dish;
+                console.log((dish as Dish).publishState, currentSelectedElementRef.current);
+                if (!(dish as Dish).publishState) return dish;
+                return {
+                    ...dish,
+                    publishState: (dish as Dish).publishState == "private" ? "public" : "private"
+                } as Dish;
+            }));
+
+            if (!user.user) return;
+
+            const responsePromise = Network.loadJson<APIResponse<VisibilityStateChangeResponse>>(BASE_URL + "/share/setDishState.php", {
+                method: "POST",
+                body: JSON.stringify({
+                    jwt: user.user.jwt,
+                    dishUUID: currentSelectedElementRef.current,
+                    visibility: val ? "public" : "private"
+                })
+            });
+
+            Utils.promiseToast(responsePromise, "Changing Visibility");
+
+            const response = await responsePromise;
+
+            if (response.status == "error") {
+                Utils.error("Failed to change visibility");
+                return;
+            }
+
+            Utils.success("Changed visibility successfully");
+
+        }
+    }
+
 
     return <div className={"dish-list" + (gameState.gameState == "dishList" ? " visible" : "")} ref={dishListRef}>
         <PixelDiv className="options" ref={optionsRef}>
@@ -328,6 +382,11 @@ export default function DishList() {
                                 {/* {"\uf24d"} */}
                             </PixelButton></td>
                     </tr>
+                    <tr>
+                        <td colSpan={3}>
+                            <Toggle setToggledRef={setPublicToggleRef} onToggleChange={onPublicToggleChanged}>Public</Toggle>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             {/* <div className="top-options">
@@ -343,10 +402,9 @@ export default function DishList() {
                 dishes.length > 0 && <ul className="list" ref={listRef}>
                     {
                         dishes.filter(e => !(e as any).temporary).map((dish, i) => {
-                            console.log(currentPlayingUUID, dish.uuid);
                             return <PixelLI key={dish.name + i} className={((dish as any).publishState ?? "private") == "private" ? "" : "public"} data-list-entry-uuid={dish.uuid}>
                                 <PixelDiv className="ai-image">
-                                    <img src={((dish as any).aiImage && (dish as any).aiImage.length != 0 ? (dish as any).aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image-image" />
+                                    <img src={((dish as Dish).share && (dish as Dish).share?.aiImage && (dish as Dish).share?.aiImage.length != 0 ? (dish as Dish).share?.aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image-image" />
                                     {
                                         dish.data.map(e => e.elements).flat().length > 0 &&
                                         <button className="image-btn" onClick={() => playDish(dish)}>
@@ -368,7 +426,7 @@ export default function DishList() {
                                         (dish as Dish).publishState == "private" && <img src="./imgs/actionButtons/dishList/private-badge.png" alt="Private badge" />
                                     }
                                     {
-                                        (dish as Dish).publishState == "published" && <img src="./imgs/actionButtons/dishList/public-badge.png" alt="Public badge" />
+                                        (dish as Dish).publishState == "public" && <img src="./imgs/actionButtons/dishList/public-badge.png" alt="Public badge" />
                                     }
                                 </div>
 
@@ -381,7 +439,7 @@ export default function DishList() {
                                 }
 
                                 {
-                                    dish && (dish as Dish).publishState == "published" && (dish as Dish).share && <>
+                                    dish && (dish as Dish).publishState == "public" && (dish as Dish).share && <>
                                         <div className="flavors">{
                                             ((dish as any).share.flavors as Flavor[]).map((flavor, i) => {
                                                 return <img key={flavor + i} src={FLAVOR_IMAGES[flavor]} alt={flavor} className="flavor-img" />
@@ -407,7 +465,7 @@ export default function DishList() {
                 </ul>
             }
             {
-                dishes.length == 0 && <h2>Nothing here! <a onClick={() => gameState.setGameState("createDish-mainFlavor")}>Create a Dish</a></h2>
+                dishes.length == 0 && <h2>Nothing here! <a onClick={() => { gameState.createNewActiveDish(); gameState.setGameState("createDish-mainFlavor"); }}>Create a Dish</a></h2>
             }
         </div>
         <div className="bottom"></div>

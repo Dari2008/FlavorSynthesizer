@@ -312,7 +312,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
         <span className="label-for-image above label-for-create-new-dish" ref={createNewDishLabelRef}>Create New Dish</span>
 
         <img src="./mainMenu/bg/list_dishes.png" alt="list dishes image" className={"list-dishes" + (chosenOne == "list-dishes" ? " chosen" : undefined)} ref={listDishesRef} />
-        <span className="label-for-image below label-for-list-dishes" ref={listDishesLabelRef}>List Dishes</span>
+        <span className="label-for-image below label-for-list-dishes" ref={listDishesLabelRef}>Dish List</span>
 
         <img src="./mainMenu/bg/open_shared_dish.png" alt="open shared dish image" className={"open-shared-dish" + (chosenOne == "open-shared-dish" ? " chosen" : undefined)} ref={openSharedDishRef} />
         <span className="label-for-image right above label-for-open-shared-dish" ref={openSharedDishLabelRef}>Open Shared Dish</span>

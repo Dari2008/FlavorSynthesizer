@@ -34,6 +34,21 @@ export default class Utils {
         });
     }
 
+    static promiseToast(promise: Promise<any>, text: string) {
+        toast.promise(promise, {
+            pending: {
+                data: text,
+                draggable: true,
+                position: "bottom-right",
+                type: "error",
+                style: {
+                    background: "linear-gradient(135deg, #ff7373, #f55454)",
+                    boxShadow: "0 3px 6px -1px rgba(0, 0, 0, 0.12), 0 10px 36px -4px rgba(232, 77, 77, 0.3)"
+                }
+            }
+        })
+    }
+
     static error(text: string) {
         toast(text, {
             data: text,

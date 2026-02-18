@@ -35,6 +35,7 @@ import { initLoadingAnimation } from "../components/loading/LoadingAnimationDown
 import { DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
 import { SynthChangeContext } from "../contexts/SynthChangeContext";
 import { Network } from "../utils/Network";
+import Toggle from "../components/toggle/Toggle";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -55,8 +56,9 @@ export default function App() {
     const currentDish = dishes.at(currentDishIndex);
 
     const currentDishName = useRef(generateNewDishTitle());
-    const setCurrentDishName = (v: string) => {
+    const setCurrentDishName = (v: string, setOnlyCurrent: boolean = false) => {
         currentDishName.current = v;
+        if (setOnlyCurrent) return;
         setDishes(dishes => dishes.map(dish => {
             if (dish.uuid !== currentDish?.uuid) return dish;
             return { ...dish, name: v };
@@ -113,10 +115,12 @@ export default function App() {
                 const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
                 const v = localStorage.getItem("overwriteLocalDishesToServer");
                 let integrateDishes = v == null ? null : v == "true";
+
                 if (integrateDishes == null && localDishes != null) {
                     integrateDishes = await confirm("Do you want to upload all your local Dishes to the server?", "noYes");
                     localStorage.setItem("overwriteLocalDishesToServer", integrateDishes + "");
                 }
+
                 let dishes = null;
                 if (integrateDishes && localDishes) {
                     dishes = await DishManager.loadDishesFromServer(userLoggedIn, localDishes);
@@ -180,7 +184,6 @@ export default function App() {
     }
 
     function createNewActiveDish(newDish: Dish | LocalDish = {
-        aiImage: "",
         data: [],
         mainFlavor: "Bitter",
         name: generateNewDishTitle(),
@@ -196,6 +199,7 @@ export default function App() {
             master: 100
         }
     }, setCurrent: boolean = true, indexToInsertAt?: number) {
+        console.log("newDish", newDish);
         if (indexToInsertAt != undefined) {
             dishes.splice(indexToInsertAt, 0, newDish);
         } else {
@@ -305,6 +309,8 @@ export default function App() {
         });
         setCurrentDishIndex(dishes.length);//kein -1
         setGameState("createDish-create-viewonly");
+        setCurrentDishTitleToElement(dish.name);
+        setCurrentDishName(dish.name, true);
     };
 
     const openDishFromObj = (dish: Dish | LocalDish) => {
