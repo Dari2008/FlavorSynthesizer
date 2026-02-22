@@ -1,4 +1,5 @@
 @use "../../utils/Variables.scss" as *;
+@use "../../utils/clamp.scss" as *;
 
 .main-menu {
     grid-area: 1 / 1 / 5 / 6;
@@ -63,9 +64,13 @@
             opacity: 1;
         }
 
+        .label-for-list-dishes {
+            --transform-y: 0% !important;
+        }
+
         .label-for-image {
             position: absolute;
-            font-size: 2rem;
+            font-size: clampW(0.2em, 2em, 200px, 2000px);
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             z-index: 10000;
@@ -123,14 +128,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 5rem;
+        font-size: clampW(0.3em, 5em, 200px, 2000px);
         margin: 0;
         z-index: 10;
         margin-inline: auto;
     }
 
     .subtitle {
-        font-size: 2rem;
+        font-size: clampW(0.2em, 2em, 200px, 2000px);
         width: max-content;
         text-align: center;
         display: flex;

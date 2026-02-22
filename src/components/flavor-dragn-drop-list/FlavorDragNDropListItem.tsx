@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { FlavorFileMusic } from "../../audio/FlavorMusic"
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
+import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
+import { useSynthLines } from "../../contexts/SynthLinesContext";
+import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 
 type Props = {
     player: FlavorFileMusic;
@@ -15,6 +18,10 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     const responseWaitRef = useRef<Promise<void | FlavorFileMusic>>(null);
     const itemRef = useRef<HTMLLIElement>(null);
     const flavorImage = useRef<HTMLImageElement>(null);
+
+    const currentDragging = useCurrentDraggingElement();
+
+    const isTouch = useTouchChecker().isTouch;
 
     if (playerRef.current == null && responseWaitRef.current == null && hasDownloaded) responseWaitRef.current = player.clone().then(c => {
         playerRef.current = c;
@@ -61,7 +68,12 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
         e.dataTransfer.setData("text/elementLength", DRAG_DEFAULT_LENGTH.toString());
     };
 
-    return <li draggable onDragStart={onDragStart} key={player.NAME} ref={itemRef} className="flavor-drag-n-drop-list-item" style={{
+    const onClick = () => {
+        if (!isTouch) return;
+        currentDragging.currentDraggingElement.current = player.NAME;
+    };
+
+    return <li draggable onDragStart={onDragStart} onClick={onClick} key={player.NAME} ref={itemRef} className="flavor-drag-n-drop-list-item" style={{
         "--border-color-1": (FLAVOR_COLOR[player.NAME][0]),
         "--border-color-2": (FLAVOR_COLOR[player.NAME][1])
     } as any}>

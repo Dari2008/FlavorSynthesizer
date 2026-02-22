@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, setSpan } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
@@ -22,6 +22,8 @@ import { useCurrentDishActions } from "../../contexts/DishActions";
 import type { Flavor } from "../../@types/Flavors";
 import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
 import { useCurrentDish } from "../../contexts/CurrentDish";
+import PixelDiv from "../pixelDiv/PixelDiv";
+import { CurrentDraggingElementTouch } from "../../contexts/CurrentDraggingElementTouch";
 
 
 type EventListWithUUID<T> = {
@@ -32,7 +34,7 @@ const SKIP_SIZE = 1;
 export default function FlavorSynth() {
     // const [synthLines, setSynthLines] = synthLinesWrapped;
     const widthRef = useRef<number>(getCurrentTrackWidth());
-    const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
+    // const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
     const selectedElementsRef = useRef<{ uuid: string }[]>([]);
@@ -130,30 +132,33 @@ export default function FlavorSynth() {
     }
 
     const onWheel = (e: WheelEvent) => {
+        let newSpan = getSpan();
+
         if (e.ctrlKey) {
             e.preventDefault();
             e.stopPropagation();
 
             const zoomFactor = 1 + (e.deltaY * 0.001);
 
-            let newSpanWidth = (currentSpanRef.current.to - currentSpanRef.current.from) * zoomFactor;
+
+            let newSpanWidth = (newSpan.to - newSpan.from) * zoomFactor;
             if (newSpanWidth < 10) return;
             if (newSpanWidth > 300) return;
             const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX - getCurrentControlsWidth());
-            const distanceLeftSeconds = zoomInOnSecond - currentSpanRef.current.from;
-            const distanceRightSeconds = currentSpanRef.current.to - zoomInOnSecond;
+            const distanceLeftSeconds = zoomInOnSecond - newSpan.from;
+            const distanceRightSeconds = newSpan.to - zoomInOnSecond;
             const distanceLeftPercent = distanceLeftSeconds / (distanceLeftSeconds + distanceRightSeconds);
             const distanceRightPercent = distanceRightSeconds / (distanceLeftSeconds + distanceRightSeconds);
 
             const distanceLeft = distanceLeftPercent * newSpanWidth;
             const distanceRight = distanceRightPercent * newSpanWidth;
 
-            currentSpanRef.current.from = zoomInOnSecond - distanceLeft;
-            currentSpanRef.current.to = zoomInOnSecond + distanceRight;
+            newSpan.from = zoomInOnSecond - distanceLeft;
+            newSpan.to = zoomInOnSecond + distanceRight;
 
-            currentSpanRef.current = constrainSpan(currentSpanRef.current);
+            newSpan = constrainSpan(newSpan);
 
-            setSpan(widthRef.current, currentSpanRef.current);
+            setSpan(widthRef.current, newSpan);
 
             currentZoomRef.current *= zoomFactor;
 
@@ -163,26 +168,28 @@ export default function FlavorSynth() {
             e.preventDefault();
             e.stopPropagation();
 
-            const offsetSeconds = e.deltaY * 0.002 * currentZoomRef.current;
-            if (currentSpanRef.current.from + offsetSeconds < 0) {
-                const dist = currentSpanRef.current.to - currentSpanRef.current.from;
-                currentSpanRef.current.from = 0;
-                currentSpanRef.current.to = Math.round(Math.abs(dist));
+            const offsetSeconds = e.deltaY * (window.innerWidth / 1980 * 0.005) * currentZoomRef.current;
+            if (newSpan.from + offsetSeconds < 0) {
+                const dist = newSpan.to - newSpan.from;
+                newSpan.from = 0;
+                newSpan.to = Math.round(Math.abs(dist));
             } else {
-                currentSpanRef.current.from += offsetSeconds;
-                currentSpanRef.current.to += offsetSeconds;
+                newSpan.from += offsetSeconds;
+                newSpan.to += offsetSeconds;
             }
-            currentSpanRef.current = constrainSpan(currentSpanRef.current);
-            setSpan(widthRef.current, currentSpanRef.current);
+            newSpan = constrainSpan(newSpan);
+            setSpan(widthRef.current, newSpan);
 
             repaintAllTimelines();
             repaintAllElements();
         }
-        // Object.values(synthRepaintCallbacks).forEach(cb => cb());
     };
 
     useEffect(() => {
-        setSpan(widthRef.current, currentSpanRef.current);
+        setSpanFirstTime(widthRef.current, {
+            from: 0,
+            to: 60
+        });
         repaintAllTimelines();
         repaintAllElements();
     }, []);
@@ -449,24 +456,22 @@ export default function FlavorSynth() {
             repaintAllElements();
         };
 
+        const resized = () => {
+            widthRef.current = getCurrentTrackWidth();
+            repaintAllElements();
+            repaintAllTimelines();
+            repaintAll();
+        };
+
         window.addEventListener("keydown", keydown);
         window.addEventListener("mouseup", mouseRelease);
+        window.addEventListener("resize", resized);
         return () => {
             window.removeEventListener("keydown", keydown);
             window.removeEventListener("mouseup", mouseRelease);
+            window.removeEventListener("resize", resized);
         };
     }, [synthLines]);
-
-    useEffect(() => {
-        const onResize = () => {
-            widthRef.current = getCurrentTrackWidth();
-        };
-
-        window.addEventListener("resize", onResize);
-        return () => {
-            window.removeEventListener("resize", onResize);
-        }
-    }, []);
 
 
     const startStatisticLoop = () => {
@@ -529,7 +534,7 @@ export default function FlavorSynth() {
                         <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
                             <div className="lines">
                                 {
-                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef} currentScrolledRef={currentSpanRef}></SynthLine>)
+                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef}></SynthLine>)
                                 }
                             </div>
                             {
@@ -548,21 +553,39 @@ export default function FlavorSynth() {
                                     <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
                                 </div>
                             </div>
-                            <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
-                                <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
-                            </button>
-                            <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
-                                isPlaying
-                                    ?
-                                    <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
-                                    :
-                                    <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
-                            }
-                            </button>
-                            <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
-                                <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
-                            </button>
-                            <div className="volumes">
+
+                            <div className="buttons-reversed">
+                                <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                    <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
+                                </button>
+                                <button className="save" onClick={dishes.saveCurrentDish}>
+                                    <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
+                                </button>
+                                {
+                                    isReadonly &&
+                                    <button className="fork" onClick={dishes.forkCurrentDish}>
+                                        <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
+                                    </button>
+                                }
+                            </div>
+
+                            <div className="controls">
+                                <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
+                                    <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+                                </button>
+                                <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                                    isPlaying
+                                        ?
+                                        <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                        :
+                                        <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                                }
+                                </button>
+                                <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
+                                    <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
+                                </button>
+                            </div>
+                            <PixelDiv className="volumes">
                                 <div className="volume">
                                     <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
                                 </div>
@@ -572,7 +595,7 @@ export default function FlavorSynth() {
                                 <div className="masterVolume">
                                     <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
                                 </div>
-                            </div>
+                            </PixelDiv>
                             <div className="buttons">
                                 <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
                                     <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
@@ -610,10 +633,14 @@ export type CurrentSpan = {
 }
 
 function getCurrentTrackWidth() {
+    const width = window.innerWidth;
+
+    const listWidth = Math.min(Math.max(width * 0.2, 100), 250);
+
     let controlsWidth = (window.innerWidth - 300) * 0.1;
     if (controlsWidth > 100) controlsWidth = 100;
     if (controlsWidth < 50) controlsWidth = 50;
-    let restWidth = window.innerWidth - 300 - controlsWidth - 20;
+    let restWidth = window.innerWidth - listWidth - controlsWidth - 20; // - padding+margin = 20
     return restWidth;
 }
 

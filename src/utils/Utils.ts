@@ -34,6 +34,10 @@ export default class Utils {
         });
     }
 
+    static getTouches(e: TouchEvent | React.TouchEvent<HTMLDivElement>) {
+        return e.touches.length != 0 ? e.touches : (e.changedTouches.length != 0 ? e.changedTouches : e.targetTouches);
+    }
+
     static promiseToast(promise: Promise<any>, text: string) {
         toast.promise(promise, {
             pending: {

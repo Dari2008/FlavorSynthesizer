@@ -9,7 +9,7 @@ import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
 import { useCurrentDishActions } from "../../../contexts/DishActions";
 
-export default function SynthLine({ widthRef, synthLineUUID, currentScrolledRef }: { widthRef: React.RefObject<number>, synthLineUUID: string, currentScrolledRef: React.RefObject<CurrentSpan> }) {
+export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
 
     const tooltipRef = useRef<HTMLParagraphElement>(null);
@@ -66,7 +66,7 @@ export default function SynthLine({ widthRef, synthLineUUID, currentScrolledRef 
         <div className="line" {...{ "data-muted": isMuted ? "" : undefined }}>
             <div className="playerTrack">
                 <p className="tooltip" ref={tooltipRef}></p>
-                <PlayerTrack widthRef={widthRef} currentScrolledRef={currentScrolledRef} synthLineUUID={synthLineUUID}></PlayerTrack>
+                <PlayerTrack widthRef={widthRef} synthLineUUID={synthLineUUID}></PlayerTrack>
             </div>
         </div>
     </TooltipContext.Provider>

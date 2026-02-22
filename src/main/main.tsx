@@ -8,6 +8,8 @@ import { TitleManager } from '../contexts/TitleContext';
 
 const rootElement = document.getElementById('root');
 
+if ("ontouchstart" in window) rootElement?.classList.add("touch-device");
+
 createRoot(rootElement!).render(
   <StrictMode>
     <TitleManager>

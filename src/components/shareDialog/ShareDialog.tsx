@@ -247,216 +247,219 @@ export default function ShareDialog() {
     };
 
     return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
-        <div role="dialog" className="share-dialog">
-            <img src={BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : undefined} className="background-image" />
+        <div role="dialog" className="share-dialog" style={{ "--bg-image": `url(${BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : ""})` } as any}>
+            {/* <img src={} className="background-image" /> */}
 
-            <h1>Share your dish</h1>
+            <div className="content-wrapper">
+                <h1>Share your dish</h1>
 
-            {
-                !user.user && !accepedUnchangable && !isLoading && <>
-                    <span className="disclaimer">
-                        Log in to save and edit it later - or share once and move on.
-                    </span>
+                {
+                    !user.user && !accepedUnchangable && !isLoading && <>
+                        <span className="disclaimer">
+                            Log in to save and edit it later - or share once and move on.
+                        </span>
 
-                    <div className="center">
+                        <div className="center">
 
-                        <div className="login-div">
-                            <h3>{isLogin ? "Login" : "Register"}</h3>
-                            {!isLogin && <input placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
-                            <input placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
-                            <input placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
-                            <PixelButton className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
-                            <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
+                            <div className="login-div">
+                                <h3>{isLogin ? "Login" : "Register"}</h3>
+                                {!isLogin && <input placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
+                                <input placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
+                                <input placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
+                                <PixelButton className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
+                                <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
+                            </div>
+                            <span className="microcopy">Edit later · Track stats · Keep ownership · 1x AI Image for Sharing</span>
+
+                            <div className="buttons-below-first-share">
+                                <PixelButton className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</PixelButton>
+                                <div className="microcopy">One-time share · No edits later · No AI Image</div>
+                            </div>
                         </div>
-                        <span className="microcopy">Edit later · Track stats · Keep ownership · 1x AI Image for Sharing</span>
 
-                        <div className="buttons-below-first-share">
-                            <PixelButton className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</PixelButton>
-                            <div className="microcopy">One-time share · No edits later · No AI Image</div>
-                        </div>
-                    </div>
+                    </>
+                }
 
-                </>
-            }
+                {
+                    isLoading && <>
+                        <span className="loader"></span>
+                    </>
+                }
 
-            {
-                isLoading && <>
-                    <span className="loader"></span>
-                </>
-            }
+                {((user.user || accepedUnchangable) && !isLoading && !isPublished) &&
+                    <>
+                        <div className="share-flavors share-default-layout step">
+                            <h2>Set Flavor For Sharing</h2>
+                            <span>Set a matching Flavor combo for your dish. Drag and Drop Flavors from the list into the fields. Then publish it. </span>
 
-            {((user.user || accepedUnchangable) && !isLoading && !isPublished) &&
-                <>
-                    <div className="share-flavors share-default-layout step">
-                        <h2>Set Flavor For Sharing</h2>
-                        <span>Set a matching Flavor combo for your dish. Drag and Drop Flavors from the list into the fields. Then publish it. </span>
+                            <div className="combo content" onDragOver={onDragOver} onDrop={onDropFlavor} ref={comboBoxRef}>
+                                {
+                                    Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                                        const name = getFlavorIndex(i);
+                                        if (!name) {
+                                            return <div key={i} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
+                                                <div className="bgImage main-color"></div>
+                                                <div className="bgImage main-color-2"></div>
+                                                <div className="text">Drag a flavor here</div>
+                                            </div>;
+                                        }
 
-                        <div className="combo content" onDragOver={onDragOver} onDrop={onDropFlavor} ref={comboBoxRef}>
+                                        return <div key={i} className="share-flavors-flavor">
+                                            <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
+                                            <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
+                                            <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
+                                            <div className="text">Drag a flavor here</div>
+                                        </div>
+                                    })
+                                }
+                            </div>
                             {
-                                Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                    const name = getFlavorIndex(i);
-                                    if (!name) {
-                                        return <div key={i} className="share-flavors-flavor-no-selected">
-                                            <div className="bgImage main-color"></div>
-                                            <div className="bgImage main-color-2"></div>
-                                            Drag a flavor here
-                                        </div>;
+                                !isPublished && <PixelButton className="publish" onClick={publish}>Publish</PixelButton>
+                            }
+                        </div>
+                    </>
+                }
+
+                {
+                    ((user.user || accepedUnchangable) && !isLoading && isPublished) && <>
+
+                        <div className="share-flavors share-default-layout">
+
+                            <h2>Set Flavor For Sharing</h2>
+                            <span>Share your dish with a flavor combo to match. Drag and drop flavors from the list to the side.</span>
+
+                            <div className="combo content" ref={comboBoxRef}>
+                                {
+                                    Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                                        const name = getFlavorIndex(i);
+                                        if (!name) {
+                                            return <div key={i} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
+                                                <div className="bgImage main-color"></div>
+                                                <div className="bgImage main-color-2"></div>
+                                                <div className="text">Drag a flavor here</div>
+                                            </div>;
+                                        }
+
+                                        return <div key={i} className="share-flavors-flavor">
+                                            <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
+                                            <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
+                                            <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
+                                            <div className="text">Drag a flavor here</div>
+                                        </div>
+                                    })
+                                }
+                            </div>
+
+                            <div className="buttons">
+                                <PixelButton className="copy-as-text" onClick={(e) => {
+                                    copyTextOfFlavors(currentFlavorsSelected);
+                                    if (e.target instanceof HTMLButtonElement) {
+                                        (e.target as HTMLButtonElement).textContent = "Copied!";
+                                        setTimeout(() => {
+                                            (e.target as HTMLButtonElement).textContent = "Copy as Text";
+                                        }, 2000);
                                     }
-
-                                    return <div key={i} className="share-flavors-flavor">
-                                        <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
-                                        <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
-                                        <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
-                                    </div>
-                                })
-                            }
-                        </div>
-                        {
-                            !isPublished && <PixelButton className="publish" onClick={publish}>Publish</PixelButton>
-                        }
-                    </div>
-                </>
-            }
-
-            {
-                ((user.user || accepedUnchangable) && !isLoading && isPublished) && <>
-
-                    <div className="share-flavors share-default-layout">
-
-                        <h2>Set Flavor For Sharing</h2>
-                        <span>Share your dish with a flavor combo to match. Drag and drop flavors from the list to the side.</span>
-
-                        <div className="combo content" ref={comboBoxRef}>
-                            {
-                                Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                    const name = getFlavorIndex(i);
-                                    if (!name) {
-                                        return <div key={i} className="share-flavors-flavor-no-selected">
-                                            <div className="bgImage main-color"></div>
-                                            <div className="bgImage main-color-2"></div>
-                                        </div>;
+                                }}>Copy as Text</PixelButton>
+                                <PixelButton className="copy-as-image" onClick={(e) => {
+                                    copyImageOfFlavors(currentFlavorsSelected);
+                                    if (e.target instanceof HTMLButtonElement) {
+                                        (e.target as HTMLButtonElement).textContent = "Copied!";
+                                        setTimeout(() => {
+                                            (e.target as HTMLButtonElement).textContent = "Copy as image";
+                                        }, 2000);
                                     }
+                                }}>Copy as image</PixelButton>
+                            </div>
 
-                                    return <div key={i} className="share-flavors-flavor">
-                                        <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
-                                        <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
-                                        <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
-                                    </div>
-                                })
-                            }
                         </div>
 
-                        <div className="buttons">
-                            <PixelButton className="copy-as-text" onClick={(e) => {
-                                copyTextOfFlavors(currentFlavorsSelected);
-                                if (e.target instanceof HTMLButtonElement) {
-                                    (e.target as HTMLButtonElement).textContent = "Copied!";
-                                    setTimeout(() => {
-                                        (e.target as HTMLButtonElement).textContent = "Copy as Text";
-                                    }, 2000);
-                                }
-                            }}>Copy as Text</PixelButton>
-                            <PixelButton className="copy-as-image" onClick={(e) => {
-                                copyImageOfFlavors(currentFlavorsSelected);
-                                if (e.target instanceof HTMLButtonElement) {
-                                    (e.target as HTMLButtonElement).textContent = "Copied!";
-                                    setTimeout(() => {
-                                        (e.target as HTMLButtonElement).textContent = "Copy as image";
-                                    }, 2000);
-                                }
-                            }}>Copy as image</PixelButton>
-                        </div>
-
-                    </div>
-
-                    <div className="share-image share-default-layout">
-                        <h2>Share Image</h2>
-                        <span>Share your dish with a unique AI-generated image inspired by your flavor combo.</span>
-                        {
-                            AIGeneratedImageBase64.length == 0 ? <div className="no-generate-image">
-                                No Image generated yet.
-                            </div> : <img src={AIGeneratedImageBase64} className="generate-image" alt="AI generated image"></img>
-                        }
-
-                        {
-                            isPublished && <>
-                                <div className="buttons">
-                                    <button className="copy-as-image" onClick={(e) => {
-                                        copyAIImage(AIGeneratedImageBase64);
-                                        if (e.target instanceof HTMLButtonElement) {
-                                            (e.target as HTMLButtonElement).textContent = "Copied!";
-                                            setTimeout(() => {
-                                                (e.target as HTMLButtonElement).textContent = "Copy as image";
-                                            }, 2000);
-                                        }
-                                    }}>Copy Image</button>
-                                    <button className="download-image" onClick={(e) => {
-                                        downloadImage(AIGeneratedImageBase64);
-                                        if (e.target instanceof HTMLButtonElement) {
-                                            (e.target as HTMLButtonElement).textContent = "Downloading...";
-                                            setTimeout(() => {
-                                                (e.target as HTMLButtonElement).textContent = "Download Image";
-                                            }, 2000);
-                                        }
-                                    }}>Download Image</button>
-                                </div>
-                            </>
-                        }
-                    </div>
-                    <div className="share-code share-default-layout">
-                        <h2>Share Code</h2>
-                        <span>Share your dish with a code.</span>
-
-                        <div className="content">
+                        <div className="share-image share-default-layout">
+                            <h2>Share Image</h2>
+                            <span>Share your dish with a unique AI-generated image inspired by your flavor combo.</span>
                             {
-                                Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                    const digit = shareDigits[i];
-                                    return <div key={i} className="digit">{digit}</div>
-                                })
+                                AIGeneratedImageBase64.length == 0 ? <div className="no-generate-image">
+                                    No Image generated yet.
+                                </div> : <img src={AIGeneratedImageBase64} className="generate-image" alt="AI generated image"></img>
+                            }
+
+                            {
+                                isPublished && <>
+                                    <div className="buttons">
+                                        <button className="copy-as-image" onClick={(e) => {
+                                            copyAIImage(AIGeneratedImageBase64);
+                                            if (e.target instanceof HTMLButtonElement) {
+                                                (e.target as HTMLButtonElement).textContent = "Copied!";
+                                                setTimeout(() => {
+                                                    (e.target as HTMLButtonElement).textContent = "Copy as image";
+                                                }, 2000);
+                                            }
+                                        }}>Copy Image</button>
+                                        <button className="download-image" onClick={(e) => {
+                                            downloadImage(AIGeneratedImageBase64);
+                                            if (e.target instanceof HTMLButtonElement) {
+                                                (e.target as HTMLButtonElement).textContent = "Downloading...";
+                                                setTimeout(() => {
+                                                    (e.target as HTMLButtonElement).textContent = "Download Image";
+                                                }, 2000);
+                                            }
+                                        }}>Download Image</button>
+                                    </div>
+                                </>
                             }
                         </div>
+                        <div className="share-code share-default-layout">
+                            <h2>Share Code</h2>
+                            <span>Share your dish with a code.</span>
 
-                        {
-                            shareDigits.filter(e => e != 0).length > 0 && <>
-                                <div className="buttons">
-                                    <PixelButton className="copy-code" onClick={(e) => {
-                                        copyCode(shareDigits);
-                                        if (e.target instanceof HTMLButtonElement) {
-                                            (e.target as HTMLButtonElement).textContent = "Copied!";
-                                            setTimeout(() => {
-                                                (e.target as HTMLButtonElement).textContent = "Copy Code";
-                                            }, 2000);
-                                        }
-                                    }}>Copy Code</PixelButton>
-                                </div>
-                            </>
-                        }
-
-                    </div>
-                    <div className="share-url share-default-layout">
-                        <h2>Share URL</h2>
-                        <span>Share your dish with a url.</span>
-                        <div className="content">
-                            <span className="url">{shareURL}</span>
-                            <PixelButton className="copy" onClick={(e) => {
-                                copyShareUrl(shareURL)
-                                if (e.target instanceof HTMLButtonElement) {
-                                    (e.target as HTMLButtonElement).textContent = "Copied!";
-                                    setTimeout(() => {
-                                        (e.target as HTMLButtonElement).textContent = "Copy";
-                                    }, 2000);
+                            <div className="content">
+                                {
+                                    Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                                        const digit = shareDigits[i];
+                                        return <div key={i} className="digit">{digit}</div>
+                                    })
                                 }
-                            }}>Copy</PixelButton>
+                            </div>
+
+                            {
+                                shareDigits.filter(e => e != 0).length > 0 && <>
+                                    <div className="buttons">
+                                        <PixelButton className="copy-code" onClick={(e) => {
+                                            copyCode(shareDigits);
+                                            if (e.target instanceof HTMLButtonElement) {
+                                                (e.target as HTMLButtonElement).textContent = "Copied!";
+                                                setTimeout(() => {
+                                                    (e.target as HTMLButtonElement).textContent = "Copy Code";
+                                                }, 2000);
+                                            }
+                                        }}>Copy Code</PixelButton>
+                                    </div>
+                                </>
+                            }
+
                         </div>
-                    </div>
+                        <div className="share-url share-default-layout">
+                            <h2>Share URL</h2>
+                            <span>Share your dish with a url.</span>
+                            <div className="content">
+                                <span className="url">{shareURL}</span>
+                                <PixelButton className="copy" onClick={(e) => {
+                                    copyShareUrl(shareURL)
+                                    if (e.target instanceof HTMLButtonElement) {
+                                        (e.target as HTMLButtonElement).textContent = "Copied!";
+                                        setTimeout(() => {
+                                            (e.target as HTMLButtonElement).textContent = "Copy";
+                                        }, 2000);
+                                    }
+                                }}>Copy</PixelButton>
+                            </div>
+                        </div>
 
-                </>
-            }
-
+                    </>
+                }
+            </div>
             <div className="action-buttons">
                 <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
-
         </div>
     </div>;
 }

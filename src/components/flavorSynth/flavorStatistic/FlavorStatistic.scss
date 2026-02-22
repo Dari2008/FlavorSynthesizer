@@ -1,3 +1,5 @@
+@use "../../../utils/clamp.scss" as *;
+
 div:has(>.flavor-statistic) {
     background-image: linear-gradient(135deg, var(--secondary-color) 0%, var(--main-color) 50%, var(--secondary-color) 100%);
 
@@ -48,7 +50,9 @@ div:has(>.flavor-statistic) {
     grid-column-gap: 10px;
     grid-row-gap: 0px;
     height: 100%;
-    width: 250px;
+    // width: 10vw;
+    min-width: 100px;
+    max-width: 300px;
     background-color: black;
 
 
@@ -75,7 +79,7 @@ div:has(>.flavor-statistic) {
         border-left: none;
         border-right: none;
         height: max-content;
-        font-size: 25px;
+        font-size: clampW(0.15em, 1.5em, 200px, 2000px);
         align-self: start;
         line-height: 1.2em;
     }
@@ -89,7 +93,7 @@ div:has(>.flavor-statistic) {
         align-items: center;
         text-align: center;
         opacity: 0.5;
-        font-size: 16px;
+        font-size: clampW(0.1em, 1em, 200px, 2000px);
         line-height: 1.1em;
     }
 

@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState, type MouseEventHandler } from "react";
 import "./ControlKnob.scss"
+import Utils from "../../../utils/Utils";
 
 export default function ControlKnob({ classNames, label, onValueChanged }: { classNames: string; label: string; onValueChanged: (val: number) => void; }) {
 
@@ -65,15 +66,15 @@ export default function ControlKnob({ classNames, label, onValueChanged }: { cla
     }, []);
 
 
-    const mouseDraged = (e: MouseEvent) => {
+    const mouseDraged = (x: number, y: number) => {
         if (!volumeControlRef.current) return;
         const box = volumeControlRef.current.getBoundingClientRect();
 
         const centerX = box.width / 2;
         const centerY = box.height / 2;
 
-        const xRelative = e.clientX - box.left;
-        const yRelative = e.clientY - box.top;
+        const xRelative = x - box.left;
+        const yRelative = y - box.top;
 
         let ank = xRelative - centerX;
         let gegen = yRelative - centerY;
@@ -97,9 +98,16 @@ export default function ControlKnob({ classNames, label, onValueChanged }: { cla
         updateVisuals(val);
 
     };
+
+    const touchMoved = (e: React.TouchEvent<HTMLDivElement>) => {
+        const touches = Utils.getTouches(e);
+        if (touches.length < 1) return;
+        mouseDraged(touches[0].clientX, touches[0].clientY);
+    };
+
     const mouseMoved = (e: MouseEvent) => {
         if (isMouseDown.current && !isEditingRef.current) {
-            mouseDraged(e);
+            mouseDraged(e.clientX, e.clientY);
         }
     };
 
@@ -195,8 +203,8 @@ export default function ControlKnob({ classNames, label, onValueChanged }: { cla
 
 
     return <div className="volume-control-wrapper">
-        <div className={"volume-control " + (classNames ?? "")} ref={volumeControlRef} onDragStart={onDrag} onMouseLeave={mouseLeave} onMouseEnter={mousEntered}>
-            <div className="knob" id="knob" ref={knobRef}>
+        <div className={"volume-control " + (classNames ?? "")} ref={volumeControlRef} onTouchMove={touchMoved} onDragStart={onDrag} onMouseLeave={mouseLeave} onMouseEnter={mousEntered}>
+            <div className="knob" ref={knobRef}>
                 {
                     isEditing && <input className="volume-display" onKeyUp={keyPress} type="text" pattern="((\d\d\d)|(\d\d\.\d)|(\d\.\d))%?" ref={(ref) => {
                         volumeDisplayRef.current = ref;

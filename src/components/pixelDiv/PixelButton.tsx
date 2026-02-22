@@ -48,10 +48,6 @@ export default function PixelButton({ children, ...rest }: PixelDivType) {
             setSize();
         });
         resizeListener.observe(div);
-
-        div.addEventListener("resize", () => {
-            setSize();
-        });
         setSize();
 
     }, [divRef.current]);

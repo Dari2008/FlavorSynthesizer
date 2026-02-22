@@ -23,6 +23,7 @@ export default function PixelDiv({ children, ...rest }: PixelDivType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div";
     const originalFunction = rest.ref;
     const divRef = useRef<HTMLDivElement>(null);
+
     rest.ref = (r) => {
         if (originalFunction !== undefined) {
             if (typeof originalFunction == "function") {
@@ -51,12 +52,7 @@ export default function PixelDiv({ children, ...rest }: PixelDivType) {
             setSize();
         });
         resizeListener.observe(div);
-
-        div.addEventListener("resize", () => {
-            setSize();
-        });
         setSize();
-
     }, [divRef.current]);
 
     return <div {...rest} >

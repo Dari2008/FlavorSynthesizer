@@ -1,3 +1,6 @@
+@use "../../utils/clamp.scss" as *;
+
+
 #root:has(.download-prompt) .loading-div {
     backdrop-filter: none !important;
 }
@@ -21,7 +24,7 @@
     }
 
     .loading-span {
-        font-size: 5rem;
+        font-size: clampW(0.5em, 5em, 200px, 2000px);
         text-rendering: optimizeLegibility !important;
         display: flex;
         text-shadow: 0px 4px 5px black;
@@ -30,11 +33,14 @@
         &::after {
             content: "";
             animation: dots 1500ms ease-in-out 0ms infinite forwards;
-            font-size: 5rem;
+            font-size: clampW(0.5em, 5em, 200px, 2000px);
+            line-height: clampW(0.1em, 1em, 200px, 20000px);
             text-wrap: nowrap;
             white-space: pre;
-            width: 50px !important;
+            width: clampW(0.3em, 3em, 200px, 2000px) !important;
             display: block;
+            margin-block: auto;
+            margin-left: 5px;
         }
     }
 }

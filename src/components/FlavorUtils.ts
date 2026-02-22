@@ -13,8 +13,14 @@ export const LINE_Y = 30;
 export const MARGIN_BETWEEN_SCALE_AND_FLAVORS = 10;
 export const TOTAL_SYNTH_HEIGHT = FLAVOR_HEIGHT + LINE_MARKER_HEIGHT + LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS;
 
+export const MAX_SPAN = 10 * 60;
+export const MIN_SPAN = 0;
+
 var pixelsPerSecond = 100;
-var span = { from: 0, to: 10 };
+var span = {
+    from: -1,
+    to: -1
+};
 var offsetX = 0;
 
 const starMask = new Image();
@@ -32,11 +38,10 @@ var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
             if (!starMask.complete) return;
 
 
-            const off = document.createElement("canvas");
-            off.width = w;
-            off.height = h;
+            const off = new OffscreenCanvas(w, h);
 
-            const octx = off.getContext("2d")!;
+            const octx = off.getContext("2d");
+            if (!octx || w == 0) return;
             octx.save();
 
 
@@ -58,7 +63,6 @@ var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
 
             octx.restore();
 
-
             ctx.drawImage(off, x, y);
 
         }
@@ -79,6 +83,14 @@ export function getSpan() {
 
 export function getOffsetX() {
     return offsetX;
+}
+
+export function setSpanFirstTime(width: number, s: { from: number; to: number; }) {
+    pixelsPerSecond = width / (span.to - span.from);
+    if (span.from == -1 && span.to == -1) {
+        span = s;
+    }
+    offsetX = span.from * pixelsPerSecond;
 }
 
 export function setSpan(width: number, s: { from: number; to: number; }) {
@@ -107,6 +119,10 @@ export function calculateCurrentPosSecondsAccurate(x: number) {
     return seconds;
 }
 
+export function convertPixelsToSeconds(x: number) {
+    return x / pixelsPerSecond;
+}
+
 export function calculateSecondsToCurrentPos(x: number) {
     const timelineX = x * pixelsPerSecond;
     const outsideX = convertTimelineXToScreen(timelineX);
@@ -118,8 +134,8 @@ export function convertScreenXToTimeline(x: number) {
 }
 
 export function constrainSpan(s: { from: number; to: number; }): { from: number; to: number; } {
-    const minSpan = 0;
-    const maxSpan = 10 * 60;
+    const minSpan = MIN_SPAN;
+    const maxSpan = MAX_SPAN;
 
     s.from = Math.max(minSpan, s.from);
 
@@ -207,10 +223,10 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
             color1: string,
             color2: string
         ) {
+
+            if (width <= 0) return;
             // create offscreen canvas
-            const off = document.createElement("canvas");
-            off.width = width;
-            off.height = height;
+            const off = new OffscreenCanvas(width, height);
 
             const octx = off.getContext("2d")!;
 

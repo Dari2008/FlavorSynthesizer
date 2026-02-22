@@ -4,7 +4,7 @@ import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMain
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
 import FlavorSynth, { type FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import "./App.scss";
-import { MAIN_FLAVOR_COLOR, type MainFlavor } from "../@types/Flavors";
+import { MAIN_FLAVOR_COLOR, type Flavor, type MainFlavor } from "../@types/Flavors";
 import MainFlavorSelectionDialog from "../components/MainFlavorSelectionDialog/MainFlavorSelectionDialog";
 import ShareDialog from "../components/shareDialog/ShareDialog";
 import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
@@ -36,6 +36,8 @@ import { DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
 import { SynthChangeContext } from "../contexts/SynthChangeContext";
 import { Network } from "../utils/Network";
 import Toggle from "../components/toggle/Toggle";
+import { TouchCheckerContext } from "../contexts/TouchCheckerContext";
+import { CurrentDraggingElementTouch } from "../contexts/CurrentDraggingElementTouch";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -127,11 +129,13 @@ export default function App() {
                 } else {
                     dishes = await DishManager.loadDishesFromServer(userLoggedIn);
                 }
-                if (!dishes) return;
+                stopLoading("loadingDishes");
+                if (!dishes) {
+                    return;
+                }
                 localStorage.removeItem("dishes");
                 localStorage.removeItem("overwriteLocalDishesToServer");
                 setDishes(dishes);
-                stopLoading("loadingDishes");
             })();
         } else {
             const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
@@ -163,6 +167,7 @@ export default function App() {
         }
 
         setTitle(title.replaceAll("*", ""));
+        currentDishTitleRef.current?.classList.remove("unsaved-changes");
         if (savedMessageRef.current) {
             savedMessageRef.current?.setAttribute("data-open", "");
             setTimeout(() => {
@@ -404,97 +409,112 @@ export default function App() {
         saveCurrentDish();
     }
 
+    const currentDraggingElementRef = useRef<Flavor | null>(null);
+
+
     return <>
-        <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
-            <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>
-                <CurrentDishActionsContext value={{ synthLines: [currentDish?.data ?? [], setSynthLines], volumes: [volumes, setVolumes] }}>
-                    <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
-                        <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
-                            <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>
-                                <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000), deleteDisheWithUUID, forkCurrentDish: withDebounce(forkCurrentDish, 10000) }}>
-                                    <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
-                                        <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
+        <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef }}>
+            <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>
+                <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
+                    <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>
+                        <CurrentDishActionsContext value={{ synthLines: [currentDish?.data ?? [], setSynthLines], volumes: [volumes, setVolumes] }}>
+                            <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
+                                <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
+                                    <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>
+                                        <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000), deleteDisheWithUUID, forkCurrentDish: withDebounce(forkCurrentDish, 10000) }}>
+                                            <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
+                                                <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
-                                        <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
-                                            <InitialMenu></InitialMenu>
-                                        </Activity>
+                                                {/* {
+                                                    (isDeviceAspectRatioNotFitForApp() && isDeviceAspectRatioNotFitForAppAndRotate()) && <RotateDeviceNotice />
+                                                }
 
-                                        <Activity mode={!hasDownloadedData || currentlyLoading.includes("downloadData") ? "visible" : "hidden"}>
-                                            <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
-                                        </Activity>
+                                                {
+                                                    isDeviceAspectRatioNotFitForApp() && <DeviceNotFitForApp />
+                                                } */}
 
-                                        <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
-                                            <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
-                                        </Activity>
+                                                <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
+                                                    <InitialMenu></InitialMenu>
+                                                </Activity>
 
-                                        {
-                                            (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
-                                                <div className="title">
-                                                    <div className="bg-wrapper">
-                                                        <div className="img-wrapper">
-                                                            <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
-                                                            <div className="bg-image"></div>
-                                                            <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                                <Activity mode={!hasDownloadedData || currentlyLoading.includes("downloadData") ? "visible" : "hidden"}>
+                                                    <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
+                                                </Activity>
+
+                                                <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
+                                                    <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
+                                                </Activity>
+
+                                                {
+                                                    (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
+                                                        <div className="title">
+                                                            <div className="bg-wrapper">
+                                                                <div className="img-wrapper">
+                                                                    <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
+                                                                    <div className="bg-image"></div>
+                                                                    <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                                                </div>
+                                                                <input className="title-input" maxLength={20} type="text" disabled={isReadonly} onInput={() => {
+                                                                    if (currentDishTitleRef.current && !isReadonly) {
+                                                                        setCurrentDishName(currentDishTitleRef.current.value || "Unnamed");
+                                                                    }
+                                                                }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
+                                                            </div>
                                                         </div>
-                                                        <input className="title-input" maxLength={20} type="text" disabled={isReadonly} onInput={() => {
-                                                            if (currentDishTitleRef.current && !isReadonly) {
-                                                                setCurrentDishName(currentDishTitleRef.current.value || "Unnamed");
-                                                            }
-                                                        }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
-                                                    </div>
-                                                </div>
 
-                                                <CurrentMainThemeSelector />
-                                                <FlavorSynth />
+                                                        <CurrentMainThemeSelector />
+                                                        <FlavorSynth />
 
-                                                <button className="close" onClick={() => setGameState("mainMenu")}>x</button>
-                                            </>
-                                        }
+                                                        <button className="close" onClick={() => setGameState("mainMenu")}>x</button>
+                                                    </>
+                                                }
 
-                                        {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
+                                                {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
                             </Activity> */}
 
-                                        <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
-                                            <ShareDialog></ShareDialog>
-                                        </Activity>
+                                                <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
+                                                    <ShareDialog></ShareDialog>
+                                                </Activity>
 
-                                        <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
-                                            <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
-                                        </Activity>
+                                                <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
+                                                    <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
+                                                </Activity>
 
-                                        <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
-                                            <OpenShareDialog open={open}></OpenShareDialog>
-                                        </Activity>
+                                                <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
+                                                    <OpenShareDialog open={open}></OpenShareDialog>
+                                                </Activity>
 
-                                        <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
-                                            <DishList />
-                                        </Activity>
+                                                <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
+                                                    <DishList />
+                                                </Activity>
 
-                                        {gameState == "loading" && <Loading />}
+                                                {gameState == "loading" && <Loading />}
 
 
-                                        <div className="save-message" ref={savedMessageRef}>
-                                            Saved Current Dish
-                                        </div>
+                                                <div className="save-message" ref={savedMessageRef}>
+                                                    Saved Current Dish
+                                                </div>
 
-                                        {/* {
+                                                {/* {
 
             !hasSelectedNewMainFlavor && 
         } */}
-                                        {/* {
+                                                {/* {
             hasSelectedNewMainFlavor &&
             <>
             </>
         } */}
 
-                                    </UserContext.Provider>
-                                </DishesContext.Provider>
-                            </CurrentDishIndexContext.Provider>
-                        </GameStateContext.Provider>
-                    </MainFlavorContext.Provider>
-                </CurrentDishActionsContext>
-            </LoadingAnimationContext.Provider>
-        </SynthChangeContext.Provider>
+                                            </UserContext.Provider>
+                                        </DishesContext.Provider>
+                                    </CurrentDishIndexContext.Provider>
+                                </GameStateContext.Provider>
+                            </MainFlavorContext.Provider>
+                        </CurrentDishActionsContext>
+                    </LoadingAnimationContext.Provider>
+                </SynthChangeContext.Provider>
+            </TouchCheckerContext.Provider>
+        </CurrentDraggingElementTouch.Provider>
     </>;
 }
 
@@ -542,3 +562,22 @@ function getLoggedInUser(): User | null {
 }
 
 export type ReturnPointWhenCancel = "flavorSynth" | "dishList" | "menu";
+
+function isDeviceAspectRatioNotFitForAppAndRotate() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const aspectRatio = width / height;
+    if (aspectRatio < 1) return true;
+
+    if (width < 600) return true;
+    if (height < 600) return true;
+    return false;
+}
+
+function isDeviceAspectRatioNotFitForApp() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    if (width < 600 && height < 600) return true;
+    return false;
+}

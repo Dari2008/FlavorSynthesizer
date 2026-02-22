@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
 import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, constrainSpan, convertPixelsToSeconds, convertScreenXToTimeline, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, getSpan, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, MAX_SPAN, MIN_SPAN, setSpan, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { useTooltip } from "../../contexts/TooltipContext";
 import { useSynthSelector } from "../../contexts/SynthSelectorContext";
 import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext";
@@ -11,17 +11,22 @@ import { useCurrentDish } from "../../contexts/CurrentDish";
 import { useSynthChange } from "../../contexts/SynthChangeContext";
 import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
 import { useGameState } from "../../contexts/GameStateContext";
+import { useTouchChecker } from "../../contexts/TouchCheckerContext";
+import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
+import Utils from "../../utils/Utils";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
 
+
+type Pos = { x: number; y: number; };
 
 setInterval(() => {
     currentAnimationPosition++;
     currentAnimationPosition = currentAnimationPosition % 100;
 }, 20);
 
-export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUID }: { widthRef: React.RefObject<number>, currentScrolledRef: React.RefObject<CurrentSpan>, synthLineUUID: string }) {
+export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
     const tooltip = useTooltip();
     const synthSelector = useSynthSelector();
@@ -36,11 +41,19 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     const tooSmallToDisplayUUIDs = useRef<string[]>([]);
 
     const change = useSynthChange();
-
+    const isTouch = useTouchChecker().isTouch;
+    const currentDragging = useCurrentDraggingElement();
 
     const timelineOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE));
     const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
     const currentPositionCursorCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, TOTAL_SYNTH_HEIGHT));
+
+
+    const startDraggedPositionTouch = useRef<Pos>({ x: -1, y: -1 });
+    const currentlyResizingElement = useRef<string | null>(null);
+    const resizeSide = useRef<"from" | "to" | "move">("from");
+    const startDraggedPositionSecondsTouch = useRef<Pos>({ x: -1, y: -1 });
+    const startElementPos = useRef<number>(0);
 
     const currentDish = useCurrentDish();
 
@@ -53,9 +66,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     };
 
     const renderTimeline = () => {
+        if (widthRef.current != timelineOffCanvasRef.current.width) {
+            timelineOffCanvasRef.current.width = widthRef.current;
+        }
+
         const ctx = timelineOffCanvasRef.current.getContext("2d");
         if (!ctx) return;
-        const span = currentScrolledRef.current;
+        const span = getSpan();
         clearCanvas(ctx, timelineOffCanvasRef.current);
 
         ctx.strokeStyle = STROKES_COLORS;
@@ -100,9 +117,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     renderTimeline();
 
     const renderElements = () => {//LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT
+        if (widthRef.current != allElementsOffCanvasRef.current.width) {
+            allElementsOffCanvasRef.current.width = widthRef.current;
+        }
+
         const ctx = allElementsOffCanvasRef.current.getContext("2d");
         if (!ctx) return;
-        const span = currentScrolledRef.current;
+        const span = getSpan();
         clearCanvas(ctx, allElementsOffCanvasRef.current);
         for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current]) {
             if (element == null) continue;
@@ -127,9 +148,13 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
     renderElements();
 
     const renderCurrentPositionCursor = () => {
+        if (widthRef.current != currentPositionCursorCanvasRef.current.width) {
+            currentPositionCursorCanvasRef.current.width = widthRef.current;
+        }
+
         const ctx = currentPositionCursorCanvasRef.current.getContext("2d");
         if (!ctx) return;
-        const span = currentScrolledRef.current;
+        const span = getSpan();
         clearCanvas(ctx, currentPositionCursorCanvasRef.current);
 
         const currentSecondPlaying = currentPlaying.currentPositionRef.current;
@@ -299,9 +324,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             renderElements();
         });
 
-        const onTimelineDrag = (e: MouseEvent) => {
+        const onTimelineDrag = (xOrg: number, yOrg: number) => {
             const box = canvasRef.current?.getBoundingClientRect();
-            const x = e.x - (box?.left ?? 0);
+            const x = xOrg - (box?.left ?? 0);
 
             const seconds = calculateCurrentPosSecondsAccurate(x);
 
@@ -309,8 +334,8 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             synthLines.repaintAllTimelines();
         };
 
-        const onMouseMoveUpdate = (e: MouseEvent) => {
-            const span = currentScrolledRef.current;
+        const onMouseMoveUpdate = () => {
+            const span = getSpan();
             if (!span) return;
             const mouse = mousePosRef.current;
 
@@ -373,9 +398,9 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
         let startPositionOfElement = -1;
         let moveStartOffsetToEnd = -1;
 
-        const onDragStart = (e: MouseEvent) => {
+        const onDragStart = () => {
             if (isReadonly) return;
-            const span = currentScrolledRef.current;
+            const span = getSpan();
             if (!span) return;
 
             const mouse = mousePosRef.current;
@@ -438,11 +463,11 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             }[];
         }[] | undefined = undefined;
 
-        const onDrag = (e: MouseEvent) => {
+        const onDrag = () => {
             if (isReadonly) return;
             if (!targetElement) return;
             if (action == "move" && startPosition == -1) return;
-            const span = currentScrolledRef.current;
+            const span = getSpan();
             if (!span) return;
             const mouse = mousePosRef.current;
             if (mouse.y < timelineOffCanvasRef.current.height) return;
@@ -531,32 +556,32 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             change.changed();
         };
 
-        const onMouseMove = (e: MouseEvent) => {
+        const onMouseMove = (xOrg: number, yOrg: number) => {
             const box = canvasRef.current?.getBoundingClientRect();
-            const x = e.clientX - (box?.left ?? 0);
-            const y = e.clientY - (box?.top ?? 0);
+            const x = xOrg - (box?.left ?? 0);
+            const y = yOrg - (box?.top ?? 0);
             mousePosRef.current = {
                 x: x,
                 y: y
             };
             if (y < timelineOffCanvasRef.current.height && isMouseDown && targetElement == null && currentDraggingElementRef.current == null && interPlayerDrag.ref.current == null && !currentPlaying.isPlayingRef.current) {
-                onTimelineDrag(e);
+                onTimelineDrag(xOrg, yOrg);
                 return;
             }
             if (isMouseDown) {
-                onDrag(e);
+                onDrag();
             } else {
-                onMouseMoveUpdate(e);
+                onMouseMoveUpdate();
             }
         }
 
-        const onMouseDown = (e: MouseEvent) => {
+        const onMouseDown = (xOrg: number, yOrg: number) => {
             if (isReadonly) return;
             isMouseDown = true;
             const box = canvasRef.current?.getBoundingClientRect();
-            const y = e.y - (box?.top ?? 0);
+            const y = yOrg - (box?.top ?? 0);
             if (y < timelineOffCanvasRef.current.height) return;
-            onDragStart(e);
+            onDragStart();
         };
 
         const onMouseUpReset = () => {
@@ -698,7 +723,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             // repaint();
         };
 
-        const onMouseLeave = (e: MouseEvent) => {
+        const onMouseLeave = () => {
             if (isReadonly) return;
             if (!isMouseDown) return;
             if (targetElement != null) {
@@ -720,7 +745,7 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             }
         };
 
-        const onMouseEnter = (e: MouseEvent) => {
+        const onMouseEnter = () => {
             if (isReadonly) return;
             if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.includes(interPlayerDrag.ref.current)) {
                 interPlayerDrag.ref.current = null;
@@ -729,12 +754,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             }
         };
 
-        const onMouseMoveExternalElement = (e: MouseEvent) => {
+        const onMouseMoveExternalElement = (xOrg: number, yOrg: number) => {
             if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
-                const x = e.clientX - canvasBox.left;
+                const x = xOrg - canvasBox.left;
                 const seconds = calculateCurrentPosSeconds(x);
                 const offset = interPlayerDrag.offsetLeft.current ?? 0;
                 const currentDragPos = seconds - offset;
@@ -758,12 +783,12 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             }
         };
 
-        const onReleaseExternalElement = (e: MouseEvent) => {
+        const onReleaseExternalElement = (xOrg: number, yOrg: number) => {
             if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
-                const x = e.clientX - canvasBox.left;
+                const x = xOrg - canvasBox.left;
                 const seconds = calculateCurrentPosSeconds(x);
                 const offset = interPlayerDrag.offsetLeft.current ?? 0;
                 const currentDragPos = seconds - offset;
@@ -821,45 +846,344 @@ export default function PlayerTrack({ widthRef, currentScrolledRef, synthLineUUI
             capture: true
         };
 
-        canvas.addEventListener("mousemove", onMouseMove);
-        canvas.addEventListener("mousedown", onMouseDown);
-        canvas.addEventListener("mouseup", onMouseUp);
-        canvas.addEventListener("mouseup", onMouseUpReset);
-        canvas.addEventListener("mouseleave", onMouseLeave);
-        canvas.addEventListener("mouseenter", onMouseEnter);
-        canvas.addEventListener("mouseup", onReleaseExternalElement);
-        canvas.addEventListener("mousemove", onMouseMoveExternalElement);
-        canvas.addEventListener("wheel", onWheel);
-        canvas.addEventListener("click", onClick);
-        window.addEventListener("mouseup", onMouseUpReset);
+        const onMouseMoveWrapper = (e: MouseEvent) => onMouseMove(e.clientX, e.clientY);
+        const onMouseDownWrapper = (e: MouseEvent) => onMouseDown(e.clientX, e.clientY);
+        const onReleaseExternalElementWrapper = (e: MouseEvent) => onReleaseExternalElement(e.clientX, e.clientY);
+        const onMouseMoveExternalElementWrapper = (e: MouseEvent) => onMouseMoveExternalElement(e.clientX, e.clientY);
+
+
+
+        const getDiff = (pos1: Pos, pos2: Pos, axis: "x" | "y" | "xy") => axis == "x" ? pos2.x - pos1.x : (axis == "y" ? pos2.y - pos1.y : { x: pos2.x - pos1.x, y: pos2.y - pos1.y });
+
+        const getTouch = (touches: TouchList | React.TouchList, index: number) => {
+            const canvas = canvasRef.current?.getBoundingClientRect();
+            const offsetX = canvas?.left ?? 0;
+            const offsetY = canvas?.top ?? 0;
+            return {
+                x: touches[index].clientX - offsetX,
+                y: touches[index].clientY - offsetY,
+            }
+        }
+
+        const onTouchStartWrapper = (e: TouchEvent) => {
+            const touches = Utils.getTouches(e);
+            if (touches.length == 1) {
+                const touch = getTouch(touches, 0);
+                mousePosRef.current = touch;
+                startDraggedPositionTouch.current = mousePosRef.current;
+                startDraggedPositionSecondsTouch.current = {
+                    x: calculateCurrentPosSeconds(mousePosRef.current.x),
+                    y: calculateCurrentPosSeconds(mousePosRef.current.y),
+                }
+                if (currentDragging.currentDraggingElement.current && getTouch(touches, 0).y > timelineOffCanvasRef.current.height) {
+                    const pos = calculateCurrentPosSeconds(startDraggedPositionTouch.current.x);
+                    currentDraggingElementRef.current = createElementForFlavor(currentDragging.currentDraggingElement.current, pos, pos);
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                } else if (getTouch(touches, 0).y > timelineOffCanvasRef.current.height) {
+                    const posX = getTouch(touches, 0).x;
+                    const seconds = calculateCurrentPosSecondsAccurate(posX);
+
+                    // const synthLine = synthLines.synthLines.find(e => e.uuid == synthLineUUID);
+                    const elementFromResize = flavorSynthLine.elements.find(e => Math.abs(e.from - seconds) <= 0.5);
+                    const elementToResize = flavorSynthLine.elements.find(e => Math.abs(e.to - seconds) <= 0.5);
+                    const elementClicked = flavorSynthLine.elements.find(e => e.from <= seconds && e.to >= seconds);
+
+                    if ((elementFromResize && elementToResize) || (!elementFromResize && !elementToResize && !elementClicked)) {
+                        currentlyResizingElement.current = null;
+                        return;
+                    }
+
+                    if (elementFromResize) {
+                        resizeSide.current = "from";
+                        currentlyResizingElement.current = elementFromResize.uuid;
+                    } else if (elementToResize) {
+                        resizeSide.current = "to";
+                        currentlyResizingElement.current = elementToResize.uuid;
+                    } else if (elementClicked) {
+                        resizeSide.current = "move";
+                        currentlyResizingElement.current = elementClicked.uuid;
+                        startElementPos.current = elementClicked.from;
+                    }
+                    console.log(resizeSide, currentlyResizingElement);
+                }
+            }
+        };
+
+        const onTouchEndWrapper = (e: TouchEvent) => {
+            const touches = Utils.getTouches(e);
+            if (touches.length == 1) {
+                const touch = getTouch(touches, 0);
+                mousePosRef.current = touch;
+                if (currentDragging.currentDraggingElement.current) {
+                    // if (currentDraggingElementRef.current) currentDraggingElementRef.current.to = calculateCurrentPosSeconds(mousePosRef.current.x);
+                    synthLines.setSynthLines(synthLines => synthLines.map(synthLine => {
+                        if (!currentDraggingElementRef.current) return synthLine;
+                        if (currentDraggingElementRef.current.from == currentDraggingElementRef.current.to) return synthLine;
+                        if (synthLine.uuid !== synthLineUUID) return synthLine;
+                        return {
+                            ...synthLine,
+                            elements: [...synthLine.elements, currentDraggingElementRef.current]
+                        };
+                    }));
+                    currentDraggingElementRef.current = null;
+                    currentDragging.currentDraggingElement.current = null;
+
+                    // synthLines.repaintAllElements();
+                    // synthLines.repaintAll();
+                    return;
+                }
+
+                const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
+                if (diffX <= 10 && diffX >= -10 && touch.y <= timelineOffCanvasRef.current.height) {
+                    const seconds = calculateCurrentPosSecondsAccurate(touch.x);
+
+                    currentPlaying.cusorPos.current = seconds;
+                    synthLines.repaintAllTimelines();
+                }
+
+                currentDragging.currentDraggingElement.current = null;
+                currentlyResizingElement.current = null;
+                resizeSide.current = "from";
+
+            }
+            lastDeltaZoom = -1;
+        };
+
+        let lastDeltaZoom = -1;
+
+        const onTouchMoveWrapper = (e: TouchEvent) => {
+            const touches = Utils.getTouches(e);
+            console.log(touches);
+            if (touches.length == 1) {
+                const touch = getTouch(touches, 0);
+                const deltaX = getDiff(touch, mousePosRef.current, "x") as number;
+                mousePosRef.current = touch;
+
+                // Adding a Flavor
+                if (currentDragging.currentDraggingElement.current) {
+                    if (currentDraggingElementRef.current) {
+                        const newPos = calculateCurrentPosSeconds(mousePosRef.current.x);
+                        if (newPos >= currentDraggingElementRef.current.to) {
+                            currentDraggingElementRef.current.to = newPos;
+                        } else {
+                            currentDraggingElementRef.current.from = newPos;
+                        }
+                    }
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                    return;
+                }
+                // Resizing
+                if (!currentDraggingElementRef.current && getTouch(touches, 0).y <= timelineOffCanvasRef.current.height) {
+
+                    const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
+                    if (diffX <= 10 && diffX >= -10) return;
+                    const offsetSeconds = convertPixelsToSeconds(deltaX);
+
+                    const span = getSpan();
+
+                    let newSpan: { from: number; to: number; } = {
+                        from: span.from,
+                        to: span.to
+                    };
+
+                    if (span.from + offsetSeconds < 0) {
+                        const dist = span.to - span.from;
+                        newSpan = {
+                            from: 0,
+                            to: Math.round(Math.abs(dist))
+                        };
+                    } else {
+                        newSpan = {
+                            from: span.from + offsetSeconds,
+                            to: span.to + offsetSeconds,
+                        };
+                    }
+
+                    newSpan = constrainSpan(newSpan);
+                    setSpan(widthRef.current, newSpan);
+
+                    synthLines.repaintAllTimelines();
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                    return;
+                }
+                // Otherwise resize element when there
+                if (currentlyResizingElement.current && resizeSide.current != "move") {
+                    const pos = getTouch(touches, 0);
+                    const seconds = calculateCurrentPosSeconds(pos.x);
+
+                    const element = flavorSynthLine.elements.find(e => e.uuid == currentlyResizingElement.current);
+
+                    if (!element) return;
+
+                    let newFrom = resizeSide.current == "from" ? seconds : element.from;
+                    let newTo = resizeSide.current == "to" ? seconds : element.to;
+
+                    if (newFrom < MIN_SPAN) newFrom = 0;
+                    if (newTo < MIN_SPAN + 1) newTo = 1;
+                    if (newTo > MAX_SPAN) newTo = MAX_SPAN;
+                    if (newFrom > MAX_SPAN - 1) newFrom = MAX_SPAN - 1;
+
+                    const width = newTo - newFrom;
+
+
+                    if (width < 1) {
+                        if (newFrom < MIN_SPAN + 1) {
+                            newFrom = MIN_SPAN;
+                            newTo = MIN_SPAN + 1;
+                        } else {
+                            newFrom--;
+                        }
+                    }
+
+                    if (!isEmpty(element, newFrom, newTo)) {
+                        return;
+                    }
+
+                    element.from = newFrom;
+                    element.to = newTo;
+
+                    // flavorSynthLine.elements = flavorSynthLine.elements.map(element => {
+                    //     if (element.uuid !== currentlyResizingElement.current) return element;
+                    //     return {
+                    //         ...element,
+                    //         from: resizeSide.current == "from" ? seconds : element.from,
+                    //         to: resizeSide.current == "to" ? seconds : element.to
+                    //     }
+                    // });
+                    // synthLines.setSynthLines(synthLines => synthLines.map(synthLine => {
+                    //     if (synthLine.uuid !== synthLineUUID) return synthLine;
+                    //     return {
+                    //         ...synthLine,
+                    //         elements: synthLine.elements.map(element => {
+                    //             if (element.uuid !== currentlyResizingElement.current) return element;
+                    //             return {
+                    //                 ...element,
+                    //                 from: resizeSide.current == "from" ? seconds : element.from,
+                    //                 to: resizeSide.current == "to" ? seconds : element.to
+                    //             }
+                    //         })
+                    //     }
+                    // }));
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                    return;
+                } else if (currentlyResizingElement.current) {
+                    const pos = getTouch(touches, 0);
+                    const seconds = calculateCurrentPosSeconds(pos.x);
+                    const startPosSeconds = startDraggedPositionSecondsTouch.current.x;
+                    const deltaSeconds = seconds - startPosSeconds;
+                    const newFromPos = startElementPos.current + deltaSeconds;
+
+                    const element = flavorSynthLine.elements.find(e => e.uuid == currentlyResizingElement.current);
+                    if (!element) return;
+
+                    const width = element.to - element.from;
+
+                    if (newFromPos < 0) return;
+
+                    if (!isEmpty(element, newFromPos, newFromPos + width)) {
+                        return;
+                    }
+
+                    element.from = newFromPos;
+                    element.to = newFromPos + width;
+
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                }
+            } else if (touches.length == 2) {
+                const touch1 = getTouch(touches, 0);
+                const touch2 = getTouch(touches, 1);
+                const deltaX = touch2.x - touch1.x;
+                if (lastDeltaZoom == -1) {
+                    lastDeltaZoom = deltaX;
+                    return;
+                }
+                const deltaZoom = deltaX - lastDeltaZoom;
+                lastDeltaZoom = deltaX;
+                console.log(deltaZoom);
+                // synthLines.zoomed(deltaZoom);
+            }
+        };
+
+        const onTouchCancelWrapper = (e: TouchEvent) => {
+            onTouchEndWrapper(e);
+        };
+
+        const onTouchOutsideCancel = (e: TouchEvent) => {
+            onMouseUpReset();
+        }
+
+        console.log("isTouch", isTouch);
+        if (isTouch) {
+
+            canvas.addEventListener("touchstart", onTouchStartWrapper);
+            canvas.addEventListener("touchend", onTouchEndWrapper);
+            canvas.addEventListener("touchmove", onTouchMoveWrapper);
+            canvas.addEventListener("touchcancel", onTouchCancelWrapper);
+
+            window.addEventListener("touchend", onTouchOutsideCancel)
+        } else {
+            canvas.addEventListener("mousemove", onMouseMoveWrapper);
+            canvas.addEventListener("mousedown", onMouseDownWrapper);
+            canvas.addEventListener("mouseup", onMouseUp);
+            canvas.addEventListener("mouseup", onMouseUpReset);
+            canvas.addEventListener("mouseleave", onMouseLeave);
+            canvas.addEventListener("mouseenter", onMouseEnter);
+            canvas.addEventListener("mouseup", onReleaseExternalElementWrapper);
+            canvas.addEventListener("mousemove", onMouseMoveExternalElementWrapper);
+            canvas.addEventListener("wheel", onWheel);
+            canvas.addEventListener("click", onClick);
+            window.addEventListener("mouseup", onMouseUpReset);
+
+        }
+
+
+
         window.addEventListener("keydown", onKeyPress);
         // repaint();
 
         return () => {
-            canvas.removeEventListener("mousemove", onMouseMove);
-            canvas.removeEventListener("mousedown", onMouseDown);
+            canvas.removeEventListener("mousemove", onMouseMoveWrapper);
+            canvas.removeEventListener("mousedown", onMouseDownWrapper);
             canvas.removeEventListener("mouseup", onMouseUp);
             canvas.removeEventListener("mouseup", onMouseUpReset);
             canvas.removeEventListener("mouseleave", onMouseLeave);
             canvas.removeEventListener("mouseenter", onMouseEnter);
-            canvas.removeEventListener("mouseup", onReleaseExternalElement);
-            canvas.removeEventListener("mousemove", onMouseMoveExternalElement);
+            canvas.removeEventListener("mouseup", onReleaseExternalElementWrapper);
+            canvas.removeEventListener("mousemove", onMouseMoveExternalElementWrapper);
             canvas.removeEventListener("wheel", onWheel);
             canvas.removeEventListener("click", onClick);
+
             window.removeEventListener("mouseup", onMouseUpReset);
             window.removeEventListener("keydown", onKeyPress);
+
+            canvas.removeEventListener("touchstart", onTouchStartWrapper);
+            canvas.removeEventListener("touchend", onTouchEndWrapper);
+            canvas.removeEventListener("touchmove", onTouchMoveWrapper);
+            canvas.removeEventListener("touchcancel", onTouchCancelWrapper);
         };
 
     }, [canvasRef.current, flavorSynthLine.elements]);
 
     const render = () => {
-        const span = currentScrolledRef.current;
+        const span = getSpan();
         if (!span) return;
         const secondsBetween = span.to - span.from;
         // const pixelsPerSecond = widthRef.current / secondsBetween;
+
+
         if (secondsBetween <= 0) return;
         const canvas = canvasRef.current!;
         if (!canvas) return;
+
+        if (widthRef.current != canvas.width) {
+            canvas.width = widthRef.current;
+        }
+
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         clearCanvas(ctx, canvas);

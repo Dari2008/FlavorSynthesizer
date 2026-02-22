@@ -1,4 +1,5 @@
 @use "../utils/Variables.scss" as *;
+@use "../utils/clamp.scss" as *;
 
 #root {
     display: grid;
@@ -10,7 +11,7 @@
 
     background-image: url("./imgs/main_background.png"), url("./imgs/repeatable_background.png");
     background-size: 100% auto, 100% auto;
-    background-position: bottom, 0%;
+    background-position: bottom, bottom;
     background-repeat: no-repeat, repeat-y;
     image-rendering: pixelated;
     filter: contrast(110%);
@@ -22,10 +23,10 @@
     &>.close {
         position: fixed;
         top: 20px;
-        right: 250px;
+        right: max(min(20vw, 250px), 100px);
         background-color: transparent;
         border: none;
-        font-size: 5rem;
+        font-size: clampW(0.5em, 5em, 200px, 2000px);
         padding: 0;
         margin: 0;
         line-height: 1rem;
@@ -52,6 +53,7 @@
             display: grid;
             grid-template-columns: 100%;
             grid-template-rows: 100%;
+            max-height: 80%;
 
             .img-wrapper {
                 display: grid;
@@ -100,16 +102,18 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 4rem;
+            font-size: clampW(0.35em, 3.5em, 200px, 2000px);
             border: none;
             outline: none;
             white-space: nowrap;
             min-width: 50px;
-            min-height: 4rem;
+            line-height: clampW(0.35em, 3.5em, 200px, 2000px);
             background-color: transparent;
             width: calc(100% - 50px);
             margin-left: auto;
             color: white;
+            max-height: 100px;
+            aspect-ratio: 10 / 1;
 
 
             // background-image:
@@ -133,7 +137,7 @@
 
         .subtitle {
             height: min-content;
-            font-size: 2rem;
+            font-size: clampW(0.2em, 2em, 200px, 2000px);
         }
     }
 
@@ -179,7 +183,7 @@ body {
     border-top-right-radius: 20px;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: none;
-    font-size: 1.2rem;
+    font-size: clampW(0.12em, 1.2em, 200px, 2000px);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
 

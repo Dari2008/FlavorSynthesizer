@@ -74,23 +74,6 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     const listDishesLabelRef = useRef<HTMLSpanElement>(null);
     const boxDunnoLabelRef = useRef<HTMLSpanElement>(null);
 
-    // selectedElementWrapper.current = (e) => {
-    //     switch (e) {
-    //         case "add":
-    //             setChosenOne("create-new-dish");
-    //             break;
-    //         case "open":
-    //             setChosenOne("open-shared-dish");
-    //             break;
-    //         case "list":
-    //             setChosenOne("list-dishes");
-    //             break;
-    //         case "none":
-    //             setChosenOne("none")
-    //             break;
-    //     }
-    // };
-
     function deselectAll() {
         createNewDishRef.current?.classList.remove("selected");
         openSharedDishRef.current?.classList.remove("selected");
@@ -294,13 +277,22 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
             }, 300);
         };
 
+        const resized = () => {
+            set(createNewDishRef.current, createNewDishLabelRef.current, "create-new-dish");
+            set(openSharedDishRef.current, openSharedDishLabelRef.current, "open-shared-dish");
+            set(listDishesRef.current, listDishesLabelRef.current, "list-dishes");
+            set(boxDunnoRef.current, boxDunnoLabelRef.current, "box-dunno");
+        };
+
 
         images.addEventListener("mousemove", onMouseMove);
         images.addEventListener("mousedown", onMouseDown);
+        window.addEventListener("resize", resized)
 
         return () => {
             images.removeEventListener("mousemove", onMouseMove);
             images.removeEventListener("mousedown", onMouseDown);
+            window.removeEventListener("resize", resized);
         };
 
     });
@@ -308,16 +300,16 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     return <div className="images" ref={imagesRef}>
         <img src="./mainMenu/bg/main_menu_background_background.png" alt="background Image" className="background-image"></img>
 
-        <img src="./mainMenu/bg/create_new_dish.png" alt="create new dish image" className={"create-new-dish" + (chosenOne == "create-new-dish" ? " chosen" : undefined)} ref={createNewDishRef} />
+        <img src="./mainMenu/bg/create_new_dish.png" alt="create new dish image" className={"create-new-dish" + (chosenOne == "create-new-dish" ? " chosen" : "")} ref={createNewDishRef} />
         <span className="label-for-image above label-for-create-new-dish" ref={createNewDishLabelRef}>Create New Dish</span>
 
-        <img src="./mainMenu/bg/list_dishes.png" alt="list dishes image" className={"list-dishes" + (chosenOne == "list-dishes" ? " chosen" : undefined)} ref={listDishesRef} />
+        <img src="./mainMenu/bg/list_dishes.png" alt="list dishes image" className={"list-dishes" + (chosenOne == "list-dishes" ? " chosen" : "")} ref={listDishesRef} />
         <span className="label-for-image below label-for-list-dishes" ref={listDishesLabelRef}>Dish List</span>
 
-        <img src="./mainMenu/bg/open_shared_dish.png" alt="open shared dish image" className={"open-shared-dish" + (chosenOne == "open-shared-dish" ? " chosen" : undefined)} ref={openSharedDishRef} />
+        <img src="./mainMenu/bg/open_shared_dish.png" alt="open shared dish image" className={"open-shared-dish" + (chosenOne == "open-shared-dish" ? " chosen" : "")} ref={openSharedDishRef} />
         <span className="label-for-image right above label-for-open-shared-dish" ref={openSharedDishLabelRef}>Open Shared Dish</span>
 
-        <img src="./mainMenu/bg/box_dunno.png" alt="dunno box image" className={"dunno-box-dish" + (chosenOne == "box-dunno" ? " chosen" : undefined)} ref={boxDunnoRef} />
+        <img src="./mainMenu/bg/box_dunno.png" alt="dunno box image" className={"dunno-box-dish" + (chosenOne == "box-dunno" ? " chosen" : "")} ref={boxDunnoRef} />
         <span className="label-for-image above label-for-box-dunno" ref={boxDunnoLabelRef}>Dunno Box</span>
 
     </div>;
