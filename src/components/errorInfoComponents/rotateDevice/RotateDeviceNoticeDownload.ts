@@ -1,0 +1,26 @@
+import { loadAndSaveResource } from "../../ResourceSaver";
+
+export const ROTATE_NOTICE_ANIMATION_IMAGES: HTMLImageElement[] = [];
+
+export const ROTATE_NOTICE_ANIMATION_IMAGE_COUNT = 10;
+
+export async function initRotateNotice() {
+    if (ROTATE_NOTICE_ANIMATION_IMAGES.length > 0) return;
+    const all = [];
+    for (let i = 0; i < ROTATE_NOTICE_ANIMATION_IMAGE_COUNT; i++) {
+        all.push(new Promise<void>(async (res, rej) => {
+            const image = new Image();
+            image.src = await loadAndSaveResource("rotateDevice", "image_" + i, "./animations/phone/Rotation/" + i + ".png");
+            image.onload = () => res();
+            image.onerror = () => rej();
+            ROTATE_NOTICE_ANIMATION_IMAGES.push(image);
+        }));
+    }
+    await Promise.all(all);
+}
+
+export function setLoadingFrameRotateNotice(base64: string, index: number) {
+    const img = new Image();
+    img.src = base64;
+    ROTATE_NOTICE_ANIMATION_IMAGES[index] = img;
+}

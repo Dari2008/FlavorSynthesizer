@@ -307,12 +307,18 @@
     "94": 447828
   },
   "audio_mainFlavors": {
-    "bitter": 3079266,
+    "bitter": 274959,
+    "bitter_finished": 3079266,
     "salty": 1539790,
+    "salty_finished": 1539536,
     "savory": 1539790,
+    "savory_finished": 1539536,
     "sour": 1539786,
+    "sour_finished": 1539536,
     "spicy": 3079298,
-    "sweet": 770046
+    "spicy_finished": 4276408,
+    "sweet": 32788,
+    "sweet_finished": 770046
   },
   "images": {
     "Almond": 1096,
@@ -520,5 +526,17 @@
     "image_7": 1649,
     "image_8": 1623,
     "image_9": 1580
+  },
+  "rotateDevice": {
+    "0": 16566,
+    "1": 20111,
+    "2": 23501,
+    "3": 24367,
+    "4": 23763,
+    "5": 25285,
+    "6": 25305,
+    "7": 25303,
+    "8": 23734,
+    "9": 20143
   }
 }

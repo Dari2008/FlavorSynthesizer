@@ -16,14 +16,14 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
     backdrop-filter: blur(10px);
     position: relative;
 
-    .background-image {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+    // .background-image {
+    //     position: absolute;
+    //     top: 0;
+    //     left: 0;
+    //     width: 100%;
+    //     height: 100%;
+    //     object-fit: contain;
+    // }
 
     &:not(.visible) {
         pointer-events: none;
@@ -221,6 +221,12 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             align-self: end;
             display: flex;
             gap: 20px;
+
+            @media (width < 1250px) {
+                position: static;
+                top: unset;
+                right: unset;
+            }
 
             button {
                 font-size: clampW(0.14em, 1.4em, 200px, 2000px);

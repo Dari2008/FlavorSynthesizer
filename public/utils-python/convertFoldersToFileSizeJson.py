@@ -31,6 +31,9 @@ FOLDER_GROUPS = {
     ],
     "pot-animation": [
         "../animations/pot-animation/"
+    ],
+    "rotateDevice": [
+        "../animations/phone/Rotation"
     ]
 }
 

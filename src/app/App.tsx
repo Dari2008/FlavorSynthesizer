@@ -1,4 +1,4 @@
-import { Activity, useEffect, useRef, useState } from "react";
+import { Activity, use, useEffect, useRef, useState } from "react";
 import { intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
@@ -32,12 +32,15 @@ import { LoadingAnimationContext } from "../contexts/LoadingAnimationContext";
 import Loading from "../components/loading/Loading";
 import Download from "../components/download/Download";
 import { initLoadingAnimation } from "../components/loading/LoadingAnimationDownloads";
-import { DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
+import { DOWNLOAD_GROUP_COUNT, DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
 import { SynthChangeContext } from "../contexts/SynthChangeContext";
 import { Network } from "../utils/Network";
 import Toggle from "../components/toggle/Toggle";
 import { TouchCheckerContext } from "../contexts/TouchCheckerContext";
 import { CurrentDraggingElementTouch } from "../contexts/CurrentDraggingElementTouch";
+import { initRotateNotice } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
+import RotateDeviceNotice from "../components/errorInfoComponents/rotateDevice/RotateDeviceNotice";
+import DeviceNotSupported from "../components/errorInfoComponents/notSupported/NotSupportedNotice";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -233,12 +236,15 @@ export default function App() {
         }
     }
 
+    const hasCheckedForDownloaded = useRef<boolean>(false);
     useEffect(() => {
+        if (hasCheckedForDownloaded.current) return;
+        hasCheckedForDownloaded.current = true;
         checkIfDataDownloaded().then(async e => {
             if (e) await initializeAllDownloadedResources();
             setHasDD(e);
             setHasLoaded(true);
-        })
+        });
     }, []);
     const confirm = useConfirm().confirm;
 
@@ -254,6 +260,7 @@ export default function App() {
 
     const initializeAllDownloadedResources = async () => {
         startLoading("loadingAll");
+        await initRotateNotice();
         await initLoadingAnimation();
         await intitializeAllAudios();
         await initCurrentPosImages();
@@ -411,6 +418,30 @@ export default function App() {
 
     const currentDraggingElementRef = useRef<Flavor | null>(null);
 
+    const [shouldRotateDeviceVar, setShouldRotateDevice] = useState<boolean>(isDeviceAspectRatioFitForApp() && shouldRotateDevice());
+    const [isDeviceSupported, setIsDeviceSupported] = useState<boolean>(isDeviceAspectRatioFitForApp());
+
+    useEffect(() => {
+
+        const resized = () => {
+
+            const isSupported = isDeviceAspectRatioFitForApp();
+            const rotate = shouldRotateDevice();
+
+            console.log(isSupported, rotate);
+
+            setShouldRotateDevice(rotate);
+            setIsDeviceSupported(isSupported);
+
+        };
+
+        window.addEventListener("resize", resized);
+
+        return () => {
+            window.removeEventListener("resize", resized);
+        }
+
+    }, []);
 
     return <>
         <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef }}>
@@ -425,13 +456,13 @@ export default function App() {
                                             <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
                                                 <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
 
-                                                {/* {
-                                                    (isDeviceAspectRatioNotFitForApp() && isDeviceAspectRatioNotFitForAppAndRotate()) && <RotateDeviceNotice />
+                                                {
+                                                    hasDownloadedData && shouldRotateDeviceVar && <RotateDeviceNotice />
                                                 }
 
                                                 {
-                                                    isDeviceAspectRatioNotFitForApp() && <DeviceNotFitForApp />
-                                                } */}
+                                                    !isDeviceSupported && <DeviceNotSupported />
+                                                }
 
                                                 <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
                                                     <InitialMenu></InitialMenu>
@@ -548,7 +579,7 @@ async function checkIfDataDownloaded() {
     if (val != null) return false;
 
     const dbs = await indexedDB.databases();
-    return dbs.length == 4;
+    return dbs.length == DOWNLOAD_GROUP_COUNT;
 }
 
 function getLoggedInUser(): User | null {
@@ -563,21 +594,21 @@ function getLoggedInUser(): User | null {
 
 export type ReturnPointWhenCancel = "flavorSynth" | "dishList" | "menu";
 
-function isDeviceAspectRatioNotFitForAppAndRotate() {
+function shouldRotateDevice() {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const aspectRatio = width / height;
-    if (aspectRatio < 1) return true;
+    if (aspectRatio < 0.7) return true;
 
-    if (width < 600) return true;
-    if (height < 600) return true;
+    if (width < 400) return true;
+    // if (height < 400) return true;
     return false;
 }
 
-function isDeviceAspectRatioNotFitForApp() {
+function isDeviceAspectRatioFitForApp() {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
-    if (width < 600 && height < 600) return true;
-    return false;
+    if (width < 600 && height < 500) return false;
+    return true;
 }

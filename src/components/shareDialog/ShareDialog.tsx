@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
@@ -11,7 +11,7 @@ import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 import { getImage, loadImage, setCallbackForImageLoad } from "../../download/ImageDownloadManager";
-import type { ServerDish } from "../../@types/User";
+import type { Dish, ServerDish } from "../../@types/User";
 import PixelButton from "../pixelDiv/PixelButton";
 import { Network } from "../../utils/Network";
 
@@ -69,6 +69,24 @@ export default function ShareDialog() {
     //         await loadImage("share_dish_bg_dish")
     //     ]);
     // });
+
+    useEffect(() => {
+
+        if (!currentDish) return;
+
+        const dish = currentDish as Dish;
+
+        if (!dish.publishState) return;
+        if (!dish.share) return;
+        setShareDigits(dish.share.code);
+        setAIGeneratedImageBase64(dish.share.aiImage);
+        setPublished(true);
+        setCurrentFlavorsSelected(dish.share.flavors.map((flavor, i) => ({
+            flavor,
+            index: i
+        })));
+
+    }, [currentDish]);
 
     const setShareDigits = (numbers: Digit[]) => {
         setSD(numbers);
@@ -373,40 +391,44 @@ export default function ShareDialog() {
 
                         </div>
 
-                        <div className="share-image share-default-layout">
-                            <h2>Share Image</h2>
-                            <span>Share your dish with a unique AI-generated image inspired by your flavor combo.</span>
-                            {
-                                AIGeneratedImageBase64.length == 0 ? <div className="no-generate-image">
-                                    No Image generated yet.
-                                </div> : <img src={AIGeneratedImageBase64} className="generate-image" alt="AI generated image"></img>
-                            }
 
-                            {
-                                isPublished && <>
-                                    <div className="buttons">
-                                        <button className="copy-as-image" onClick={(e) => {
-                                            copyAIImage(AIGeneratedImageBase64);
-                                            if (e.target instanceof HTMLButtonElement) {
-                                                (e.target as HTMLButtonElement).textContent = "Copied!";
-                                                setTimeout(() => {
-                                                    (e.target as HTMLButtonElement).textContent = "Copy as image";
-                                                }, 2000);
-                                            }
-                                        }}>Copy Image</button>
-                                        <button className="download-image" onClick={(e) => {
-                                            downloadImage(AIGeneratedImageBase64);
-                                            if (e.target instanceof HTMLButtonElement) {
-                                                (e.target as HTMLButtonElement).textContent = "Downloading...";
-                                                setTimeout(() => {
-                                                    (e.target as HTMLButtonElement).textContent = "Download Image";
-                                                }, 2000);
-                                            }
-                                        }}>Download Image</button>
-                                    </div>
-                                </>
-                            }
-                        </div>
+                        {
+                            AIGeneratedImageBase64 && <div className="share-image share-default-layout">
+                                <h2>Share Image</h2>
+                                <span>Share your dish with a unique AI-generated image inspired by your flavor combo.</span>
+                                {
+                                    AIGeneratedImageBase64.length == 0 ? <div className="no-generate-image">
+                                        No Image generated yet.
+                                    </div> : <img src={AIGeneratedImageBase64} className="generate-image" alt="AI generated image"></img>
+                                }
+
+                                {
+                                    isPublished && <>
+                                        <div className="buttons">
+                                            <button className="copy-as-image" onClick={(e) => {
+                                                copyAIImage(AIGeneratedImageBase64);
+                                                if (e.target instanceof HTMLButtonElement) {
+                                                    (e.target as HTMLButtonElement).textContent = "Copied!";
+                                                    setTimeout(() => {
+                                                        (e.target as HTMLButtonElement).textContent = "Copy as image";
+                                                    }, 2000);
+                                                }
+                                            }}>Copy Image</button>
+                                            <button className="download-image" onClick={(e) => {
+                                                downloadImage(AIGeneratedImageBase64);
+                                                if (e.target instanceof HTMLButtonElement) {
+                                                    (e.target as HTMLButtonElement).textContent = "Downloading...";
+                                                    setTimeout(() => {
+                                                        (e.target as HTMLButtonElement).textContent = "Download Image";
+                                                    }, 2000);
+                                                }
+                                            }}>Download Image</button>
+                                        </div>
+                                    </>
+                                }
+                            </div>
+                        }
+
                         <div className="share-code share-default-layout">
                             <h2>Share Code</h2>
                             <span>Share your dish with a code.</span>

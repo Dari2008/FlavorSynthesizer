@@ -5,11 +5,14 @@ import { FLAVORS, MAIN_FLAVORS } from "../audio/Flavors";
 import { LOADING_ANIMATION_IMAGE_COUNT, setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
 import { loadAndSaveResource } from "../components/ResourceSaver";
 import { IMAGES_TO_LOAD, loadImage, type ImageName } from "./ImageDownloadManager";
+import { ROTATE_NOTICE_ANIMATION_IMAGE_COUNT } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
 const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
 const FILE_SIZES_IMAGES = FILE_SIZES_IMAGES_RAW as ImageFileSizes;
 
 let startTime = 0;
 let timeTaken = 0;
+
+export const DOWNLOAD_GROUP_COUNT = 5;
 
 export const DOWNLOAD_PROGRESS_KEY = "downloadProgress";
 
@@ -35,8 +38,12 @@ async function downloadLoadingAnimationFrame(frame: number) {
     setLoadingFrame(await loadAndSaveResource("pot-animation", "image_" + frame, "./animations/pot-animation/image_" + frame + ".png"), frame);
 }
 
+async function downloadRotateNoticeAnimationFrame(frame: number) {
+    setLoadingFrame(await loadAndSaveResource("pot-animation", "image_" + frame, "./animations/phone/Rotation/" + frame + ".png"), frame);
+}
+
 export async function downloadAll(onProgress: (max: number, curr: number, downloadSize: number, downloadedSize: number, mbSec: number) => void) {
-    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT + Object.keys(IMAGES_TO_LOAD).length;
+    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT + ROTATE_NOTICE_ANIMATION_IMAGE_COUNT + Object.keys(IMAGES_TO_LOAD).length;
     let curr = 0;
     let downloadedContentSize = 0;
     let maxDownloadedContent = calculateMaxDownloadSize();
@@ -57,6 +64,23 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
         }
         downloadStart();
         await downloadLoadingAnimationFrame(i);
+        const sizePerSec = downloadEnd(size);
+        downloadedContentSize += size;
+        onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+        curr++
+        updateProgress();
+    }
+
+    for (let i = 0; i < ROTATE_NOTICE_ANIMATION_IMAGE_COUNT; i++) {
+        const size = getSizeOf("rotateDevice", "" + i);
+        if (downloadProgress > downloadProgressSubtractedAllready) {
+            downloadProgressSubtractedAllready++;
+            curr++
+            downloadedContentSize += size;
+            continue;
+        }
+        downloadStart();
+        await downloadRotateNoticeAnimationFrame(i);
         const sizePerSec = downloadEnd(size);
         downloadedContentSize += size;
         onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);

@@ -227,6 +227,13 @@
             align-self: end;
             display: flex;
             gap: 20px;
+
+
+            @media (width < 1250px) {
+                position: static;
+                top: unset;
+                right: unset;
+            }
         }
     }
 

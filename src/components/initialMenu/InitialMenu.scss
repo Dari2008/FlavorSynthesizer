@@ -383,6 +383,14 @@
     // }
 }
 
+.touch-device {
+    .main-menu {
+        .label-for-image {
+            opacity: 1 !important;
+        }
+    }
+}
+
 @keyframes fadeOutOpacity {
     0% {
         opacity: 1;
