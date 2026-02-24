@@ -1,6 +1,12 @@
 @use "../utils/Variables.scss" as *;
 @use "../utils/clamp.scss" as *;
 
+#root:has(.flavor-synth[data-readonly="true"]) {
+    &>.close {
+        right: 20px !important;
+    }
+}
+
 #root {
     display: grid;
     grid-template-columns: auto 1fr max-content;

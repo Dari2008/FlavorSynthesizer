@@ -13,17 +13,13 @@ import { CurrentlyPlayingContext } from "../../contexts/CurrentlyPlayingContext"
 import SynthLine from "./synthLine/SynthLine";
 import FlavorStatistic from "./flavorStatistic/FlavorStatistic";
 import ControlKnob from "./controlKnob/ControlKnob";
-import { SynthChangeContext, useSynthChange } from "../../contexts/SynthChangeContext";
-import { useTitle } from "../../contexts/TitleContext";
+import { useSynthChange } from "../../contexts/SynthChangeContext";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useDishes } from "../../contexts/DishesContext";
 import { useCurrentDishActions } from "../../contexts/DishActions";
-import type { Flavor } from "../../@types/Flavors";
 import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
-import { useCurrentDish } from "../../contexts/CurrentDish";
 import PixelDiv from "../pixelDiv/PixelDiv";
-import { CurrentDraggingElementTouch } from "../../contexts/CurrentDraggingElementTouch";
 
 
 type EventListWithUUID<T> = {
@@ -33,7 +29,13 @@ const SKIP_SIZE = 1;
 
 export default function FlavorSynth() {
     // const [synthLines, setSynthLines] = synthLinesWrapped;
-    const widthRef = useRef<number>(getCurrentTrackWidth());
+
+    const mainFlavor = useMainFlavor();
+    const gameState = useGameState();
+
+    const isReadonly = gameState.gameState == "createDish-create-viewonly";
+
+    const widthRef = useRef<number>(getCurrentTrackWidth(isReadonly));
     // const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
@@ -45,9 +47,6 @@ export default function FlavorSynth() {
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
     const currentFrameId = useRef<number>(-1);
-
-    const mainFlavor = useMainFlavor();
-    const gameState = useGameState();
 
     const mainFlavorsPlayer = getMainFlavorByName(mainFlavor.mainFlavor);
     const synthSelectionChangeCallbacks = useRef<EventListWithUUID<() => void>>({});
@@ -80,9 +79,6 @@ export default function FlavorSynth() {
     const [synthLines, setSynthLines] = dishActions.synthLines;
     const [volumes, setVolumes] = dishActions.volumes;
 
-
-    const isReadonly = gameState.gameState == "createDish-create-viewonly";
-
     playerRef.current.onStop = () => {
         setPlaying(false);
         isPlayingRef.current = false;
@@ -104,6 +100,10 @@ export default function FlavorSynth() {
             type: "addedTrack",
             track: structuredClone(synthLine)
         });
+
+        repaintAllElements();
+        repaintAllTimelines();
+        repaintAll();
     };
 
     const deleteSynth = (uuid: string) => {
@@ -144,7 +144,7 @@ export default function FlavorSynth() {
             let newSpanWidth = (newSpan.to - newSpan.from) * zoomFactor;
             if (newSpanWidth < 10) return;
             if (newSpanWidth > 300) return;
-            const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX - getCurrentControlsWidth());
+            const zoomInOnSecond = calculateCurrentPosSeconds(e.clientX - getCurrentControlsWidth(isReadonly));
             const distanceLeftSeconds = zoomInOnSecond - newSpan.from;
             const distanceRightSeconds = newSpan.to - zoomInOnSecond;
             const distanceLeftPercent = distanceLeftSeconds / (distanceLeftSeconds + distanceRightSeconds);
@@ -457,7 +457,8 @@ export default function FlavorSynth() {
         };
 
         const resized = () => {
-            widthRef.current = getCurrentTrackWidth();
+            widthRef.current = getCurrentTrackWidth(isReadonly);
+            console.log(widthRef.current);
             repaintAllElements();
             repaintAllTimelines();
             repaintAll();
@@ -471,7 +472,7 @@ export default function FlavorSynth() {
             window.removeEventListener("mouseup", mouseRelease);
             window.removeEventListener("resize", resized);
         };
-    }, [synthLines]);
+    }, [synthLines, isReadonly]);
 
 
     const startStatisticLoop = () => {
@@ -555,7 +556,7 @@ export default function FlavorSynth() {
                             </div>
 
                             <div className="buttons-reversed">
-                                <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                <button className="share" onClick={async () => { await dishes.saveCurrentDish(); gameState.setGameState("createDish-share"); }}>
                                     <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                 </button>
                                 <button className="save" onClick={dishes.saveCurrentDish}>
@@ -632,20 +633,25 @@ export type CurrentSpan = {
     to: number;
 }
 
-function getCurrentTrackWidth() {
+function getCurrentTrackWidth(isReadonly: boolean) {
     const width = window.innerWidth;
 
-    const listWidth = Math.min(Math.max(width * 0.2, 100), 250);
+    console.log(isReadonly);
 
-    let controlsWidth = (window.innerWidth - 300) * 0.1;
+    const listWidth = (!isReadonly) ? Math.min(Math.max(width * 0.2, 100), 250) : 40;
+
+    let controlsWidth = (window.innerWidth - listWidth) * 0.1;
     if (controlsWidth > 100) controlsWidth = 100;
     if (controlsWidth < 50) controlsWidth = 50;
     let restWidth = window.innerWidth - listWidth - controlsWidth - 20; // - padding+margin = 20
     return restWidth;
 }
 
-function getCurrentControlsWidth() {
-    let controlsWidth = (window.innerWidth - 300) * 0.1;
+function getCurrentControlsWidth(isReadonly: boolean) {
+    const width = window.innerWidth;
+    const listWidth = (!isReadonly) ? Math.min(Math.max(width * 0.2, 100), 250) : 40;
+
+    let controlsWidth = (window.innerWidth - listWidth) * 0.1;
     if (controlsWidth > 100) controlsWidth = 100;
     if (controlsWidth < 50) controlsWidth = 50;
     return controlsWidth;

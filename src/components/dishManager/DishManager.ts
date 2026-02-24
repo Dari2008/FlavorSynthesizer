@@ -1,6 +1,6 @@
 import type { AddDishResponse, APIResponse, DishLoadResponse } from "../../@types/Api";
 import type { MainFlavor } from "../../@types/Flavors";
-import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynthLine, User } from "../../@types/User";
+import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynthLine, User, UUID } from "../../@types/User";
 import { Network } from "../../utils/Network";
 import { BASE_URL } from "../../utils/Statics";
 import Utils from "../../utils/Utils";
@@ -77,7 +77,7 @@ export default class DishManager {
         return true;
     }
 
-    public static async addDish(user: User, dish: Dish | LocalDish): Promise<string | boolean> {
+    public static async addDish(user: User, dish: Dish | LocalDish): Promise<UUID | boolean> {
         const jwt = user.jwt;
         const response = await Network.loadJson<APIResponse<AddDishResponse>>(BASE_URL + "/dishes/update/addDish.php", {
             method: "POST",
@@ -95,7 +95,7 @@ export default class DishManager {
         const changedUUids = response.changedUUIDs;
         if (Object.keys(changedUUids).length == 0) return true;
 
-        return changedUUids[dish.uuid];
+        return changedUUids[dish.uuid] as UUID;
     }
 
     public static convertServerDishToDish(dish: ServerDish): Dish {

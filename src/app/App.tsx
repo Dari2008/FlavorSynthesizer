@@ -1,4 +1,4 @@
-import { Activity, use, useEffect, useRef, useState } from "react";
+import { Activity, useEffect, useRef, useState } from "react";
 import { intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
@@ -14,7 +14,7 @@ import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
 import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
-import InitialMenu, { type DownloadProgress } from "../components/initialMenu/InitialMenu";
+import InitialMenu from "../components/initialMenu/InitialMenu";
 import type { Dish, DishVolumes, LocalDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
@@ -22,7 +22,6 @@ import { UserContext } from "../contexts/UserContext";
 import { DishesContext } from "../contexts/DishesContext";
 import { useTitle } from "../contexts/TitleContext";
 import { CurrentDishIndexContext } from "../contexts/CurrentDish";
-import useJsObjectHook, { useJsObjectHookForArray, useJsRefObjectHook, useJsRefObjectWithFunctionHook } from "../hooks/JsObjectHook";
 import { GameStateContext, type GameState } from "../contexts/GameStateContext";
 import { MainFlavorContext } from "../contexts/MainFlavorContext";
 import DishManager from "../components/dishManager/DishManager";
@@ -35,7 +34,6 @@ import { initLoadingAnimation } from "../components/loading/LoadingAnimationDown
 import { DOWNLOAD_GROUP_COUNT, DOWNLOAD_PROGRESS_KEY } from "../download/DownloadManager";
 import { SynthChangeContext } from "../contexts/SynthChangeContext";
 import { Network } from "../utils/Network";
-import Toggle from "../components/toggle/Toggle";
 import { TouchCheckerContext } from "../contexts/TouchCheckerContext";
 import { CurrentDraggingElementTouch } from "../contexts/CurrentDraggingElementTouch";
 import { initRotateNotice } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
@@ -143,7 +141,7 @@ export default function App() {
         } else {
             const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
             if (localDishes) {
-                setDishes(localDishes);
+                setDishes(localDishes.map(e => ({ ...e, type: "localDish" })));
             }
         }
 
@@ -165,7 +163,7 @@ export default function App() {
             }
             await DishManager.updateEntireDish(userLoggedIn, currentDish as Dish);
         } else {
-            const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary));
+            const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary).map(e => ({ ...e, type: "localDish" })));
             localStorage.setItem("dishes", jsonData);
         }
 
@@ -205,9 +203,9 @@ export default function App() {
             flavors: 100,
             mainFlavor: 100,
             master: 100
-        }
+        },
+        type: "dish"
     }, setCurrent: boolean = true, indexToInsertAt?: number) {
-        console.log("newDish", newDish);
         if (indexToInsertAt != undefined) {
             dishes.splice(indexToInsertAt, 0, newDish);
         } else {
@@ -400,20 +398,27 @@ export default function App() {
 
     const forkCurrentDish = () => {
         if (!isReadonly || !currentDish) return;
+
+        let title = null;
+
         setDishes(dishes => dishes.map(dish => {
             if (dish.uuid !== currentDish.uuid) return dish;
+            if (!(dish as Dish).temporary) return dish;
+            title = dish.name + " (Forked)";
             return {
-                ...dish,
-                createdBy: undefined,
-                temporary: false,
-                aiImage: undefined,
+                ...(dish as Dish),
+                createdBy: userLoggedIn?.displayName ?? "Unknown",
+                temporary: undefined,
                 share: undefined,
                 dishCreationDate: Date.now(),
-                name: dish.name + " (Forked)"
-            } as any as Dish;
+                name: title,
+                uuid: crypto.randomUUID()
+            } as Dish;
         }));
         setGameState("createDish-create");
         saveCurrentDish();
+        setTitle
+        if (title) setCurrentDishTitleToElement(title);
     }
 
     const currentDraggingElementRef = useRef<Flavor | null>(null);
@@ -427,8 +432,6 @@ export default function App() {
 
             const isSupported = isDeviceAspectRatioFitForApp();
             const rotate = shouldRotateDevice();
-
-            console.log(isSupported, rotate);
 
             setShouldRotateDevice(rotate);
             setIsDeviceSupported(isSupported);
@@ -496,7 +499,17 @@ export default function App() {
                                                         <CurrentMainThemeSelector />
                                                         <FlavorSynth />
 
-                                                        <button className="close" onClick={() => setGameState("mainMenu")}>x</button>
+                                                        <button className="close" onClick={async () => {
+                                                            if (!document.title.startsWith("*")) {
+                                                                setGameState("mainMenu");
+                                                                return;
+                                                            }
+                                                            const close = await confirm("Do you want to close the dish and loose all unsaved changes?", "noYes");
+                                                            if (close) {
+                                                                setTitle(title.replaceAll("*", ""));
+                                                                setGameState("mainMenu");
+                                                            }
+                                                        }}>x</button>
                                                     </>
                                                 }
 

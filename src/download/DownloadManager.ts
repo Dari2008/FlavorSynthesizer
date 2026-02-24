@@ -185,6 +185,7 @@ function getSizeOf(mainGroup: string, fileName: string): number {
         console.error(mainGroup, fileName);
         return 0;
     }
+    console.log(mainGroup, fileName);
     return FILE_SIZES[mainGroup][fileName];
 }
 

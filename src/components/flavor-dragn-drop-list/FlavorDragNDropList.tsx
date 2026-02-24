@@ -1,4 +1,3 @@
-import type { FlavorFileMusic } from "../../audio/FlavorMusic"
 import FlavorDragNDropListItem from "./FlavorDragNDropListItem";
 import "./FlavorDragNDropList.scss";
 import { FLAVORS } from "../../audio/Flavors";

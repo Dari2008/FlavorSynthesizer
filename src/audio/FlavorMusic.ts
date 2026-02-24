@@ -1,7 +1,7 @@
 import { Player, } from "tone";
 import * as Tone from "tone";
 import { FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
-import { getResourceByName, hasResource, loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
+import { loadAndSaveResource } from "../components/ResourceSaver";
 import type { DishVolumes } from "../@types/User";
 
 const ROOT_FILE_DIR = "./flavors/audio/"
@@ -65,7 +65,7 @@ export class FlavorFileMusic {
         const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
         this.files[bpm as BPM] = new Player();
         this.promises.push(new Promise<any>(async (res) => {
-            this.files[bpm as BPM].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.replace("data:audio/wav;base64,", "")));
+            this.files[bpm as BPM].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
             await new Promise<void>(res => (this.files[bpm as BPM] && (this.files[bpm as BPM].buffer.onload = () => res()) && (this.files[bpm as BPM].buffer.loaded && res())));
             res(this.files[bpm as BPM]);
         }));
@@ -103,7 +103,7 @@ export class FlavorFileMusic {
         for (const bpm of BPM_VALS) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
-            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.replace("data:audio/wav;base64,", "")));
+            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
             await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
             player.fadeIn = FADE_TIME;
             player.fadeOut = FADE_TIME;
@@ -160,7 +160,6 @@ export class MainFlavorFileMusic {
     private player: undefined | Player;
     public NAME: MainFlavor;
     public imageSrc: string;
-    private BPM: number = 110;
     private volumes: DishVolumes = {
         flavors: 100,
         mainFlavor: 100,
@@ -189,7 +188,7 @@ export class MainFlavorFileMusic {
         const dbPath = this.index.replace(".wav", "");
         const base64 = await loadAndSaveResource("audio", dbPath, file);
         this.player = new Player();
-        this.player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.replace("data:audio/wav;base64,", "")));
+        this.player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
         await new Promise<void>(res => (this.player && (this.player.buffer.onload = () => res()) && (this.player.buffer.loaded && res())));
 
         this.player.fadeIn = FADE_TIME;
@@ -218,7 +217,7 @@ export class MainFlavorFileMusic {
         for (const bpm of BPM_VALS) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
-            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.replace("data:audio/wav;base64,", "")));
+            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
             await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
             player.fadeIn = FADE_TIME;
             player.fadeOut = FADE_TIME;
@@ -231,7 +230,7 @@ export class MainFlavorFileMusic {
         return clone;
     }
 
-    public playSegment(from: number, to: number, bpm: BPM) {
+    public playSegment(from: number, to: number) {
         this.stop();
         // Tone.Transport.stop();
         // Tone.Transport.bpm.value = bpm;

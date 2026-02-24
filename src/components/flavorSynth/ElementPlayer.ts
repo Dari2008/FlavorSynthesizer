@@ -1,6 +1,6 @@
 import * as Tone from "tone";
 import type { FlavorElement } from "./PlayerTrack";
-import { FLAVORS, getFlavorByName } from "../../audio/Flavors";
+import { getFlavorByName } from "../../audio/Flavors";
 import type { FlavorFileMusic } from "../../audio/FlavorMusic";
 import type { DishVolumes } from "../../@types/User";
 

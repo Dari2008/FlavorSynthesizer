@@ -1,9 +1,6 @@
-import { useRef, useState } from "react"
-import { MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors"
+import { MAIN_FLAVOR_COLOR, MAIN_FLAVOR_IMAGES } from "../../@types/Flavors"
 import "./CurrentMainThemeSelector.scss"
-import { MAIN_FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
-import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 
 export default function CurrentMainThemeSelector() {

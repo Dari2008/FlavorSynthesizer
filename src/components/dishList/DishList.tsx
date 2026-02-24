@@ -5,7 +5,7 @@ import customFormat from "dayjs/plugin/customParseFormat"
 import { FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { useEffect, useRef, useState } from "react";
 import type { Dish, LocalDish } from "../../@types/User";
-import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish";
+import { useCurrentDishIndex } from "../../contexts/CurrentDish";
 import { useGameState } from "../../contexts/GameStateContext";
 import type { APIResponse, Digit, VisibilityStateChangeResponse } from "../../@types/Api";
 import PixelDiv from "../pixelDiv/PixelDiv";

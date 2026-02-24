@@ -1,7 +1,6 @@
 import * as Tone from "tone";
 import FlavorMusic from "../FlavorMusic";
 import { MAIN_FLAVOR_IMAGES, type MainFlavor } from "../../@types/Flavors";
-import { MAIN_FLAVORS } from "../Flavors";
 
 export default class Bitter extends FlavorMusic {
     public FLAVOR_NAME: MainFlavor = "Bitter";

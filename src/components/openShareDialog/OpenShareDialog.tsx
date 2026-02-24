@@ -3,7 +3,6 @@ import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
-import PixelDiv from "../pixelDiv/PixelDiv";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -25,7 +24,7 @@ const BG_IMAGES = [
 
 export default function OpenShareDialog({ open }: { open: (openData: OpenData) => void }) {
 
-    const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
+    // const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const currentFlavorsSelectedRef = useRef<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
     const digitsRef = useRef<HTMLDivElement>(null);
@@ -50,7 +49,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
             flavor: flavor,
             index: index
         });
-        setCurrentFlavorsSelected([...newFlavorsSelected]);
+        // setCurrentFlavorsSelected([...newFlavorsSelected]);
         currentFlavorsSelectedRef.current = newFlavorsSelected;
     };
 

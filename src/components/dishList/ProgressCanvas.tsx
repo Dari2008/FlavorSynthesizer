@@ -1,9 +1,7 @@
-import React, { useEffect, useRef, type ReactNode } from "react"
+import React, { useEffect, useRef } from "react"
 
 export default function ProgressCanvas({ progress, maxProgress, progressChangeRef, color, ...rest }: React.HTMLAttributes<HTMLCanvasElement> & { progress: number; maxProgress: number; progressChangeRef?: React.RefObject<(progress: number) => void>; color: string; }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const part = maxProgress / 4;
 
     useEffect(() => {
 

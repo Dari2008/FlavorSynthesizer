@@ -1,8 +1,7 @@
 import { useEffect, useRef } from "react"
 import { useSynthLines } from "../../contexts/SynthLinesContext";
-import type { CurrentSpan, FlavorSynthLine } from "./FlavorSynth";
 import { type Flavor } from "../../@types/Flavors";
-import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, constrainSpan, convertPixelsToSeconds, convertScreenXToTimeline, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, getSpan, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, MAX_SPAN, MIN_SPAN, setSpan, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, calculateCurrentPosSecondsAccurate, calculateSecondsToCurrentPos, constrainSpan, convertPixelsToSeconds, convertTimelineXToScreen, createElementForFlavor, drawElement, FLAVOR_HEIGHT, getOffsetX, getPixelsPerSecond, getSpan, LINE_MARKER_HEIGHT, LINE_Y, MARGIN_BETWEEN_SCALE_AND_FLAVORS, MARKER_EXTRA_SIZE, MAX_SPAN, MIN_SPAN, setSpan, STROKES_COLORS, TOTAL_SYNTH_HEIGHT, UNIT } from "../FlavorUtils";
 import { useTooltip } from "../../contexts/TooltipContext";
 import { useSynthSelector } from "../../contexts/SynthSelectorContext";
 import { useInterPlayerDrag } from "../../contexts/CurrentInterPlayerDragContext";
@@ -154,7 +153,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const ctx = currentPositionCursorCanvasRef.current.getContext("2d");
         if (!ctx) return;
-        const span = getSpan();
+        // const span = getSpan();
         clearCanvas(ctx, currentPositionCursorCanvasRef.current);
 
         const currentSecondPlaying = currentPlaying.currentPositionRef.current;
@@ -166,12 +165,11 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             // drawLine(, "red", 2);
         }
 
-        function drawCurrentPos(x: number, y: number, xEnd: number, yEnd: number) {
+        function drawCurrentPos(x: number, y: number, _xEnd: number, yEnd: number) {
             if ((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition]) ctx?.drawImage((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition], x - 20, y, 40, yEnd);
         }
     }
     renderCurrentPositionCursor();
-
 
     let elementsDebounce = false;
     const renderElementsWDebounce = () => {
@@ -324,7 +322,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             renderElements();
         });
 
-        const onTimelineDrag = (xOrg: number, yOrg: number) => {
+        const onTimelineDrag = (xOrg: number, _yOrg: number) => {
             const box = canvasRef.current?.getBoundingClientRect();
             const x = xOrg - (box?.left ?? 0);
 
@@ -575,7 +573,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
         }
 
-        const onMouseDown = (xOrg: number, yOrg: number) => {
+        const onMouseDown = (_xOrg: number, yOrg: number) => {
             if (isReadonly) return;
             isMouseDown = true;
             const box = canvasRef.current?.getBoundingClientRect();
@@ -660,7 +658,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
             const box = canvasRef.current?.getBoundingClientRect();
             const x = e.clientX - (box?.left ?? 0);
-            const y = e.clientY - (box?.top ?? 0);
+            // const y = e.clientY - (box?.top ?? 0);
 
             synthSelector.setSelectedSynthLine(flavorSynthLine.uuid);
             const currentSecondClicked = calculateCurrentPosSeconds(x);
@@ -672,7 +670,11 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 }
             }
             if (e.shiftKey || e.ctrlKey) {
-                if (foundElement == null) return;
+                if (foundElement == null) {
+                    synthLines.repaintAllElements();
+                    synthLines.repaintAll();
+                    return;
+                }
                 if (synthSelector.selectedElementsRef.current == null) {
                     synthSelector.selectedElementsRef.current = [];
                 }
@@ -681,17 +683,13 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 }
                 // synthLines.repaintAll();
             } else {
-                if (foundElement == null) {
-                    synthSelector.selectedElementsRef.current = [];
-                    // synthLines.repaintAll();
-                } else {
-                    synthSelector.selectedElementsRef.current = [foundElement];
-                    // synthLines.repaintAll();
-                }
+                synthSelector.selectedElementsRef.current = foundElement ? [foundElement] : [];
             }
             // repaint();
-            renderElements();
+            // renderElements();
             targetElement = null;
+            synthLines.repaintAllElements();
+            synthLines.repaintAll();
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
@@ -754,7 +752,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
         };
 
-        const onMouseMoveExternalElement = (xOrg: number, yOrg: number) => {
+        const onMouseMoveExternalElement = (xOrg: number, _yOrg: number) => {
             if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
@@ -783,7 +781,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
         };
 
-        const onReleaseExternalElement = (xOrg: number, yOrg: number) => {
+        const onReleaseExternalElement = (xOrg: number, _yOrg: number) => {
             if (isReadonly) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
@@ -841,10 +839,10 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
         };
 
-        const wheelArgs = {
-            passive: true,
-            capture: true
-        };
+        // const wheelArgs = {
+        //     passive: true,
+        //     capture: true
+        // };
 
         const onMouseMoveWrapper = (e: MouseEvent) => onMouseMove(e.clientX, e.clientY);
         const onMouseDownWrapper = (e: MouseEvent) => onMouseDown(e.clientX, e.clientY);
@@ -1113,7 +1111,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             onTouchEndWrapper(e);
         };
 
-        const onTouchOutsideCancel = (e: TouchEvent) => {
+        const onTouchOutsideCancel = () => {
             onMouseUpReset();
         }
 
@@ -1228,7 +1226,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         const flavorName = flavorNameRaw as Flavor;
         const box = canvasRef.current?.getBoundingClientRect();
         const x = e.clientX - (box?.left ?? 0);
-        const y = e.clientY - (box?.top ?? 0);
+        // const y = e.clientY - (box?.top ?? 0);
 
         const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
@@ -1293,7 +1291,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             const flavorName = flavorNameRaw as Flavor;
             const box = canvasRef.current?.getBoundingClientRect();
             const x = e.clientX - (box?.left ?? 0);
-            const y = e.clientY - (box?.top ?? 0);
+            // const y = e.clientY - (box?.top ?? 0);
 
             const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
@@ -1374,53 +1372,53 @@ function clearCanvas(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingCon
     }
 }
 
-function drawRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
-    if (ctx) {
-        ctx.fillStyle = color;
-        ctx.rect(x, y, width, height);
-    }
-}
+// function drawRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
+//     if (ctx) {
+//         ctx.fillStyle = color;
+//         ctx.rect(x, y, width, height);
+//     }
+// }
 
-function drawCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
-    if (ctx) {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-}
+// function drawCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
+//     if (ctx) {
+//         ctx.fillStyle = color;
+//         ctx.beginPath();
+//         ctx.arc(x, y, radius, 0, Math.PI * 2);
+//         ctx.stroke();
+//     }
+// }
 
-function drawLine(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string = "black", lineWidth: number = 1) {
-    if (ctx) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lineWidth;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-    }
-}
+// function drawLine(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x1: number, y1: number, x2: number, y2: number, color: string = "black", lineWidth: number = 1) {
+//     if (ctx) {
+//         ctx.strokeStyle = color;
+//         ctx.lineWidth = lineWidth;
+//         ctx.beginPath();
+//         ctx.moveTo(x1, y1);
+//         ctx.lineTo(x2, y2);
+//         ctx.stroke();
+//     }
+// }
 
-function fillRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
-    if (ctx) {
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, width, height);
-    }
-}
+// function fillRect(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, width: number, height: number, color: string = "black") {
+//     if (ctx) {
+//         ctx.fillStyle = color;
+//         ctx.fillRect(x, y, width, height);
+//     }
+// }
 
-function fillCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
-    if (ctx) {
-        ctx.fillStyle = color;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
+// function fillCircle(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, radius: number, color: string = "black") {
+//     if (ctx) {
+//         ctx.fillStyle = color;
+//         ctx.beginPath();
+//         ctx.arc(x, y, radius, 0, Math.PI * 2);
+//         ctx.fill();
+//     }
+// }
 
 
-function fillCanvas(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, canvas: HTMLCanvasElement | OffscreenCanvas, color: string = "white") {
-    if (ctx) {
-        ctx.fillStyle = color;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-}
+// function fillCanvas(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, canvas: HTMLCanvasElement | OffscreenCanvas, color: string = "white") {
+//     if (ctx) {
+//         ctx.fillStyle = color;
+//         ctx.fillRect(0, 0, canvas.width, canvas.height);
+//     }
+// }

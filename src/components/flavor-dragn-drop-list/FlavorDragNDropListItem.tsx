@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FlavorFileMusic } from "../../audio/FlavorMusic"
-import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
+import { FLAVOR_COLOR, type Flavor } from "../../@types/Flavors";
 import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
 import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
-import { useSynthLines } from "../../contexts/SynthLinesContext";
 import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 
 type Props = {
@@ -97,19 +96,19 @@ function createDragImageFor(flavorName: Flavor): HTMLCanvasElement {
     return canvas;
 }
 
-function hexToRgbValues(hex: string): string {
-    // Remove leading '#'
-    const cleanHex = hex.replace('#', '');
+// function hexToRgbValues(hex: string): string {
+//     // Remove leading '#'
+//     const cleanHex = hex.replace('#', '');
 
-    // Convert shorthand (#RGB) to full form (#RRGGBB)
-    const fullHex = cleanHex.length === 3
-        ? cleanHex.split('').map(ch => ch + ch).join('')
-        : cleanHex;
+//     // Convert shorthand (#RGB) to full form (#RRGGBB)
+//     const fullHex = cleanHex.length === 3
+//         ? cleanHex.split('').map(ch => ch + ch).join('')
+//         : cleanHex;
 
-    // Parse the values
-    const r = parseInt(fullHex.slice(0, 2), 16);
-    const g = parseInt(fullHex.slice(2, 4), 16);
-    const b = parseInt(fullHex.slice(4, 6), 16);
+//     // Parse the values
+//     const r = parseInt(fullHex.slice(0, 2), 16);
+//     const g = parseInt(fullHex.slice(2, 4), 16);
+//     const b = parseInt(fullHex.slice(4, 6), 16);
 
-    return `${r}, ${g}, ${b}`;
-}
+//     return `${r}, ${g}, ${b}`;
+// }

@@ -1,6 +1,7 @@
 
 import { toast } from "react-toastify";
 import { v4 } from "uuid";
+import type { UUID } from "../@types/User";
 
 
 export default class Utils {
@@ -107,10 +108,10 @@ export default class Utils {
         return v4();
     }
 
-    static uuidv4Exclude(allreadyused: string[]) {
+    static uuidv4Exclude(allreadyused: string[]): UUID {
         let uuid = null;
         do {
-            uuid = v4();
+            uuid = v4() as UUID;
         } while (allreadyused.includes(uuid));
         return uuid;
     }

@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState, type MouseEventHandler } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./ControlKnob.scss"
 import Utils from "../../../utils/Utils";
 

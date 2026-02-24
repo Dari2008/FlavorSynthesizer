@@ -1,76 +1,156 @@
-# React + TypeScript + Vite
+# Flavor Synthesizer
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)
+![Tone.js](https://img.shields.io/badge/Tone.js-Audio-orange)
+![License](https://img.shields.io/badge/License-MIT-green)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![Creating of a Dish](./readmeImgs/showCreationOfDish.gif)
+🌐 **Live Demo:** https://flavorsynth.frobeen.com/
 
-Currently, two official plugins are available:
+## Description
+Flavor Synthesizer is a browser-based music sandbox game where players compose playable “dishes” by arranging flavors on a timeline.
+Each flavor represents a musical element that can be positioned and resized using drag & drop.
+A selected main flavor (Spicy / Sweet / Salty / Savory / Bitter / Sour) defines the harmonic identity of the dish.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Dishes can be:
+- Shared via code
+- Shared via URL
+- Forked by other users
+- Exported as an AI-generated image matching the flavor combination
 
-## React Compiler
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Features
+- Share dishes via code or URL
+- Generate AI-based artwork from flavor combinations
+- Fork and remix other users' dishes
+- Local and server-side dish storage
+- User accounts
 
-Note: This will impact Vite dev & build performances.
+## Requirements
+- Modern browser (Chrome, Edge, Firefox)
+- Minimum width: 600px
+- Minimum height: 500px
+- Audio enabled
 
-## Expanding the ESLint configuration
+## Screenshots
+#### Main Menu
+![Main Menu](./readmeImgs/mainMenu.png)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Entry point of the application.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+#### Dish List
+![Dish List](./readmeImgs/dishList.png)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Overview of locally and remotely stored dishes.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+#### Open a Shared Dish
+![Open Shared Dish](./readmeImgs/openSharedDish.png)
+
+Interface for loading shared dishes.
+
+#### Sharing a Dish
+![Share a Dish](./readmeImgs/sharingDish.png)
+
+Step 1 of the sharing workflow. The second step allows authenticated or anonymous publishing.
+
+#### Creating a Dish / Main Flavor Selector
+![Creating a Dish - Main Flavor Selector](./readmeImgs/creatingDish-mainFlavor.png)
+
+Main flavor selection screen.
+
+#### Creating a Dish / Editor
+![Creating a Dish - Editor](./readmeImgs/creatingDish-editor.png)
+
+Timeline editor interface.
+
+#### Downloading a Dish
+![Downloading a Dish](./readmeImgs/downloadingDish.png)
+
+Download progress indicator for remote dishes.
+
+
+## Controls
+### Editor
+- Drag & drop flavors
+- Drag flavor → move horizontally
+- Drag edge of flavor → resize
+- Shift + Wheel → horizontal scroll
+- Ctrl + Wheel → zoom
+- Click → select flavor
+- Ctrl + Click → multi-select
+- Touch gestures supported
+
+### Dish List
+- Right Click → Menu
+
+## Tech Stack
+- React 19 + TypeScript
+- Vite (build tool)
+- Tone.js (audio engine)
+- SCSS
+- Python (asset generation & tooling)
+
+## Architecture
+Flavor Synthesizer is built around a timeline-based audio engine using [Tone.js](https://github.com/Tonejs/Tone.js).
+
+### Core Data Model
+Each Dish is composed of:
+```typescript
+Dish {
+  synthLines: SynthLine[]
+  masterVolume: number
+  flavorVolume: number
+  mainFlavorVolume: number
+  uuid: string
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```typescript
+SynthLine {
+  flavors: Flavor[]
+  volume: number
+  isMuted: boolean
+  isSolo: boolean
+  uuid: string
+}
 ```
-"# FlavorSynthesizer" 
+
+```typescript
+Flavor {
+  flavorId: string
+  from: number      // start time (seconds or ticks)
+  to: number        // end time
+  uuid: string
+}
+```
+
+States are managed using React Contexts.
+
+
+## Installation
+  ### Run
+  ```bash
+  npm install
+  npm run dev
+  ```
+  ### Build
+  ```bash
+  npm run build
+  ```
+
+## Project Structure
+- src/       - Application source code  
+  - audio/      - Music logic
+  - components/ - React UI components
+  - contexts/   - Global state management  
+- public/    - Static assets (images, audio, sprites)  
+
+
+## Planned Features
+- [ ] Public dish publishing & discovery
+- [ ] Experience (XP) system
+- [ ] Achievement system
+- [ ] Real-time collaborative composition
+
+## License
+MIT License

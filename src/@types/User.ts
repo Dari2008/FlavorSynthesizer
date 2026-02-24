@@ -10,6 +10,7 @@ export type User = {
 }
 
 export type Dish = {
+    type: "dish";
     data: FlavorSynthLine[];
     name: string;
     mainFlavor: MainFlavor;
@@ -17,7 +18,7 @@ export type Dish = {
     publishState: "public" | "private";
     dishCreationDate: number;
     createdBy: string;
-    uuid: string;
+    uuid: UUID;
     share: {
         code: [Digit, Digit, Digit, Digit, Digit, Digit],
         flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
@@ -32,7 +33,9 @@ export type DishVolumes = {
     flavors: number;
 };
 
-export type LocalDish = Omit<Dish, "share" | "publishState" | "aiImage" | "temporary" | "dishCreationDate" | "createdBy">;
+export type LocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage" | "temporary" | "dishCreationDate" | "createdBy"> & {
+    type: "localDish";
+};
 
 export type ServerDish = Omit<Dish, "data"> & {
     tracks: ServerFlavorSynthLine[];
@@ -45,3 +48,5 @@ export type ServerFlavorSynthLine = Omit<FlavorSynthLine, "elements" | "uuid"> &
 export type ServerFlavorElement = Omit<FlavorElement, "flavor" | "uuid"> & {
     flavor: Flavor;
 }
+
+export type UUID = `${string}-${string}-${string}-${string}-${string}`;

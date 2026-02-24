@@ -1,4 +1,4 @@
-import { FlavorFileMusic, MainFlavorFileMusic, type BPM } from "./FlavorMusic";
+import { FlavorFileMusic, MainFlavorFileMusic } from "./FlavorMusic";
 import type { MainFlavor } from "../@types/Flavors";
 
 const FLAVORS: FlavorFileMusic[] = [
@@ -48,12 +48,12 @@ const MAIN_FLAVORS: MainFlavorFileMusic[] = [
     // new Sour(),
     // new Spicy(),
     // new Sweet()
-    new MainFlavorFileMusic("mainFlavors/bitter_finished.wav", "Bitter"),
-    new MainFlavorFileMusic("mainFlavors/salty_finished.wav", "Salty"),
-    new MainFlavorFileMusic("mainFlavors/savory_finished.wav", "Savory"),
-    new MainFlavorFileMusic("mainFlavors/sour_finished.wav", "Sour"),
-    new MainFlavorFileMusic("mainFlavors/spicy_finished.wav", "Spicy"),
-    new MainFlavorFileMusic("mainFlavors/sweet_finished.wav", "Sweet"),
+    new MainFlavorFileMusic("mainFlavors/finished/bitter_finished.mp3", "Bitter"),
+    new MainFlavorFileMusic("mainFlavors/finished/salty_finished.mp3", "Salty"),
+    new MainFlavorFileMusic("mainFlavors/finished/savory_finished.mp3", "Savory"),
+    new MainFlavorFileMusic("mainFlavors/finished/sour_finished.mp3", "Sour"),
+    new MainFlavorFileMusic("mainFlavors/finished/spicy_finished.mp3", "Spicy"),
+    new MainFlavorFileMusic("mainFlavors/finished/sweet_finished.mp3", "Sweet"),
 ];
 
 export function getFlavorByName(name: string) {

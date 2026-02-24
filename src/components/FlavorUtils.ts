@@ -37,6 +37,7 @@ var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
         renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
             if (!starMask.complete) return;
 
+            if (!isFinite(w) || !isFinite(h)) return;
 
             const off = new OffscreenCanvas(w, h);
 
@@ -86,16 +87,16 @@ export function getOffsetX() {
 }
 
 export function setSpanFirstTime(width: number, s: { from: number; to: number; }) {
-    pixelsPerSecond = width / (span.to - span.from);
     if (span.from == -1 && span.to == -1) {
         span = s;
     }
+    pixelsPerSecond = width / (span.to - span.from);
     offsetX = span.from * pixelsPerSecond;
 }
 
 export function setSpan(width: number, s: { from: number; to: number; }) {
-    pixelsPerSecond = width / (span.to - span.from);
     span = s;
+    pixelsPerSecond = width / (span.to - span.from);
     offsetX = span.from * pixelsPerSecond;
 }
 
@@ -342,18 +343,18 @@ function loadImage(src: string): HTMLImageElement {
     return img
 }
 
-function parseTime(time: string): number {
-    const parts = time.split(":");
-    switch (parts.length) {
-        case 1:
-            return parseInt(parts[0]);
-        case 2:
-            return parseInt(parts[1]) + parseInt(parts[0]) * 60;
-        case 3:
-            return parseInt(parts[2]) + parseInt(parts[1]) * 60 + parseInt(parts[0]) * 60 * 60;
-    }
-    return -1;
-}
+// function parseTime(time: string): number {
+//     const parts = time.split(":");
+//     switch (parts.length) {
+//         case 1:
+//             return parseInt(parts[0]);
+//         case 2:
+//             return parseInt(parts[1]) + parseInt(parts[0]) * 60;
+//         case 3:
+//             return parseInt(parts[2]) + parseInt(parts[1]) * 60 + parseInt(parts[0]) * 60 * 60;
+//     }
+//     return -1;
+// }
 
 
 function contrastColor(hex: string): string {

@@ -1,13 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import "./SynthLine.scss";
 import { useSynthLines } from "../../../contexts/SynthLinesContext";
 import { TooltipContext } from "../../../contexts/TooltipContext";
 import PlayerTrack from "../PlayerTrack";
-import type { CurrentSpan, FlavorSynthLine } from "../FlavorSynth";
+import type { FlavorSynthLine } from "../FlavorSynth";
 import { useCurrentDish } from "../../../contexts/CurrentDish";
 import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
-import { useCurrentDishActions } from "../../../contexts/DishActions";
 
 export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
@@ -17,7 +16,6 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
 
     const currentDish = useCurrentDish();
     const change = useSynthChange();
-    const dishActions = useCurrentDishActions();
 
     const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0);
 

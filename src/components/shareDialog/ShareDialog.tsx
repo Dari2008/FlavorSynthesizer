@@ -3,17 +3,16 @@ import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { BASE_URL } from "../../utils/Statics";
-import type { APIResponse, Digit, FlavorsSelected, ShareErrorResponse, ShareResponse } from "../../@types/Api";
+import type { APIResponse, Digit, FlavorsSelected, ShareErrorResponse, ShareFlavors, ShareResponse } from "../../@types/Api";
 import Utils from "../../utils/Utils";
 import { loginUser, registerUser } from "../../utils/UserUtils";
 import { useUser } from "../../contexts/UserContext";
-import { useMainFlavor } from "../../contexts/MainFlavorContext";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
-import { getImage, loadImage, setCallbackForImageLoad } from "../../download/ImageDownloadManager";
-import type { Dish, ServerDish } from "../../@types/User";
+import type { Dish, LocalDish, ServerDish } from "../../@types/User";
 import PixelButton from "../pixelDiv/PixelButton";
 import { Network } from "../../utils/Network";
+import { useDishes } from "../../contexts/DishesContext";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -53,8 +52,8 @@ export default function ShareDialog() {
 
     const user = useUser();
     const currentDish = useCurrentDish();
-    const mainFlavor = useMainFlavor();
     const gameState = useGameState();
+    const dishes = useDishes();
 
     // const [BG_IMAGES, setBgImages] = useState<(string | undefined)[]>([]);
 
@@ -74,10 +73,16 @@ export default function ShareDialog() {
 
         if (!currentDish) return;
 
-        const dish = currentDish as Dish;
+        const dish = currentDish as Dish | LocalDish;
 
-        if (!dish.publishState) return;
-        if (!dish.share) return;
+        if (dish.type == "localDish") return;
+        if (!dish.share) {
+            setShareDigits([0, 0, 0, 0, 0, 0]);
+            setAIGeneratedImageBase64("");
+            setPublished(false);
+            setCurrentFlavorsSelected([]);
+            return;
+        }
         setShareDigits(dish.share.code);
         setAIGeneratedImageBase64(dish.share.aiImage);
         setPublished(true);
@@ -156,8 +161,6 @@ export default function ShareDialog() {
             return;
         }
 
-        console.log("currentDish", currentDish);
-
         const compiledDish = {
             name: currentDish.name,
             mainFlavor: currentDish.mainFlavor,
@@ -207,6 +210,28 @@ export default function ShareDialog() {
         Utils.success("Published your dish");
 
         setPublished(true);
+
+        if (currentDish.type == "dish") {
+            // currentDish.share = {
+            //     aiImage: response.dishData.aiImage,
+            //     code: response.dishData.code,
+            //     flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor) as ShareFlavors
+            // };
+            dishes.setDishes(dishes => dishes.map(dish => {
+                if (dish.uuid != currentDish.uuid) return dish;
+                return {
+                    ...dish,
+                    publishState: "public",
+                    share: {
+                        aiImage: response.dishData.aiImage,
+                        code: response.dishData.code,
+                        flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor) as ShareFlavors
+                    }
+                }
+            }));
+        }
+
+
     };
 
     const login = async () => {
@@ -579,7 +604,7 @@ function copyTextOfFlavors(flavors: FlavorsSelected[]) {
     navigator.clipboard.writeText(flavors.map(e => e.flavor).join(", "));
 }
 
-function randomFlavor() {
-    const fl = FLAVORS.map(e => e.NAME);
-    return fl[Math.round(Math.random() * (fl.length - 1))];
-}
+// function randomFlavor() {
+//     const fl = FLAVORS.map(e => e.NAME);
+//     return fl[Math.round(Math.random() * (fl.length - 1))];
+// }

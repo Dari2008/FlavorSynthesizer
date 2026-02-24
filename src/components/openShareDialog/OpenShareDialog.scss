@@ -61,6 +61,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             gap: 20px;
             backdrop-filter: blur(12px) brightness(40%);
             overflow-y: auto;
+            overflow-x: hidden;
         }
 
         button:disabled {

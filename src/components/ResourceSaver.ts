@@ -1,4 +1,3 @@
-const dbName = "offlineResources";
 const storeName = "resources";
 const DB_VERSION = 1;
 

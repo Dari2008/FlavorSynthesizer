@@ -1,5 +1,4 @@
-import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
-import type { Flavor, MainFlavor } from "./Flavors";
+import type { Flavor } from "./Flavors";
 import type { DishVolumes, ServerDish } from "./User";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
@@ -35,7 +34,7 @@ export type ShareErrorResponse = {
 
 export type ShareResponse = {
     dishData: {
-        code: [Digit, Digit, Digit, Digit, Digit, Digit];
+        code: ShareDigits;
         aiImage: string;
     };
 };
@@ -45,8 +44,8 @@ export type OpenShareResponse = {
     aiImage: string;
     uuid: string;
     share: {
-        code: [Digit, Digit, Digit, Digit, Digit, Digit],
-        flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor]
+        code: ShareDigits,
+        flavors: ShareFlavors
     };
     name: string;
     dishCreationDate: number;
@@ -71,6 +70,8 @@ export type FlavorsSelected = {
 };
 
 export type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+export type ShareDigits = [Digit, Digit, Digit, Digit, Digit, Digit];
+export type ShareFlavors = [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
 
 type JWTData = {
     jwt: string;

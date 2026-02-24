@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./InitialMenu.scss";
-import type { User } from "../../@types/User";
 import { loginUser, registerUser } from "../../utils/UserUtils";
-import { downloadAll } from "../../download/DownloadManager";
 import ImageMenu from "../imageMenu/ImageMenu";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
