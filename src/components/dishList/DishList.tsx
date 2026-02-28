@@ -20,6 +20,7 @@ import { BASE_URL } from "../../utils/Statics";
 import { useUser } from "../../contexts/UserContext";
 import Utils from "../../utils/Utils";
 import ProgressCanvas from "../progressCanvas/ProgressCanvas";
+import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
 
 dayjs.extend(customFormat);
 
@@ -393,25 +394,42 @@ export default function DishList() {
             </div> */}
         </PixelDiv>
 
+        <ScrollingBackgrundImage images={{
+            top: "./bgs/dishList/dish-list-background-top.png",
+            middle: "./bgs/dishList/dish-list-background-main.png",
+            bottom: "./bgs/dishList/dish-list-background-bottom.png"
+        }}
+            aspectRatios={{
+                top: "88/34",
+                bottom: "88/17"
+            }}>
 
-        <div className="top">
             <h1>Dish list</h1>
+
+            <>
+                {
+                    dishes.length > 0 && <ul className="list" ref={listRef}>
+                        {
+                            dishes.filter(e => !(e as any).temporary).map((dish, i) => <DishListItem dish={dish} key={dish.name + i} playDish={playDish} currentPlayingUUID={currentPlayingUUID} progressChangeRef={progressChangeRef} />)
+                        }
+                    </ul>
+                }
+                {
+                    dishes.length == 0 && <h2>Nothing here! <a onClick={() => { gameState.createNewActiveDish(); gameState.setGameState("createDish-mainFlavor"); }}>Create a Dish</a></h2>
+                }
+            </>
+
+        </ScrollingBackgrundImage>
+
+        {/* <div className="top">
         </div>
         <div className="middle">
-            {
-                dishes.length > 0 && <ul className="list" ref={listRef}>
-                    {
-                        dishes.filter(e => !(e as any).temporary).map((dish, i) => <DishListItem dish={dish} key={dish.name + i} playDish={playDish} currentPlayingUUID={currentPlayingUUID} progressChangeRef={progressChangeRef} />)
-                    }
-                </ul>
-            }
-            {
-                dishes.length == 0 && <h2>Nothing here! <a onClick={() => { gameState.createNewActiveDish(); gameState.setGameState("createDish-mainFlavor"); }}>Create a Dish</a></h2>
-            }
+
         </div>
-        <div className="bottom"></div>
+        <div className="bottom"></div> */}
 
         <button className="close" onClick={gameState.goBack}>x</button>
+
     </div>;
 }
 
@@ -441,7 +459,7 @@ function DishListItem({ dish, currentPlayingUUID, playDish, progressChangeRef }:
             }
         </PixelDiv>
         <span className="dish-name">{dish.name}</span>
-        <span className="dish-creation-date">{dayjs((dish as any).dishCreationDate).format("YYYY/MM/DD hh:mm")}</span>
+        <span className="dish-creation-date">{dayjs((dish as any).createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY/MM/DD hh:mm")}</span>
         <span className="dish-created-by">by {(dish as any).createdBy ?? "Unknown"}</span>
         <div className="dish-publish-state">
             {

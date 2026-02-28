@@ -7,7 +7,7 @@ export const IMAGES_TO_LOAD: {
     };
 } = {
     "main_background": {
-        url: "./imgs/main_background.png"
+        url: "./bgs/main/main_background.png"
     },
     "main_background_repeatable": {
         url: "./imgs/repeatable_background.png"

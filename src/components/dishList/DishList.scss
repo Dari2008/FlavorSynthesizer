@@ -9,48 +9,7 @@ $listBG: $gray-400;
 
 .dish-list {
     grid-area: 1/1/5/6;
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    align-items: center;
-    overflow-y: auto;
 
-    .top,
-    .middle,
-    .bottom {
-        width: min(max(50%, 500px), 97vw);
-        // min-width: 500px;
-        // max-width: ;
-        background-size: 100% auto;
-        position: relative;
-        image-rendering: pixelated;
-    }
-
-    .top {
-        aspect-ratio: 88/34;
-        background-image: url("./imgs/dishList/dish-list-background-top.png");
-        background-repeat: no-repeat;
-        background-position: 100% 0%;
-        margin-top: auto;
-    }
-
-    .middle {
-        background-image: url("./imgs/dishList/dish-list-background-main.png");
-        background-repeat: repeat-y;
-        display: flex;
-        flex-direction: column;
-        // min-height: 30vh;
-    }
-
-    .bottom {
-        aspect-ratio: 88/17;
-        background-image: url("./imgs/dishList/dish-list-background-bottom.png");
-        background-repeat: no-repeat;
-        background-position: 0% 0%;
-        margin-bottom: auto;
-    }
 
     .close {
         position: fixed;

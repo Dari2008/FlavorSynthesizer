@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, convertPixelsToSeconds, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
@@ -22,7 +22,7 @@ import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import { FlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
 import { useTouchChecker } from "../../contexts/TouchCheckerContext";
-import PixelButton from "../pixelDiv/PixelButton";
+import { useCurrentDish } from "../../contexts/CurrentDish";
 
 
 type EventListWithUUID<T> = {
@@ -85,6 +85,8 @@ export default function FlavorSynth() {
     const [volumes, setVolumes] = dishActions.volumes;
 
     const isTouch = useTouchChecker().isTouch;
+
+    const currentDish = useCurrentDish();
 
     playerRef.current.onStop = () => {
         setPlaying(false);
@@ -683,13 +685,13 @@ export default function FlavorSynth() {
                                 </div>
                                 <PixelDiv className="volumes">
                                     <div className="volume">
-                                        <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="flavors" label="Flavors" startVal={currentDish?.volumes.flavors ?? 100} onValueChanged={flavorsVolumeChanged}></ControlKnob>
                                     </div>
                                     <div className="mainFlavorVolume">
-                                        <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="main-flavors" label="Main Flavor" startVal={currentDish?.volumes.mainFlavor ?? 100} onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
                                     </div>
                                     <div className="masterVolume">
-                                        <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="master-flavors" label="Master" startVal={currentDish?.volumes.master ?? 100} onValueChanged={masterVolumeChanged}></ControlKnob>
                                     </div>
                                 </PixelDiv>
                                 <div className="buttons">

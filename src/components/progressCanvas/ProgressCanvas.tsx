@@ -47,11 +47,19 @@ export default function ProgressCanvas({ progress, maxProgress, progressChangeRe
 
         };
 
-        render();
 
-        const resizeListener = new ResizeObserver(() => {
+        const updateWithSize = () => {
+            const canvas = canvasRef.current;
+            if (canvas) {
+                const size = canvas.getBoundingClientRect();
+                canvas.width = size.width;
+                canvas.height = size.height;
+            }
             render();
-        });
+        };
+        updateWithSize();
+
+        const resizeListener = new ResizeObserver(updateWithSize);
         resizeListener.observe(canvas);
 
         if (progressChangeRef) {

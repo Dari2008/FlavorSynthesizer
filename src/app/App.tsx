@@ -39,6 +39,8 @@ import { CurrentDraggingElementTouch } from "../contexts/CurrentDraggingElementT
 import { initRotateNotice } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
 import RotateDeviceNotice from "../components/errorInfoComponents/rotateDevice/RotateDeviceNotice";
 import DeviceNotSupported from "../components/errorInfoComponents/notSupported/NotSupportedNotice";
+import Restaurant from "../components/restaurant/Restaurant";
+import dayjs from "dayjs";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -194,7 +196,7 @@ export default function App() {
         mainFlavor: "Bitter",
         name: generateNewDishTitle(),
         publishState: "private",
-        dishCreationDate: Date.now(),
+        createdAt: dayjs().format("YYYY-MM-DD HH:mm:ss"),
         createdBy: userLoggedIn?.displayName ?? "Unknown",
         share: undefined,
         temporary: undefined,
@@ -410,7 +412,7 @@ export default function App() {
                 createdBy: userLoggedIn?.displayName ?? "Unknown",
                 temporary: undefined,
                 share: undefined,
-                dishCreationDate: Date.now(),
+                createdAt: dayjs().format("YYYY-MM-DD HH:mm:ss"),
                 name: title,
                 uuid: crypto.randomUUID()
             } as Dish;
@@ -478,7 +480,11 @@ export default function App() {
                                                 }
 
                                                 <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
-                                                    <InitialMenu></InitialMenu>
+                                                    <InitialMenu />
+                                                </Activity>
+
+                                                <Activity mode={gameState == "restaurant" ? "visible" : "hidden"}>
+                                                    <Restaurant />
                                                 </Activity>
 
                                                 <Activity mode={!hasDownloadedData || currentlyLoading.includes("downloadData") ? "visible" : "hidden"}>
@@ -486,7 +492,7 @@ export default function App() {
                                                 </Activity>
 
                                                 <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
-                                                    <MainFlavorSelectionDialog></MainFlavorSelectionDialog>
+                                                    <MainFlavorSelectionDialog />
                                                 </Activity>
 
                                                 {

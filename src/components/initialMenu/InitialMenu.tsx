@@ -81,7 +81,7 @@ export default function InitialMenu() {
                 break;
             case "restaurant":
                 loading.startLoading("restaurant");
-                RestaurantLoader.loadRestaurantData(20);
+                await RestaurantLoader.loadRestaurantData(20);
                 loading.stopLoading("restaurant");
                 gameState.setGameState("restaurant");
                 break;

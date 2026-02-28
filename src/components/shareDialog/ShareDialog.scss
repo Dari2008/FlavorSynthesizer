@@ -606,6 +606,15 @@
         }
     }
 
+    .loading-subtitle {
+        position: absolute;
+        top: 75%;
+        left: 50%;
+        translate: -50% -50%;
+        transform-origin: 50% 50%;
+        font-size: clampW(0.2em, 2em, 200px, 2000px);
+    }
+
     .loader {
         width: 64px;
         height: 64px;

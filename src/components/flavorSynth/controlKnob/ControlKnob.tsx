@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./ControlKnob.scss"
 import Utils from "../../../utils/Utils";
 
-export default function ControlKnob({ classNames, label, onValueChanged }: { classNames: string; label: string; onValueChanged: (val: number) => void; }) {
+export default function ControlKnob({ classNames, label, onValueChanged, startVal }: { classNames: string; startVal: number; label: string; onValueChanged: (val: number) => void; }) {
 
     const ticksContainerRef = useRef<HTMLDivElement>(null);
     // const volumeRangeRef = useRef<HTMLDivElement>(null);
@@ -12,7 +12,7 @@ export default function ControlKnob({ classNames, label, onValueChanged }: { cla
     const volumeControlRef = useRef<HTMLDivElement>(null);
     const [isEditing, setE] = useState<boolean>(false);
     const isEditingRef = useRef<boolean>(false);
-    const currentValueRef = useRef<number>(100);
+    const currentValueRef = useRef<number>(startVal);
     const currentRotation = useRef<number>(0);
     const isMouseDown = useRef<boolean>(false);
     const isMouseWithin = useRef<boolean>(false);
@@ -21,6 +21,10 @@ export default function ControlKnob({ classNames, label, onValueChanged }: { cla
         isEditingRef.current = is;
         setE(is);
     }
+
+    useEffect(() => {
+        updateVisuals(startVal);
+    }, [startVal]);
 
     const totalTicks = 40; // for a clock = 60
     const secondaryInterval = 5;

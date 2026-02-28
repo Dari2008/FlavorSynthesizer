@@ -1,18 +1,15 @@
 import FILE_SIZES_RAW from "../@types/downloadSizes.json";
-import FILE_SIZES_IMAGES_RAW from "../@types/downloadImageSizes.json";
 import type { BPM } from "../audio/FlavorMusic";
 import { FLAVORS, MAIN_FLAVORS } from "../audio/Flavors";
 import { LOADING_ANIMATION_IMAGE_COUNT, setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
 import { loadAndSaveResource } from "../components/ResourceSaver";
-import { IMAGES_TO_LOAD, loadImage, type ImageName } from "./ImageDownloadManager";
 import { ROTATE_NOTICE_ANIMATION_IMAGE_COUNT } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
 const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
-const FILE_SIZES_IMAGES = FILE_SIZES_IMAGES_RAW as ImageFileSizes;
 
 let startTime = 0;
 let timeTaken = 0;
 
-export const DOWNLOAD_GROUP_COUNT = 5;
+export const DOWNLOAD_GROUP_COUNT = 4;
 
 export const DOWNLOAD_PROGRESS_KEY = "downloadProgress";
 
@@ -43,7 +40,7 @@ async function downloadRotateNoticeAnimationFrame(frame: number) {
 }
 
 export async function downloadAll(onProgress: (max: number, curr: number, downloadSize: number, downloadedSize: number, mbSec: number) => void) {
-    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT + ROTATE_NOTICE_ANIMATION_IMAGE_COUNT + Object.keys(IMAGES_TO_LOAD).length;
+    const max = MAIN_FLAVORS.length + (FLAVORS.length * 4) + CURRENT_POS_ANIMATION_FRAME_COUNT + LOADING_ANIMATION_IMAGE_COUNT + ROTATE_NOTICE_ANIMATION_IMAGE_COUNT;
     let curr = 0;
     let downloadedContentSize = 0;
     let maxDownloadedContent = calculateMaxDownloadSize();
@@ -88,22 +85,22 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
         updateProgress();
     }
 
-    for (const key of Object.keys(IMAGES_TO_LOAD) as ImageName[]) {
-        const size = getSizeOfImage(key);
-        if (downloadProgress > downloadProgressSubtractedAllready) {
-            downloadProgressSubtractedAllready++;
-            curr++
-            downloadedContentSize += size;
-            continue;
-        }
-        downloadStart();
-        await loadImage(key);
-        const sizePerSec = downloadEnd(size);
-        downloadedContentSize += size;
-        onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
-        curr++;
-        updateProgress();
-    }
+    // for (const key of Object.keys(IMAGES_TO_LOAD) as ImageName[]) {
+    //     const size = getSizeOfImage(key);
+    //     if (downloadProgress > downloadProgressSubtractedAllready) {
+    //         downloadProgressSubtractedAllready++;
+    //         curr++
+    //         downloadedContentSize += size;
+    //         continue;
+    //     }
+    //     downloadStart();
+    //     await loadImage(key);
+    //     const sizePerSec = downloadEnd(size);
+    //     downloadedContentSize += size;
+    //     onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+    //     curr++;
+    //     updateProgress();
+    // }
 
     for (const mainFlavor of MAIN_FLAVORS) {
         const size = getSizeOf("audio_mainFlavors", mainFlavor.NAME.toLowerCase() + "");
@@ -123,22 +120,22 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
     }
 
     for (const flavor of FLAVORS) {
-        for (const bpm of BPM_VALS) {
-            const size = getSizeOf("audio_" + bpm, flavor.index + "");
-            if (downloadProgress > downloadProgressSubtractedAllready) {
-                downloadProgressSubtractedAllready++;
-                curr++
-                downloadedContentSize += size;
-                continue;
-            }
-            downloadStart();
-            await flavor.downloadSingle(bpm as BPM);
-            const sizePerSec = downloadEnd(size);
-            downloadedContentSize += size;
-            onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+        // for (const bpm of BPM_VALS) {
+        const size = getSizeOf("audio_" + 110, flavor.index + "");
+        if (downloadProgress > downloadProgressSubtractedAllready) {
+            downloadProgressSubtractedAllready++;
             curr++
-            updateProgress();
+            downloadedContentSize += size;
+            continue;
         }
+        downloadStart();
+        await flavor.downloadSingle(110 as BPM);
+        const sizePerSec = downloadEnd(size);
+        downloadedContentSize += size;
+        onProgress(max, curr, maxDownloadedContent, downloadedContentSize, sizePerSec);
+        curr++
+        updateProgress();
+        // }
     }
 
     for (let i = 0; i < CURRENT_POS_ANIMATION_FRAME_COUNT; i++) {
@@ -168,10 +165,19 @@ function calculateMaxDownloadSize() {
     }
 
 
+    for (let i = 0; i < LOADING_ANIMATION_IMAGE_COUNT; i++) {
+        size += getSizeOf("pot-animation", "image_" + i);
+    }
+
+
+    for (let i = 0; i < ROTATE_NOTICE_ANIMATION_IMAGE_COUNT; i++) {
+        size += getSizeOf("rotateDevice", "" + i);
+    }
+
     for (const flavor of FLAVORS) {
-        for (const bpm of BPM_VALS) {
-            size += getSizeOf("audio_" + bpm, flavor.index + "");
-        }
+        // for (const bpm of BPM_VALS) {
+        size += getSizeOf("audio_" + 110, flavor.index + "");
+        // }
     }
 
     for (let i = 0; i < CURRENT_POS_ANIMATION_FRAME_COUNT; i++) {
@@ -181,6 +187,10 @@ function calculateMaxDownloadSize() {
 }
 
 function getSizeOf(mainGroup: string, fileName: string): number {
+    if (!FILE_SIZES[mainGroup]) {
+        console.error(mainGroup, fileName);
+        return 0;
+    }
     if (!FILE_SIZES[mainGroup][fileName]) {
         console.error(mainGroup, fileName);
         return 0;
@@ -189,27 +199,15 @@ function getSizeOf(mainGroup: string, fileName: string): number {
     return FILE_SIZES[mainGroup][fileName];
 }
 
-function getSizeOfImage(name: ImageName): number {
-    if (!FILE_SIZES_IMAGES[name]) {
-        console.error(name);
-        return 0;
-    }
-    return FILE_SIZES_IMAGES[name];
-}
-
-const BPM_VALS = [
-    81,
-    110,
-    124,
-    130
-]
+// const BPM_VALS = [
+//     81,
+//     110,
+//     124,
+//     130
+// ]
 
 export type FileSizes = {
     [key: string]: {
         [key: string]: number;
     };
-};
-
-export type ImageFileSizes = {
-    [key in ImageName]: number;
 };

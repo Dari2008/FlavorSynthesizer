@@ -1,5 +1,5 @@
 import type { Flavor } from "./Flavors";
-import type { Dish, DishVolumes, RestaurantDish, ServerDish } from "./User";
+import type { DishVolumes, RestaurantDish, ServerDish, UUID } from "./User";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
 
@@ -37,6 +37,7 @@ export type ShareResponse = {
         code: ShareDigits;
         aiImage: string;
     };
+    changedUUID: UUID | null;
 };
 
 export type OpenShareResponse = {
@@ -48,7 +49,7 @@ export type OpenShareResponse = {
         flavors: ShareFlavors
     };
     name: string;
-    dishCreationDate: number;
+    createdAt: number;
     createdBy: string;
     publishState: "private" | "public";
     volumes: DishVolumes;

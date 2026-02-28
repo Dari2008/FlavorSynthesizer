@@ -16,7 +16,7 @@ export type Dish = {
     mainFlavor: MainFlavor;
     volumes: DishVolumes;
     publishState: "public" | "private";
-    dishCreationDate: number;
+    createdAt: string;
     createdBy: string;
     uuid: UUID;
     share: {
@@ -24,10 +24,14 @@ export type Dish = {
         flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
         aiImage: string;
     } | undefined;
-    temporary: true | undefined;
+    temporary?: true;
 }
 
-export type RestaurantDish = Omit<ServerDish, "share">;
+export type RestaurantDish = Omit<ServerDish, "share"> & {
+    share?: {
+        aiImage?: string;
+    }
+};
 
 export type DishVolumes = {
     master: number;
@@ -35,7 +39,7 @@ export type DishVolumes = {
     flavors: number;
 };
 
-export type LocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage" | "temporary" | "dishCreationDate" | "createdBy"> & {
+export type LocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage" | "temporary" | "createdAt" | "createdBy"> & {
     type: "localDish";
 };
 

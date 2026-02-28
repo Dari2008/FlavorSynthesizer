@@ -44,26 +44,9 @@ export default class DishManager {
         return true;
     }
 
-    public static async updateDish(user: User, updateData: UpdateName | UpdateData | UpdateMainFlavor): Promise<boolean> {
-        const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/updateDish.php", {
-            method: "POST",
-            body: JSON.stringify({
-                jwt,
-                ...updateData
-            })
-        });
-
-        if (response.status == "error") {
-            Utils.error(response.message);
-            return false;
-        }
-        return true;
-    }
-
     public static async updateEntireDish(user: User, dish: Dish): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/replaceEntireDish.php", {
+        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/updateDish.php", {
             method: "POST",
             body: JSON.stringify({
                 jwt,

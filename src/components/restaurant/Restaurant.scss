@@ -1,1 +1,272 @@
-.restaurant {}
+@use "../../utils/clamp.scss" as *;
+@use "../../utils/Variables.scss" as *;
+
+.restaurant {
+    grid-area: 1/1/5/6;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow-y: auto;
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("./bgs/main/repeatable_background.png");
+        background-size: 100% auto;
+        background-position: bottom;
+        background-repeat: repeat-y;
+        image-rendering: pixelated;
+        filter: brightness(60%) contrast(110%);
+    }
+
+    .foreground {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("./bgs/restaurant/leaves.png");
+        background-size: 100% auto;
+        background-position: bottom;
+        background-repeat: no-repeat;
+        image-rendering: pixelated;
+        z-index: 100;
+        pointer-events: none;
+        filter: brightness(60%) contrast(110%);
+    }
+
+    backdrop-filter: none !important;
+
+    h1 {
+        width: 100%;
+        font-size: clampW(0.5em, 5em, 200px, 2000px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin-block: 1%;
+        z-index: 100000;
+        position: relative;
+    }
+
+    h2 {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -100%);
+        font-size: clampW(0.4em, 4em, 200px, 2000px);
+        height: 0;
+        margin: 0;
+    }
+
+    .background-scrolling-image {
+        overflow-y: unset;
+    }
+
+    .filters {
+        background-color: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%);
+
+        button {
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        button.toggled {
+            background-color: $themeColor3;
+        }
+
+        button:not(.toggled):hover {
+            background-color: $gray-500;
+        }
+
+        .background {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            filter: blur(10px) brightness(50%);
+            z-index: -1;
+        }
+    }
+
+    .close {
+        position: fixed;
+        top: 10px;
+        right: 20px;
+        font-size: clampW(0.6em, 6em, 200px, 2000px);
+        line-height: clampW(0.2em, 2em, 200px, 2000px);
+        aspect-ratio: 1 / 1;
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        z-index: 100000;
+        border: none !important;
+        transition: scale 0.2s ease-in-out;
+
+        &:hover {
+            scale: 1.2;
+        }
+    }
+
+    .grid {
+        width: 80.6%;
+        margin-inline: auto;
+        $padding: 30px;
+
+        .wrapper {
+            width: 90%;
+            margin-inline: auto;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 5vh 10%;
+        }
+
+        .dish.skeleton {
+            width: calc(45% - $padding * 2);
+            animation: loading 4s ease-in-out 0ms infinite forwards;
+            filter: grayscale(100%) brightness(20%);
+            --currPos: 0%;
+            $size: 20px;
+            $fade: 10px;
+            $defaultAlpha: 0.1;
+            mask-image: linear-gradient(135deg,
+                    rgba(0, 0, 0, $defaultAlpha) 0%,
+                    rgba(0, 0, 0, $defaultAlpha) calc(var(--currPos) - $fade),
+                    rgba(255, 255, 255, 1) var(--currPos),
+                    rgba(255, 255, 255, 1) calc(var(--currPos) + $size),
+                    rgba(0, 0, 0, $defaultAlpha) calc(var(--currPos) + $size + $fade),
+                    rgba(0, 0, 0, $defaultAlpha) 100%);
+        }
+
+        .dish {
+            aspect-ratio: 1/1.2;
+            width: calc(45% - $padding * 2);
+            display: grid;
+            grid-template-columns: repeat(2, 50%);
+            grid-template-rows: repeat(4, max-content);
+            grid-column-gap: 0px;
+            grid-row-gap: 0px;
+            padding: $padding;
+            background-image: url(./bgs/restaurant/dish-border.png);
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            color: $gray-800;
+            position: relative;
+
+            .progress-bar {
+                grid-area: 4 / 1 / 5 / 3;
+                height: 10px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+
+                progress {
+                    width: 100%;
+                    height: 100%;
+
+                    &::-moz-progress-bar,
+                    &::-webkit-progress-bar {
+                        background-color: black !important;
+                    }
+
+                    background-color: transparent !important;
+                    border: none;
+                }
+
+            }
+
+            .image {
+                grid-area: 1 / 1 / 2 / 3;
+                width: 100%;
+                position: relative;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                }
+
+                .play {
+                    position: absolute;
+                    bottom: 10px;
+                    right: 10px;
+                    width: 20%;
+                    max-width: 50px;
+                    min-width: 30px;
+                    aspect-ratio: 1 / 1;
+                    background-color: transparent;
+                    border: none;
+                    transition: scale 0.2s ease-in-out;
+                    filter: drop-shadow(0 0 4px black);
+
+                    &:hover {
+                        scale: 1.2;
+                    }
+                }
+            }
+
+            .name {
+                grid-area: 2 / 1 / 3 / 3;
+                font-size: clampW(0.2em, 2em, 200px, 2000px);
+                line-height: clampW(0.1em, 1em, 200px, 2000px);
+                display: block;
+                text-align: center;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+                padding-inline: 5px;
+            }
+
+            .created-by {
+
+                font-size: clampW(0.12em, 1.2em, 200px, 2000px);
+
+                &::before {
+                    content: "by";
+                    margin-right: 5px;
+                }
+
+                grid-area: 3 / 1 / 4 / 2;
+                opacity: 0.8;
+            }
+
+            .creation-date {
+                grid-area: 3 / 2 / 4 / 3;
+                font-size: clampW(0.12em, 1.2em, 200px, 2000px);
+                opacity: 0.8;
+            }
+        }
+    }
+
+}
+
+@property --currPos {
+    syntax: '<percentage>';
+    inherits: false;
+    initial-value: 0%;
+}
+
+@keyframes loading {
+    0% {
+        --currPos: 0%;
+    }
+
+    100% {
+        --currPos: 100%;
+    }
+}

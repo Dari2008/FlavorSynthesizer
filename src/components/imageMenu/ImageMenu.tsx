@@ -271,6 +271,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
                         clickedWrapped("open");
                         break;
                     case "restaurant":
+                        clickedWrapped("restaurant");
                         break;
                 }
                 setChosenOne("none");
@@ -298,18 +299,18 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     });
 
     return <div className="images" ref={imagesRef}>
-        <img src="./mainMenu/bg/main_menu_background_background.png" alt="background Image" className="background-image"></img>
+        <img src="./bgs/mainMenu/main_menu_background_background.png" alt="background Image" className="background-image"></img>
 
-        <img src="./mainMenu/bg/create_new_dish.png" alt="create new dish image" className={"create-new-dish" + (chosenOne == "create-new-dish" ? " chosen" : "")} ref={createNewDishRef} />
+        <img src="./bgs/mainMenu/create_new_dish.png" alt="create new dish image" className={"create-new-dish" + (chosenOne == "create-new-dish" ? " chosen" : "")} ref={createNewDishRef} />
         <span className="label-for-image above label-for-create-new-dish" ref={createNewDishLabelRef}>Create New Dish</span>
 
-        <img src="./mainMenu/bg/list_dishes.png" alt="list dishes image" className={"list-dishes" + (chosenOne == "list-dishes" ? " chosen" : "")} ref={listDishesRef} />
+        <img src="./bgs/mainMenu/list_dishes.png" alt="list dishes image" className={"list-dishes" + (chosenOne == "list-dishes" ? " chosen" : "")} ref={listDishesRef} />
         <span className="label-for-image below label-for-list-dishes" ref={listDishesLabelRef}>Dish List</span>
 
-        <img src="./mainMenu/bg/open_shared_dish.png" alt="open shared dish image" className={"open-shared-dish" + (chosenOne == "open-shared-dish" ? " chosen" : "")} ref={openSharedDishRef} />
+        <img src="./bgs/mainMenu/open_shared_dish.png" alt="open shared dish image" className={"open-shared-dish" + (chosenOne == "open-shared-dish" ? " chosen" : "")} ref={openSharedDishRef} />
         <span className="label-for-image right above label-for-open-shared-dish" ref={openSharedDishLabelRef}>Open Shared Dish</span>
 
-        <img src="./mainMenu/bg/restaurant.png" alt="restaurant image" className={"restaurant" + (chosenOne == "restaurant" ? " chosen" : "")} ref={restaurantRef} />
+        <img src="./bgs/mainMenu/restaurant.png" alt="restaurant image" className={"restaurant" + (chosenOne == "restaurant" ? " chosen" : "")} ref={restaurantRef} />
         <span className="label-for-image above label-for-restaurant" ref={restaurantLabelRef}>Restaurant</span>
 
     </div>;

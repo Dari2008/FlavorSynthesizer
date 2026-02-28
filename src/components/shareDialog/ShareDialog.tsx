@@ -45,6 +45,7 @@ export default function ShareDialog() {
     const imageIdRef = useRef<number>(generateRandomBackgroundImage());
     const [isLogin, setIsLogin] = useState<boolean>(true);
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isGeneratingImage, setIsGeneratingImage] = useState<boolean>(false);
 
     const loginEmailRef = useRef<HTMLInputElement>(null);
     const loginUsernameRef = useRef<HTMLInputElement>(null);
@@ -184,6 +185,7 @@ export default function ShareDialog() {
             })
         } as ServerDish;
         setIsLoading(true);
+        setIsGeneratingImage(true);
         const response = await Network.loadJson<APIResponse<ShareResponse, ShareErrorResponse>>(BASE_URL + "/share/share.php", {
             method: "POST",
             body: JSON.stringify({
@@ -193,6 +195,7 @@ export default function ShareDialog() {
             })
         });
 
+        setIsGeneratingImage(false);
         setIsLoading(false);
 
         if (response.status == "error") {
@@ -200,7 +203,7 @@ export default function ShareDialog() {
                 Utils.error("This flavor combo already exists!");
                 return;
             }
-            Utils.error("Failed to publish your dish");
+            Utils.error(response.message ?? "Failed to publish your dish");
             return;
         }
 
@@ -221,6 +224,7 @@ export default function ShareDialog() {
                 if (dish.uuid != currentDish.uuid) return dish;
                 return {
                     ...dish,
+                    uuid: response.changedUUID ?? dish.uuid,
                     publishState: "public",
                     share: {
                         aiImage: response.dishData.aiImage,
@@ -326,6 +330,9 @@ export default function ShareDialog() {
                 {
                     isLoading && <>
                         <span className="loader"></span>
+                        {
+                            isGeneratingImage && <span className="loading-subtitle">Generating Image...</span>
+                        }
                     </>
                 }
 

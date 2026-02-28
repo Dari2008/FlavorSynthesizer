@@ -1,74 +1,148 @@
-import { useRef, useState } from "react";
-import { useDishes } from "../../contexts/DishesContext";
+import { useEffect, useRef, useState } from "react";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import "./Restaurant.scss";
-import type { Dish } from "../../@types/User";
+import type { RestaurantDish } from "../../@types/User";
 import * as Tone from "tone";
 import { ElementPlayer } from "../flavorSynth/ElementPlayer";
 import { getMainFlavorByName } from "../../audio/Flavors";
-import ProgressCanvas from "../progressCanvas/ProgressCanvas";
 import dayjs from "dayjs";
 import customFormat from "dayjs/plugin/customParseFormat"
+import PixelButton from "../pixelDiv/PixelButton";
+import { RestaurantLoader } from "./RestaurantLoader";
+import { createElementForFlavor } from "../FlavorUtils";
+import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
+import Skeleton from "react-loading-skeleton";
+import { useGameState } from "../../contexts/GameStateContext";
 
 dayjs.extend(customFormat);
 export default function Restaurant() {
-
-    const dishes = useDishes();
+    console.log(RestaurantLoader.getDishes());
+    const [dishes, setDishes] = useState<RestaurantDish[]>(RestaurantLoader.getDishes());
+    const [isLoading, setLoading] = useState<boolean>(false);
 
     const newestButtonRef = useRef<HTMLButtonElement>(null);
     const oldestButtonRef = useRef<HTMLButtonElement>(null);
     const flavorCountButtonRef = useRef<HTMLButtonElement>(null);
+    const currentButtonSorted = useRef<"newest" | "oldest" | "flavorCount">(null);
+
+    const gameState = useGameState();
 
     const clearButtonRef = useRef<HTMLButtonElement>(null);
 
-    const onClick = (button: "newest" | "oldest" | "flavorCount") => {
-        if (newestButtonRef.current) newestButtonRef.current.classList.remove("toggled");
-        if (oldestButtonRef.current) oldestButtonRef.current.classList.remove("toggled");
-        if (flavorCountButtonRef.current) flavorCountButtonRef.current.classList.remove("toggled");
+    const stopPlaybacks = useRef<(() => void)[]>([]);
+
+    const onClick = async (button: "newest" | "oldest" | "flavorCount") => {
+        clearAllSelected();
 
         if (newestButtonRef.current && button == "newest") newestButtonRef.current.classList.add("toggled");
         if (oldestButtonRef.current && button == "oldest") oldestButtonRef.current.classList.add("toggled");
         if (flavorCountButtonRef.current && button == "flavorCount") flavorCountButtonRef.current.classList.add("toggled");
+
+        currentButtonSorted.current = button;
+
+        setLoading(true);
+        setDishes(await RestaurantLoader.loadDishesSortedAfter(button));
+
+        if (currentButtonSorted.current != button) return;
+        setLoading(false);
+        // switch (button) {
+        //     case "newest":
+        //         break;
+        //     case "oldest":
+        //         break;
+        //     case "flavorCount":
+        //         break;
+        // }
     };
 
+    const clearAllSelected = () => {
+        if (newestButtonRef.current) newestButtonRef.current.classList.remove("toggled");
+        if (oldestButtonRef.current) oldestButtonRef.current.classList.remove("toggled");
+        if (flavorCountButtonRef.current) flavorCountButtonRef.current.classList.remove("toggled");
+        setLoading(true);
+        setDishes(RestaurantLoader.getDishes());
+        setLoading(false);
+    };
+
+    const startedPlayback = () => {
+        stopPlaybacks.current.forEach(e => e());
+    };
+
+    const addStopRef = (stop: () => void) => {
+        stopPlaybacks.current.push(stop);
+    }
+
     return <div className="restaurant">
+        <div className="background"></div>
+        <div className="foreground"></div>
+
         <h1>Restaurant</h1>
-        <div className="filters">
-            <PixelDiv className="left-filters">
-                <button className="toggle-button" onClick={() => onClick("newest")} ref={newestButtonRef}>Newest</button>
-                <button className="toggle-button" onClick={() => onClick("oldest")} ref={oldestButtonRef}>Oldest</button>
-                <button className="toggle-button" onClick={() => onClick("flavorCount")} ref={flavorCountButtonRef}>Flavor Count</button>
-                <button className="clear" ref={clearButtonRef}>x</button>
-            </PixelDiv>
-        </div>
-        <div className="grid">
-            {
-                dishes.dishes.filter(e => e.type == "dish").map(dish => <RestaurantDish dish={dish} />)
-            }
-        </div>
+
+        <ScrollingBackgrundImage images={{
+            top: "./bgs/restaurant/menu-top.png",
+            middle: "./bgs/restaurant/menu-middle.png",
+            bottom: "./bgs/restaurant/menu-bottom.png"
+        }}
+            aspectRatios={{
+                top: "174/82",
+                bottom: "174/82"
+            }}>
+            <>
+
+                <h2>Menu</h2>
+                <PixelDiv className="filters">
+                    <div className="background"></div>
+                    <PixelButton className="toggle-button" onClick={() => onClick("newest")} ref={newestButtonRef}>Newest</PixelButton>
+                    <PixelButton className="toggle-button" onClick={() => onClick("oldest")} ref={oldestButtonRef}>Oldest</PixelButton>
+                    <PixelButton className="toggle-button" onClick={() => onClick("flavorCount")} ref={flavorCountButtonRef}>Flavor Count</PixelButton>
+                    <PixelButton className="clear" onClick={clearAllSelected} ref={clearButtonRef}>x</PixelButton>
+                </PixelDiv>
+            </>
+
+            <div className="grid">
+                <div className="wrapper">
+                    {
+                        isLoading && <>
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                            <Skeleton count={4} containerClassName="dish skeleton" enableAnimation inline />
+                        </>
+                        ||
+                        dishes.map(dish => <RestaurantDish key={dish.uuid} dish={dish} startedPlayback={startedPlayback} stopPlaybackRef={addStopRef} />)
+                    }
+                </div>
+            </div>
+
+            <></>
+        </ScrollingBackgrundImage>
+
+        <button className="close" onClick={() => gameState.goBack()}>x</button>
     </div>;
 }
 
-function RestaurantDish({ dish }: { dish: Dish }) {
+function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: RestaurantDish; startedPlayback: () => void; stopPlaybackRef: (stop: () => void) => void }) {
     const [isPlaying, setPlaying] = useState<boolean>(false);
     const endTimeRef = useRef<number>(-1);
-    const progressChangeRef = useRef<(p: number) => void>(() => 0);
+    const progressBarRef = useRef<HTMLProgressElement>(null);
+    const startTime = useRef<number>(Tone.now());
 
     const mainFlavorsPlayer = getMainFlavorByName(dish.mainFlavor);
 
-    const containsSolo = dish.data.filter(e => e.solo).length > 0;
-    const elements = dish.data.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
+    const containsSolo = dish.tracks.filter(e => e.solo).length > 0;
+    const elements = dish.tracks.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: crypto.randomUUID() })));
 
-
-    const startTime = Tone.now();
-
-    const clock = new Tone.Clock(() => {
+    const updateProgresssBar = () => {
         if (endTimeRef.current == -1) return;
         const time = Tone.now();
-        const timeTaken = time - startTime;
+        const timeTaken = time - startTime.current;
         const percentage = timeTaken / endTimeRef.current;
-        progressChangeRef.current?.(percentage * 100);
-    }, 60);
+        if (progressBarRef.current) progressBarRef.current.value = percentage * 100;
+    };
+
+    const clock = new Tone.Clock(updateProgresssBar, 60);
 
     const stoppedPlaying = () => {
         clock.stop();
@@ -78,19 +152,27 @@ function RestaurantDish({ dish }: { dish: Dish }) {
         setPlaying(false);
     };
 
+    useEffect(() => {
+        stopPlaybackRef(stoppedPlaying);
+    }, [stopPlaybackRef]);
+
     const player = new ElementPlayer();
     player.onStop = stoppedPlaying;
 
     const clickedPlay = async () => {
 
+        if (isPlaying) {
+            stoppedPlaying();
+            return;
+        }
+
         Tone.getTransport().stop();
         Tone.getTransport().position = "0:0:0";
         Tone.getTransport().bpm.value = 110;
-
         if (elements.length == 0) return;
         player.stop();
         player.setVolumes(dish.volumes);
-        player.loadElements(elements);
+        player.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
         endTimeRef.current = await player.play(0);
 
         if (!containsSolo) {
@@ -101,25 +183,32 @@ function RestaurantDish({ dish }: { dish: Dish }) {
         Tone.start();
         clock.start();
 
+        startTime.current = Tone.now();
+        updateProgresssBar();
+        startedPlayback();
+
         setPlaying(true);
 
     };
 
-    return <div>
+    return <div className="dish">
         {
-            isPlaying && <ProgressCanvas progress={0} progressChangeRef={progressChangeRef} maxProgress={100} color="#26472a"></ProgressCanvas>
+            isPlaying && <PixelDiv className="progress-bar"><progress ref={progressBarRef} max={100}></progress></PixelDiv>
         }
-        <img src={dish.share?.aiImage ?? "./imgs/dishList/no-image-image.png"} alt="Dish Image" />
-        <span className="created-by">{dish.createdBy}</span>
-        <span className="creation-date">{dayjs(new Date(dish.dishCreationDate)).format("YYYY/MM/DD hh:mm")}</span>
-        <button className="play" onClick={clickedPlay}>
-            {
-                isPlaying
-                &&
-                <img src="./imgs/actionButtons/dishList/pause.png" alt="Pause" />
-                ||
-                <img src="./imgs/actionButtons/dishList/play.png" alt="Play" />
-            }
-        </button>
+        <div className="image">
+            <img src={dish.share?.aiImage ?? "./imgs/dishList/no-image-image.png"} alt="Dish Image" />
+            <button className="play" onClick={clickedPlay}>
+                {
+                    isPlaying
+                    &&
+                    <img src="./imgs/actionButtons/dishList/pause.png" alt="Pause" />
+                    ||
+                    <img src="./imgs/actionButtons/dishList/play.png" alt="Play" />
+                }
+            </button>
+        </div>
+        <span className="created-by">{dish.createdBy ?? "Unknown"}</span>
+        <span className="creation-date">{dayjs(dish.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY/MM/DD hh:mm")}</span>
+        <span className="name">{dish.name}</span>
     </div>
 }
