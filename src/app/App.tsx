@@ -153,7 +153,7 @@ export default function App() {
 
         setTimeout(saveDishAutomatically, 2 * 60 * 1000);
 
-    }, []);
+    }, [""]);
 
     const saveCurrentDish = async () => {
         if (userLoggedIn) {
@@ -446,8 +446,18 @@ export default function App() {
 
     }, []);
 
+    const deselectAllRef = useRef<{ [key: string]: () => void }>({});
+
+    const setDeselectAllCallback = (name: string, deselect: (() => void)) => {
+        deselectAllRef.current[name] = deselect;
+    };
+
+    const deselectAll = () => {
+        Object.values(deselectAllRef.current).forEach(e => e());
+    };
+
     return <>
-        <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef }}>
+        <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef, setDeselectAllCallback, deselectAll }}>
             <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>
                 <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
                     <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>

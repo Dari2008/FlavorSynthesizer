@@ -26,6 +26,26 @@
         border-radius: 20px;
     }
 
+    .context-menu-touch {
+        position: fixed;
+        top: var(--top);
+        left: var(--left);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease-in-out;
+        background-color: transparent;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: $gray-500;
+        padding: 10px;
+
+        &.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+    }
+
     .addLine {
         // width: 100%;
         padding: 0px;

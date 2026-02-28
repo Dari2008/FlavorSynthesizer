@@ -5,6 +5,7 @@ import ImageMenu from "../imageMenu/ImageMenu";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
 import { useLoadingAnimation } from "../../contexts/LoadingAnimationContext";
+import { RestaurantLoader } from "../restaurant/RestaurantLoader";
 
 export default function InitialMenu() {
 
@@ -17,6 +18,7 @@ export default function InitialMenu() {
 
     const gameState = useGameState();
     const user = useUser();
+    const loading = useLoadingAnimation();
     const loginOrRegisterLoading = useLoadingAnimation().withKey("loginOrRegister");
 
 
@@ -65,7 +67,7 @@ export default function InitialMenu() {
         }
     }, []);
 
-    const open = (e: SelectableElement) => {
+    const open = async (e: SelectableElement) => {
         switch (e) {
             case "add":
                 gameState.createNewActiveDish();
@@ -76,6 +78,12 @@ export default function InitialMenu() {
                 break;
             case "list":
                 gameState.setGameState("dishList");
+                break;
+            case "restaurant":
+                loading.startLoading("restaurant");
+                RestaurantLoader.loadRestaurantData(20);
+                loading.stopLoading("restaurant");
+                gameState.setGameState("restaurant");
                 break;
             case "none":
                 gameState.setGameState("mainMenu");
@@ -149,7 +157,7 @@ export default function InitialMenu() {
     </div>;
 }
 
-export type SelectableElement = "add" | "open" | "list" | "none";
+export type SelectableElement = "add" | "open" | "list" | "restaurant" | "none";
 export type DownloadProgress = {
     max: number;
     val: number;

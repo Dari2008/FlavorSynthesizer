@@ -11,8 +11,8 @@ import json
 # image_path = "../mainMenu/bg/create_new_dish.png"  # Replace with your image path
 # output = "../../src/components/imageMenu/selections/createNewDish.json"
 
-image_path = "../mainMenu/bg/box_dunno.png"  # Replace with your image path
-output = "../../src/components/imageMenu/selections/boxDunno.json"
+image_path = "../mainMenu/bg/box_restaurant.png"  # Replace with your image path
+output = "../../src/components/imageMenu/selections/boxRestaurant.json"
 img = Image.open(image_path).convert("RGBA")  # Ensure image has alpha channel
 
 width, height = img.size

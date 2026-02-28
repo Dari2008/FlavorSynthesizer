@@ -13,6 +13,7 @@ import { useGameState } from "../../contexts/GameStateContext";
 import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
 import Utils from "../../utils/Utils";
+import { useFlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -42,6 +43,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const change = useSynthChange();
     const isTouch = useTouchChecker().isTouch;
     const currentDragging = useCurrentDraggingElement();
+    const touchContextMenu = useFlavorSynthContextMenu();
 
     const timelineOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE));
     const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
@@ -53,6 +55,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const resizeSide = useRef<"from" | "to" | "move">("from");
     const startDraggedPositionSecondsTouch = useRef<Pos>({ x: -1, y: -1 });
     const startElementPos = useRef<number>(0);
+    const startTime = useRef<number>(Date.now());
+    const startedDragAtTimeline = useRef<boolean>(false);
 
     const currentDish = useCurrentDish();
 
@@ -63,6 +67,41 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         uuid: crypto.randomUUID(),
         volume: 1
     };
+
+    const render = () => {
+        const span = getSpan();
+        if (!span) return;
+        const secondsBetween = span.to - span.from;
+        // const pixelsPerSecond = widthRef.current / secondsBetween;
+
+
+        if (secondsBetween <= 0) return;
+        const canvas = canvasRef.current!;
+        if (!canvas) return;
+
+        if (widthRef.current != canvas.width) {
+            canvas.width = widthRef.current;
+        }
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        clearCanvas(ctx, canvas);
+
+        ctx.drawImage(timelineOffCanvasRef.current, 0, 0);
+        ctx.drawImage(allElementsOffCanvasRef.current, 0, LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT);
+        ctx.drawImage(currentPositionCursorCanvasRef.current, 0, 0);
+    };
+
+    let currentRender = false;
+    const renderWithDebounce = () => {
+        if (!currentRender) {
+            currentRender = true;
+            requestAnimationFrame(() => {
+                render();
+                currentRender = false;
+            });
+        }
+    }
 
     const renderTimeline = () => {
         if (widthRef.current != timelineOffCanvasRef.current.width) {
@@ -111,9 +150,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         ctx.lineTo(currentPositionX, LINE_Y + LINE_MARKER_HEIGHT + MARKER_EXTRA_SIZE);
         ctx.closePath();
         ctx.stroke();
+        renderWithDebounce();
 
     };
-    renderTimeline();
 
     const renderElements = () => {//LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT
         if (widthRef.current != allElementsOffCanvasRef.current.width) {
@@ -129,7 +168,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (element.uuid === interPlayerDrag.ref.current?.uuid && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
             if (element.from >= span.to && element.to <= span.from) continue;
 
-            const isSelected = synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == element.uuid) != -1;
+            const isSelected = synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == element.uuid) != -1;
             const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected);
             if (!drewTitle) {
                 if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
@@ -142,9 +181,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 }
             }
         }
+        renderWithDebounce();
 
     };
-    renderElements();
 
     const renderCurrentPositionCursor = () => {
         if (widthRef.current != currentPositionCursorCanvasRef.current.width) {
@@ -153,7 +192,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const ctx = currentPositionCursorCanvasRef.current.getContext("2d");
         if (!ctx) return;
-        // const span = getSpan();
         clearCanvas(ctx, currentPositionCursorCanvasRef.current);
 
         const currentSecondPlaying = currentPlaying.currentPositionRef.current;
@@ -165,19 +203,28 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             // drawLine(, "red", 2);
         }
 
+        renderWithDebounce();
+
         function drawCurrentPos(x: number, y: number, _xEnd: number, yEnd: number) {
             if ((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition]) ctx?.drawImage((window as any).CURRENT_ANIMATIONS_IMAGES[currentAnimationPosition], x - 20, y, 40, yEnd);
         }
     }
-    renderCurrentPositionCursor();
+
+
+    useEffect(() => {
+        renderTimelineWDebounce();
+        renderElementsWDebounce();
+        renderWithDebounce();
+    }, [canvasRef.current]);
+
 
     let elementsDebounce = false;
     const renderElementsWDebounce = () => {
         if (!elementsDebounce) {
             elementsDebounce = true;
             requestAnimationFrame(() => {
-                elementsDebounce = false;
                 renderElements();
+                elementsDebounce = false;
             })
         }
     }
@@ -187,8 +234,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         if (!timelineDebounce) {
             timelineDebounce = true;
             requestAnimationFrame(() => {
-                timelineDebounce = false;
                 renderTimeline();
+                timelineDebounce = false;
             })
         }
     }
@@ -198,23 +245,23 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         if (!currentPositionCursor) {
             currentPositionCursor = true;
             requestAnimationFrame(() => {
-                currentPositionCursor = false;
                 renderCurrentPositionCursor();
-            })
+                currentPositionCursor = false;
+            });
         }
     }
 
     // const selectedElementsRef = useRef<FlavorElement[]>([]);
 
     synthSelector.addSynthSelectionChange(flavorSynthLine.uuid, () => {
-        renderTimeline();
-        renderElements();
+        renderTimelineWDebounce();
+        renderElementsWDebounce();
     });
 
 
-    synthLines.addSynthRepainter(flavorSynthLine.uuid, () => {
-        render();
-    });
+    // synthLines.addSynthRepainter(flavorSynthLine.uuid, () => {
+    //     renderWithDebounce();
+    // });
 
     synthLines.addCurrentPositionRepainter(flavorSynthLine.uuid, renderCurrentPositionCursorWDebounce);
     synthLines.addElementsRepainter(flavorSynthLine.uuid, renderElementsWDebounce);
@@ -223,9 +270,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
     synthLines.addCollisionCheckerCallback(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
         let canMove = true;
-        synthSelector.selectedElementsRef.current?.forEach(el => {
+        synthSelector.selectedElementsRef.current?.forEach(elUUID => {
             if (!canMove) return;
-            const element = flavorSynthLine.elements.find(e => e.uuid == el.uuid);
+            const element = flavorSynthLine.elements.find(e => e.uuid == elUUID);
             if (element) {
                 let newFrom = element.from + fromOffset;
                 let newTo = element.to + toOffset;
@@ -253,8 +300,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     });
 
     synthLines.addOnElementMove(flavorSynthLine.uuid, (secondsOffset: number) => {
-        synthSelector.selectedElementsRef.current?.forEach(el => {
-            const element = flavorSynthLine.elements.find(e => e.uuid == el.uuid);
+        synthSelector.selectedElementsRef.current?.forEach(elUUID => {
+            const element = flavorSynthLine.elements.find(e => e.uuid == elUUID);
             if (element) {
                 element.from += secondsOffset;
                 element.to += secondsOffset;
@@ -266,8 +313,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     synthLines.addOnElementResize(flavorSynthLine.uuid, (fromOffset: number, toOffset: number) => {
         const MIN_WIDTH = 1;
 
-        synthSelector.selectedElementsRef.current?.forEach(el => {
-            const element = flavorSynthLine.elements.find(e => e.uuid === el.uuid);
+        synthSelector.selectedElementsRef.current?.forEach(elUUID => {
+            const element = flavorSynthLine.elements.find(e => e.uuid === elUUID);
             if (!element) return;
 
             if (fromOffset !== 0 && toOffset === 0) {
@@ -304,6 +351,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         // repaint();
     });
 
+    const openTouchMenu = (position: Pos) => {
+        touchContextMenu.openContextMenu(position);
+    };
 
 
     useEffect(() => {
@@ -319,7 +369,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             currentDraggingElementRef.current = null;
             targetElement = null;
             isMouseDown = false;
-            renderElements();
+            renderElementsWDebounce();
         });
 
         const onTimelineDrag = (xOrg: number, _yOrg: number) => {
@@ -472,7 +522,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             didDrag = true;
             if (startPosses == undefined) {
                 startPosses = synthLines.synthLines.map(e => {
-                    const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.map(e => e.uuid).includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
+                    const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
                     if (flavors.length == 0) return undefined;
                     return {
                         flavors: flavors.map(e => ({
@@ -550,7 +600,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                         }
                 }
             }
-            renderElements();
+            renderElementsWDebounce();
             change.changed();
         };
 
@@ -591,7 +641,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
             if (!didDrag) return;
             let selectedFlavors = synthLines.synthLines.map(e => {
-                const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.map(e => e.uuid).includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
+                const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
                 if (flavors.length == 0) return undefined;
                 return {
                     flavors: flavors,
@@ -669,27 +719,29 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     break;
                 }
             }
-            if (e.shiftKey || e.ctrlKey) {
+            if (e.shiftKey || e.ctrlKey || isTouch) {
                 if (foundElement == null) {
                     synthLines.repaintAllElements();
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                     return;
                 }
                 if (synthSelector.selectedElementsRef.current == null) {
                     synthSelector.selectedElementsRef.current = [];
                 }
-                if (synthSelector.selectedElementsRef.current.findIndex(el => el.uuid == foundElement!.uuid) == -1) {
-                    synthSelector.selectedElementsRef.current.push(foundElement!);
+                if (synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == foundElement!.uuid) == -1) {
+                    synthSelector.selectedElementsRef.current.push(foundElement.uuid!);
+                } else if (isTouch) {
+                    synthSelector.selectedElementsRef.current = [foundElement.uuid!];
                 }
                 // synthLines.repaintAll();
             } else {
-                synthSelector.selectedElementsRef.current = foundElement ? [foundElement] : [];
+                synthSelector.selectedElementsRef.current = foundElement ? [foundElement.uuid] : [];
             }
             // repaint();
             // renderElements();
             targetElement = null;
             synthLines.repaintAllElements();
-            synthLines.repaintAll();
+            // synthLines.repaintAll();
         };
 
         const onKeyPress = (e: KeyboardEvent) => {
@@ -736,7 +788,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     interPlayerDrag.originalStartPos.current = null;
                     interPlayerDrag.offsetLeft.current = 0;
                     currentDraggingElementRef.current = null;
-                    renderElements();
+                    renderElementsWDebounce();
                     interPlayerDrag.onPlaced.current = () => 0;
                 };
                 interPlayerDrag.isEmptyRef.current = isEmpty;
@@ -777,7 +829,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 element.to = newTo;
                 currentDraggingElementRef.current = element;
 
-                renderElements();
+                renderElementsWDebounce();
             }
         };
 
@@ -823,11 +875,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                 // element.from = newFrom;
                 // element.to = newTo;
-                synthLines.setSynthLines(synthLines => synthLines.map(line => {
-                    if (line.elements.find(e => e.uuid == element.uuid)) return { ...line, elements: line.elements.filter(e => e.uuid !== element.uuid) };
-                    if (line.uuid !== flavorSynthLine.uuid) return line;
-                    return { ...line, elements: [...line.elements, { ...element, from: newFrom, to: newTo }] };
-                }))
+                flavorSynthLine.elements = [...flavorSynthLine.elements, { ...element, from: newFrom, to: newTo }];
                 // flavorSynthLine.elements.push(element);
 
 
@@ -863,9 +911,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
         }
 
+
+
         const onTouchStartWrapper = (e: TouchEvent) => {
             const touches = Utils.getTouches(e);
             if (touches.length == 1) {
+                startTime.current = Date.now();
                 const touch = getTouch(touches, 0);
                 mousePosRef.current = touch;
                 startDraggedPositionTouch.current = mousePosRef.current;
@@ -873,12 +924,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     x: calculateCurrentPosSeconds(mousePosRef.current.x),
                     y: calculateCurrentPosSeconds(mousePosRef.current.y),
                 }
-                if (currentDragging.currentDraggingElement.current && getTouch(touches, 0).y > timelineOffCanvasRef.current.height) {
-                    const pos = calculateCurrentPosSeconds(startDraggedPositionTouch.current.x);
-                    currentDraggingElementRef.current = createElementForFlavor(currentDragging.currentDraggingElement.current, pos, pos);
-                    synthLines.repaintAllElements();
-                    synthLines.repaintAll();
-                } else if (getTouch(touches, 0).y > timelineOffCanvasRef.current.height) {
+
+                startedDragAtTimeline.current = touch.y < timelineOffCanvasRef.current.height;
+
+
+                checkForPlaceNewFlavorPlaced:
+                if (!startedDragAtTimeline.current) {
                     const posX = getTouch(touches, 0).x;
                     const seconds = calculateCurrentPosSecondsAccurate(posX);
 
@@ -889,8 +940,13 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                     if ((elementFromResize && elementToResize) || (!elementFromResize && !elementToResize && !elementClicked)) {
                         currentlyResizingElement.current = null;
-                        return;
+                        break checkForPlaceNewFlavorPlaced;
                     }
+
+
+                    console.log(elementFromResize,
+                        elementToResize,
+                        elementClicked)
 
                     if (elementFromResize) {
                         resizeSide.current = "from";
@@ -903,7 +959,17 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                         currentlyResizingElement.current = elementClicked.uuid;
                         startElementPos.current = elementClicked.from;
                     }
-                    console.log(resizeSide, currentlyResizingElement);
+                    return;
+                }
+
+                if (currentDragging.currentDraggingElement.current && !startedDragAtTimeline.current) {
+                    const pos = calculateCurrentPosSeconds(startDraggedPositionTouch.current.x);
+                    if (isEmpty(currentDraggingElementRef.current, pos, pos + 1)) {
+                        currentDraggingElementRef.current = createElementForFlavor(currentDragging.currentDraggingElement.current, pos, pos);
+                        synthLines.repaintAllElements();
+                        synthLines.repaintAllTimelines();
+                    }
+                    // synthLines.repaintAll();
                 }
             }
         };
@@ -911,36 +977,36 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         const onTouchEndWrapper = (e: TouchEvent) => {
             const touches = Utils.getTouches(e);
             if (touches.length == 1) {
+                const originalTouch = touches[0];
                 const touch = getTouch(touches, 0);
                 mousePosRef.current = touch;
-                if (currentDragging.currentDraggingElement.current) {
+                const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
+                console.log(currentDragging.currentDraggingElement.current);
+                if (currentDragging.currentDraggingElement.current && !startedDragAtTimeline.current) {
                     // if (currentDraggingElementRef.current) currentDraggingElementRef.current.to = calculateCurrentPosSeconds(mousePosRef.current.x);
-                    synthLines.setSynthLines(synthLines => synthLines.map(synthLine => {
-                        if (!currentDraggingElementRef.current) return synthLine;
-                        if (currentDraggingElementRef.current.from == currentDraggingElementRef.current.to) return synthLine;
-                        if (synthLine.uuid !== synthLineUUID) return synthLine;
-                        return {
-                            ...synthLine,
-                            elements: [...synthLine.elements, currentDraggingElementRef.current]
-                        };
-                    }));
-                    currentDraggingElementRef.current = null;
-                    currentDragging.currentDraggingElement.current = null;
+                    if (currentDraggingElementRef.current && currentDraggingElementRef.current.from != currentDraggingElementRef.current.to)
+                        flavorSynthLine.elements = [...flavorSynthLine.elements, currentDraggingElementRef.current];
 
-                    // synthLines.repaintAllElements();
+                    synthLines.repaintAllElements();
+                    currentDraggingElementRef.current = null;
                     // synthLines.repaintAll();
-                    return;
                 }
 
-                const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
-                if (diffX <= 10 && diffX >= -10 && touch.y <= timelineOffCanvasRef.current.height) {
+                if (Math.abs(diffX) <= 10 && startedDragAtTimeline.current) {
                     const seconds = calculateCurrentPosSecondsAccurate(touch.x);
 
                     currentPlaying.cusorPos.current = seconds;
                     synthLines.repaintAllTimelines();
+                } else if (Math.abs(diffX) <= 10 && !startedDragAtTimeline.current && currentlyResizingElement.current != null) {
+                    const timeElapsed = Date.now() - startTime.current;
+                    if (timeElapsed > 200) {
+                        if (synthSelector.selectedElementsRef.current.length <= 0) return;
+                        openTouchMenu({
+                            x: originalTouch.pageX,
+                            y: touch.y
+                        });
+                    }
                 }
-
-                currentDragging.currentDraggingElement.current = null;
                 currentlyResizingElement.current = null;
                 resizeSide.current = "from";
 
@@ -952,31 +1018,39 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const onTouchMoveWrapper = (e: TouchEvent) => {
             const touches = Utils.getTouches(e);
-            console.log(touches);
             if (touches.length == 1) {
                 const touch = getTouch(touches, 0);
                 const deltaX = getDiff(touch, mousePosRef.current, "x") as number;
                 mousePosRef.current = touch;
+                const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
+                if (Math.abs(diffX) < 10) return;
 
                 // Adding a Flavor
-                if (currentDragging.currentDraggingElement.current) {
+                if (!currentlyResizingElement.current && currentDragging.currentDraggingElement.current && !startedDragAtTimeline.current) {
                     if (currentDraggingElementRef.current) {
                         const newPos = calculateCurrentPosSeconds(mousePosRef.current.x);
-                        if (newPos >= currentDraggingElementRef.current.to) {
-                            currentDraggingElementRef.current.to = newPos;
-                        } else {
-                            currentDraggingElementRef.current.from = newPos;
+                        console.log(
+                            newPos,
+                            currentDraggingElementRef.current.from,
+                            currentDraggingElementRef.current.to
+                        );
+
+                        const startPosition = startDraggedPositionSecondsTouch.current.x;
+
+                        const newFrom = Math.min(startPosition, newPos);
+                        const newTo = Math.max(startPosition, newPos);
+
+                        if (isEmpty(currentDraggingElementRef.current, newFrom, newTo)) {
+                            currentDraggingElementRef.current.from = newFrom;
+                            currentDraggingElementRef.current.to = newTo;
                         }
+                        synthLines.repaintAllElements();
+                        return;
                     }
-                    synthLines.repaintAllElements();
-                    synthLines.repaintAll();
-                    return;
+                    // synthLines.repaintAll();
                 }
                 // Resizing
-                if (!currentDraggingElementRef.current && getTouch(touches, 0).y <= timelineOffCanvasRef.current.height) {
-
-                    const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
-                    if (diffX <= 10 && diffX >= -10) return;
+                if (startedDragAtTimeline.current) {
                     const offsetSeconds = convertPixelsToSeconds(deltaX);
 
                     const span = getSpan();
@@ -1004,7 +1078,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                     synthLines.repaintAllTimelines();
                     synthLines.repaintAllElements();
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                     return;
                 }
                 // Otherwise resize element when there
@@ -1066,7 +1140,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     //     }
                     // }));
                     synthLines.repaintAllElements();
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                     return;
                 } else if (currentlyResizingElement.current) {
                     const pos = getTouch(touches, 0);
@@ -1090,7 +1164,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     element.to = newFromPos + width;
 
                     synthLines.repaintAllElements();
-                    synthLines.repaintAll();
+                    // synthLines.repaintAll();
                 }
             } else if (touches.length == 2) {
                 const touch1 = getTouch(touches, 0);
@@ -1100,10 +1174,11 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     lastDeltaZoom = deltaX;
                     return;
                 }
+                const centerX = touch2.x - touch1.x;
                 const deltaZoom = deltaX - lastDeltaZoom;
                 lastDeltaZoom = deltaX;
                 console.log(deltaZoom);
-                // synthLines.zoomed(deltaZoom);
+                synthLines.zoomed(centerX, deltaZoom);
             }
         };
 
@@ -1115,29 +1190,26 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             onMouseUpReset();
         }
 
-        console.log("isTouch", isTouch);
-        if (isTouch) {
+        canvas.addEventListener("mousemove", onMouseMoveWrapper);
+        canvas.addEventListener("mousedown", onMouseDownWrapper);
+        canvas.addEventListener("mouseup", onMouseUp);
+        canvas.addEventListener("mouseup", onMouseUpReset);
+        canvas.addEventListener("mouseleave", onMouseLeave);
+        canvas.addEventListener("mouseenter", onMouseEnter);
+        canvas.addEventListener("mouseup", onReleaseExternalElementWrapper);
+        canvas.addEventListener("mousemove", onMouseMoveExternalElementWrapper);
+        canvas.addEventListener("wheel", onWheel);
+        canvas.addEventListener("click", onClick);
+        canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+        window.addEventListener("mouseup", onMouseUpReset);
 
-            canvas.addEventListener("touchstart", onTouchStartWrapper);
-            canvas.addEventListener("touchend", onTouchEndWrapper);
-            canvas.addEventListener("touchmove", onTouchMoveWrapper);
-            canvas.addEventListener("touchcancel", onTouchCancelWrapper);
 
-            window.addEventListener("touchend", onTouchOutsideCancel)
-        } else {
-            canvas.addEventListener("mousemove", onMouseMoveWrapper);
-            canvas.addEventListener("mousedown", onMouseDownWrapper);
-            canvas.addEventListener("mouseup", onMouseUp);
-            canvas.addEventListener("mouseup", onMouseUpReset);
-            canvas.addEventListener("mouseleave", onMouseLeave);
-            canvas.addEventListener("mouseenter", onMouseEnter);
-            canvas.addEventListener("mouseup", onReleaseExternalElementWrapper);
-            canvas.addEventListener("mousemove", onMouseMoveExternalElementWrapper);
-            canvas.addEventListener("wheel", onWheel);
-            canvas.addEventListener("click", onClick);
-            window.addEventListener("mouseup", onMouseUpReset);
+        canvas.addEventListener("touchstart", onTouchStartWrapper);
+        canvas.addEventListener("touchend", onTouchEndWrapper);
+        canvas.addEventListener("touchmove", onTouchMoveWrapper);
+        canvas.addEventListener("touchcancel", onTouchCancelWrapper);
 
-        }
+        window.addEventListener("touchend", onTouchOutsideCancel)
 
 
 
@@ -1155,41 +1227,21 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             canvas.removeEventListener("mousemove", onMouseMoveExternalElementWrapper);
             canvas.removeEventListener("wheel", onWheel);
             canvas.removeEventListener("click", onClick);
-
+            canvas.removeEventListener("contextmenu", (e) => e.preventDefault());
             window.removeEventListener("mouseup", onMouseUpReset);
-            window.removeEventListener("keydown", onKeyPress);
+
 
             canvas.removeEventListener("touchstart", onTouchStartWrapper);
             canvas.removeEventListener("touchend", onTouchEndWrapper);
             canvas.removeEventListener("touchmove", onTouchMoveWrapper);
             canvas.removeEventListener("touchcancel", onTouchCancelWrapper);
+
+            window.removeEventListener("touchend", onTouchOutsideCancel)
+            window.removeEventListener("keydown", onKeyPress);
         };
 
     }, [canvasRef.current, flavorSynthLine.elements]);
 
-    const render = () => {
-        const span = getSpan();
-        if (!span) return;
-        const secondsBetween = span.to - span.from;
-        // const pixelsPerSecond = widthRef.current / secondsBetween;
-
-
-        if (secondsBetween <= 0) return;
-        const canvas = canvasRef.current!;
-        if (!canvas) return;
-
-        if (widthRef.current != canvas.width) {
-            canvas.width = widthRef.current;
-        }
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        clearCanvas(ctx, canvas);
-
-        ctx.drawImage(timelineOffCanvasRef.current, 0, 0);
-        ctx.drawImage(allElementsOffCanvasRef.current, 0, LINE_Y + MARGIN_BETWEEN_SCALE_AND_FLAVORS + LINE_MARKER_HEIGHT);
-        ctx.drawImage(currentPositionCursorCanvasRef.current, 0, 0);
-    };
 
 
     function isEmpty(element: FlavorElement | null, from: number, to?: number): boolean {

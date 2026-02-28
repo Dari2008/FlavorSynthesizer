@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, convertPixelsToSeconds, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
@@ -20,6 +20,9 @@ import { useDishes } from "../../contexts/DishesContext";
 import { useCurrentDishActions } from "../../contexts/DishActions";
 import { ActionHistoryManager } from "./actionHistory/ActionHistoryManager";
 import PixelDiv from "../pixelDiv/PixelDiv";
+import { FlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
+import { useTouchChecker } from "../../contexts/TouchCheckerContext";
+import PixelButton from "../pixelDiv/PixelButton";
 
 
 type EventListWithUUID<T> = {
@@ -39,18 +42,18 @@ export default function FlavorSynth() {
     // const currentSpanRef = useRef<CurrentSpan>({ from: 0, to: 60 });
     const currentZoomRef = useRef<number>(1);
     const focusedSynthRef = useRef<string | null>(null);
-    const selectedElementsRef = useRef<{ uuid: string }[]>([]);
+    const selectedElementsRef = useRef<string[]>([]);
     const playerRef = useRef<ElementPlayer>(new ElementPlayer());
     const [isPlaying, setPlaying] = useState<boolean>(false);
     const isPlayingRef = useRef<boolean>(false);
     const isSoloPlay = useRef<boolean>(false);
     const currentPositionRef = useRef<number>(0);
     const currentPlayingOffsetRef = useRef<number>(0);
-    const currentFrameId = useRef<number>(-1);
+    // const currentFrameId = useRef<number>(-1);
 
     const mainFlavorsPlayer = getMainFlavorByName(mainFlavor.mainFlavor);
     const synthSelectionChangeCallbacks = useRef<EventListWithUUID<() => void>>({});
-    const synthRepaintCallbacks = useRef<EventListWithUUID<() => void>>({});
+    // const synthRepaintCallbacks = useRef<EventListWithUUID<() => void>>({});
     const currentPosRepainters = useRef<EventListWithUUID<() => void>>({});
     const timelineRepainters = useRef<EventListWithUUID<() => void>>({});
     const elementsRepainters = useRef<EventListWithUUID<() => void>>({});
@@ -69,6 +72,8 @@ export default function FlavorSynth() {
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
     const currentDraggingIsEmptyRef = useRef<(element: FlavorElement | null, from: number, to?: number) => boolean>(() => false);
 
+    const touchContextMenuRef = useRef<HTMLDivElement>(null);
+
     const statisticLoopInterval = useRef<number>(-1);
 
     const dishes = useDishes();
@@ -78,6 +83,8 @@ export default function FlavorSynth() {
 
     const [synthLines, setSynthLines] = dishActions.synthLines;
     const [volumes, setVolumes] = dishActions.volumes;
+
+    const isTouch = useTouchChecker().isTouch;
 
     playerRef.current.onStop = () => {
         setPlaying(false);
@@ -103,7 +110,7 @@ export default function FlavorSynth() {
 
         repaintAllElements();
         repaintAllTimelines();
-        repaintAll();
+        // repaintAll();
     };
 
     const deleteSynth = (uuid: string) => {
@@ -126,9 +133,11 @@ export default function FlavorSynth() {
         //     e.elements = e.elements.filter(e => e.uuid !== uuid);
         //     return e;
         // });
-        setSynthLines(synthLines => synthLines.map(e => {
-            return { ...e, elements: e.elements.filter(e => e.uuid !== uuid) };
-        }));
+        synthLines.forEach(synthLine => synthLine.elements = synthLine.elements.filter(e => e.uuid !== uuid));
+        repaintAllElements();
+        // setSynthLines(synthLines => synthLines.map(e => {
+        //     return { ...e, elements: e.elements.filter(e => e.uuid !== uuid) };
+        // }));
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -185,6 +194,32 @@ export default function FlavorSynth() {
         }
     };
 
+    const zoomed = (centerX: number, delta: number) => {
+        let newSpan = getSpan();
+        const zoomFactor = 1 + (delta * 0.001);
+        let newSpanWidth = (newSpan.to - newSpan.from) * zoomFactor;
+        const zoomInOnSecond = calculateCurrentPosSeconds(centerX - getCurrentControlsWidth(isReadonly));
+        const distanceLeftSeconds = zoomInOnSecond - newSpan.from;
+        const distanceRightSeconds = newSpan.to - zoomInOnSecond;
+        const distanceLeftPercent = distanceLeftSeconds / (distanceLeftSeconds + distanceRightSeconds);
+        const distanceRightPercent = distanceRightSeconds / (distanceLeftSeconds + distanceRightSeconds);
+
+        const distanceLeft = distanceLeftPercent * newSpanWidth;
+        const distanceRight = distanceRightPercent * newSpanWidth;
+
+        newSpan.from = zoomInOnSecond - distanceLeft;
+        newSpan.to = zoomInOnSecond + distanceRight;
+
+        newSpan = constrainSpan(newSpan);
+
+        setSpan(widthRef.current, newSpan);
+
+        currentZoomRef.current *= zoomFactor;
+
+        repaintAllTimelines();
+        repaintAllElements();
+    };
+
     useEffect(() => {
         setSpanFirstTime(widthRef.current, {
             from: 0,
@@ -211,17 +246,17 @@ export default function FlavorSynth() {
         synthSelectionChangeCallbacks.current[uuid] = cb;
     }
 
-    const addSynthRepainter = (uuid: string, sr: () => void) => {
-        synthRepaintCallbacks.current[uuid] = sr;
-    };
+    // const addSynthRepainter = (uuid: string, sr: () => void) => {
+    //     synthRepaintCallbacks.current[uuid] = sr;
+    // };
 
-    const repaintAll = () => {
-        Object.values(synthRepaintCallbacks.current).forEach(cb => cb());
-    };
+    // const repaintAll = () => {
+    //     Object.values(synthRepaintCallbacks.current).forEach(cb => cb());
+    // };
 
     const deleteSelectedElements = () => {
         if (isReadonly) return;
-        const selectedUUIDs = selectedElementsRef.current.map(e => e.uuid);
+        const selectedUUIDs = selectedElementsRef.current;
 
         const elementsDeleted = synthLines.map(synthLine => {
             const elements = synthLine.elements.filter(el => selectedUUIDs.indexOf(el.uuid) !== -1);
@@ -237,9 +272,13 @@ export default function FlavorSynth() {
             type: "delete",
             elements: elementsDeleted
         })
-        setSynthLines(lines => lines.map(line => {
-            return { ...line, elements: line.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1) };
-        }));
+        synthLines.forEach(line => {
+            line.elements = line.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1)
+        });
+        repaintAllElements();
+        // setSynthLines(lines => lines.map(line => {
+        //     return { ...line, elements: line.elements.filter(el => selectedUUIDs.indexOf(el.uuid) == -1) };
+        // }));
     };
 
     const addCollisionCheckerCallback = (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => {
@@ -296,17 +335,17 @@ export default function FlavorSynth() {
         ActionHistoryManager.redo(setSynthLines);
     };
 
-    useEffect(() => {
-        const render = () => {
-            repaintAll();
-            currentFrameId.current = requestAnimationFrame(render);
-        };
-        currentFrameId.current = requestAnimationFrame(render);
+    // useEffect(() => {
+    //     const render = () => {
+    //         repaintAll();
+    //         currentFrameId.current = requestAnimationFrame(render);
+    //     };
+    //     currentFrameId.current = requestAnimationFrame(render);
 
-        return () => {
-            cancelAnimationFrame(currentFrameId.current);
-        };
-    }, []);
+    //     return () => {
+    //         cancelAnimationFrame(currentFrameId.current);
+    //     };
+    // }, []);
 
     const play = () => {
 
@@ -378,7 +417,7 @@ export default function FlavorSynth() {
             clock.stop();
             clock.dispose();
         };
-    }, []);
+    }, [isPlaying]);
 
 
     const mainFlavorVolumeChanged = (volume: number) => {
@@ -461,7 +500,7 @@ export default function FlavorSynth() {
             console.log(widthRef.current);
             repaintAllElements();
             repaintAllTimelines();
-            repaintAll();
+            // repaintAll();
         };
 
         window.addEventListener("keydown", keydown);
@@ -504,12 +543,59 @@ export default function FlavorSynth() {
         }
     }
 
+    const openContextMenu = (pos: { x: number, y: number }) => {
+        if (!touchContextMenuRef.current) return;
+
+        touchContextMenuRef.current.style.setProperty("--top", pos.y + "px");
+        touchContextMenuRef.current.style.setProperty("--left", pos.x + "px");
+        touchContextMenuRef.current?.classList.add("open");
+
+    };
+
+    useEffect(() => {
+        if (!touchContextMenuRef.current) return;
+
+        const touchStartCheckOutside = (e: TouchEvent) => {
+            if (e.target instanceof Node && touchContextMenuRef.current?.contains(e.target)) {
+                return;
+            }
+
+            touchContextMenuRef.current?.classList.remove("open");
+        }
+
+        window.addEventListener("touchstart", touchStartCheckOutside);
+
+        return () => {
+            window.removeEventListener("touchstart", touchStartCheckOutside);
+        }
+
+    }, [touchContextMenuRef.current]);
+
+    const clickedTouchContextMenu = () => {
+        touchContextMenuRef.current?.classList.remove("open");
+        return {
+            delete: () => {
+                if (!selectedElementsRef.current) return;
+                synthLines.forEach(synthLine => {
+                    synthLine.elements = synthLine.elements.filter(e => !selectedElementsRef.current.includes(e.uuid));
+                });
+                repaintAllElements();
+                // setSynthLines(synthLines => synthLines.map(synthLine => {
+                //     return {
+                //         ...synthLine,
+                //         elements: synthLine.elements.filter(e => !selectedElementsRef.current.includes(e.uuid))
+                //     }
+                // }));
+                console.log("Repainted")
+                repaintAllElements();
+            }
+        }
+    }
+
     return <>
         <SynthLinesContext.Provider value={{
             delete: deleteSynth,
             onWheel,
-            addSynthRepainter,
-            repaintAll,
             deleteSelectedElements,
             addCollisionCheckerCallback,
             addOnElementMove,
@@ -527,95 +613,105 @@ export default function FlavorSynth() {
             updateTotalStatistic,
             updateCurrentPlayingStatistic,
             synthLines,
-            setSynthLines
+            setSynthLines,
+            zoomed
         }}>
-            <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-                <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
-                    <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
-                        <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
-                            <div className="lines">
-                                {
-                                    Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef}></SynthLine>)
-                                }
-                            </div>
-                            {
-                                !isReadonly && <button className="addLine" onClick={() => addSynth()}>
-                                    <img src="./imgs/plus/plus.png" alt="+" className="plus" />
-                                </button>
-                            }
-                        </div>
-
-                        <div className="flavor-synth-controls" data-readonly={isReadonly ? true : undefined}>
-                            <div className="statistics">
-                                <div className="activeFlavorsPlaying">
-                                    <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors" ref={currentPlayingFlavorCountRef} />
+            <FlavorSynthContextMenu.Provider value={{ openContextMenu }}>
+                <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
+                    <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
+                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                            <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
+                                <div className="lines">
+                                    {
+                                        Object.values(synthLines).map(e => <SynthLine key={e.uuid} synthLineUUID={e.uuid} widthRef={widthRef}></SynthLine>)
+                                    }
                                 </div>
-                                <div className="totalFlavorsUsed">
-                                    <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
-                                </div>
-                            </div>
-
-                            <div className="buttons-reversed">
-                                <button className="share" onClick={async () => { await dishes.saveCurrentDish(); gameState.setGameState("createDish-share"); }}>
-                                    <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
-                                </button>
-                                <button className="save" onClick={dishes.saveCurrentDish}>
-                                    <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
-                                </button>
                                 {
-                                    isReadonly &&
-                                    <button className="fork" onClick={dishes.forkCurrentDish}>
-                                        <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
+                                    !isReadonly && <button className="addLine" onClick={() => addSynth()}>
+                                        <img src="./imgs/plus/plus.png" alt="+" className="plus" />
                                     </button>
                                 }
-                            </div>
-
-                            <div className="controls">
-                                <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
-                                    <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
-                                </button>
-                                <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
-                                    isPlaying
-                                        ?
-                                        <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
-                                        :
-                                        <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
-                                }
-                                </button>
-                                <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
-                                    <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
-                                </button>
-                            </div>
-                            <PixelDiv className="volumes">
-                                <div className="volume">
-                                    <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
-                                </div>
-                                <div className="mainFlavorVolume">
-                                    <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
-                                </div>
-                                <div className="masterVolume">
-                                    <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
-                                </div>
-                            </PixelDiv>
-                            <div className="buttons">
-                                <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
-                                    <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
-                                </button>
-                                <button className="save" onClick={dishes.saveCurrentDish}>
-                                    <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
-                                </button>
                                 {
-                                    isReadonly &&
-                                    <button className="fork" onClick={dishes.forkCurrentDish}>
-                                        <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
-                                    </button>
+                                    isTouch && <PixelDiv className="context-menu-touch" ref={touchContextMenuRef}>
+                                        <button className="delete" onClick={() => clickedTouchContextMenu().delete()}>
+                                            <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete image" />
+                                        </button>
+                                    </PixelDiv>
                                 }
                             </div>
-                        </div>
 
-                    </CurrentInterPlayerDragContext.Provider>
-                </CurrentlyPlayingContext.Provider>
-            </SynthSelectorContext.Provider>
+                            <div className="flavor-synth-controls" data-readonly={isReadonly ? true : undefined}>
+                                <div className="statistics">
+                                    <div className="activeFlavorsPlaying">
+                                        <FlavorStatistic imgSrc="./imgs/stack.png" unit="flavors" value={0} desc="The number of currently playing flavors" ref={currentPlayingFlavorCountRef} />
+                                    </div>
+                                    <div className="totalFlavorsUsed">
+                                        <FlavorStatistic imgSrc="./imgs/total.png" unit="flavors" value={synthLines.map(e => e.elements.length).reduce((a, b) => a + b, 0)} desc="The number of total flavors used" ref={totalAmountOfFlavorsRef} />
+                                    </div>
+                                </div>
+
+                                <div className="buttons-reversed">
+                                    <button className="share" onClick={async () => { await dishes.saveCurrentDish(); gameState.setGameState("createDish-share"); }}>
+                                        <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
+                                    </button>
+                                    <button className="save" onClick={dishes.saveCurrentDish}>
+                                        <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
+                                    </button>
+                                    {
+                                        isReadonly &&
+                                        <button className="fork" onClick={dishes.forkCurrentDish}>
+                                            <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
+                                        </button>
+                                    }
+                                </div>
+
+                                <div className="controls">
+                                    <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
+                                        <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
+                                    </button>
+                                    <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                                        isPlaying
+                                            ?
+                                            <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                            :
+                                            <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                                    }
+                                    </button>
+                                    <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
+                                        <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
+                                    </button>
+                                </div>
+                                <PixelDiv className="volumes">
+                                    <div className="volume">
+                                        <ControlKnob classNames="flavors" label="Flavors" onValueChanged={flavorsVolumeChanged}></ControlKnob>
+                                    </div>
+                                    <div className="mainFlavorVolume">
+                                        <ControlKnob classNames="main-flavors" label="Main Flavor" onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
+                                    </div>
+                                    <div className="masterVolume">
+                                        <ControlKnob classNames="master-flavors" label="Master" onValueChanged={masterVolumeChanged}></ControlKnob>
+                                    </div>
+                                </PixelDiv>
+                                <div className="buttons">
+                                    <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                        <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
+                                    </button>
+                                    <button className="save" onClick={dishes.saveCurrentDish}>
+                                        <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
+                                    </button>
+                                    {
+                                        isReadonly &&
+                                        <button className="fork" onClick={dishes.forkCurrentDish}>
+                                            <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+
+                        </CurrentInterPlayerDragContext.Provider>
+                    </CurrentlyPlayingContext.Provider>
+                </SynthSelectorContext.Provider>
+            </FlavorSynthContextMenu.Provider>
         </SynthLinesContext.Provider>
     </>
 }

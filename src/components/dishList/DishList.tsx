@@ -14,12 +14,12 @@ import { ElementPlayer } from "../flavorSynth/ElementPlayer";
 import * as Tone from "tone";
 import { getMainFlavorByName } from "../../audio/Flavors";
 import PixelLI from "../pixelDiv/PixelLI";
-import ProgressCanvas from "./ProgressCanvas";
 import Toggle from "../toggle/Toggle";
 import { Network } from "../../utils/Network";
 import { BASE_URL } from "../../utils/Statics";
 import { useUser } from "../../contexts/UserContext";
 import Utils from "../../utils/Utils";
+import ProgressCanvas from "../progressCanvas/ProgressCanvas";
 
 dayjs.extend(customFormat);
 

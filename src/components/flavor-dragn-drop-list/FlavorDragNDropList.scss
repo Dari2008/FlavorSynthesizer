@@ -38,6 +38,17 @@
         border-radius: 10px;
         box-sizing: border-box;
 
+        &.selected {
+            .wrapper span {
+                font-size: clampW(0.16em, 1.6em, 200px, 2000px) !important;
+            }
+
+            .wrapper {
+                box-shadow: inset 0 0 20px 2px $gray-700,
+                    0 0 10px 1px white;
+            }
+        }
+
         * {
             justify-self: center;
             align-self: center;
@@ -93,6 +104,7 @@
 
             background-clip: border-box;
             border-radius: 10px;
+            transition: box-shadow 0.2s ease-in-out;
 
             .border-wrapper {
                 display: grid;
@@ -151,6 +163,7 @@
                     font-weight: 600;
                     font-family: PixelFont;
                     font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+                    transition: font-size 0.2s ease-in-out;
                 }
             }
 

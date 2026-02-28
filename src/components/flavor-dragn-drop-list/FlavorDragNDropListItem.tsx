@@ -13,6 +13,7 @@ type Props = {
 export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props) {
 
     const [isPlaying, setPl] = useState<boolean>(false);
+    const [isCurrentlySelectedElement, setIsCurrentlySelectedElement] = useState<boolean>(false);
     const playerRef = useRef<FlavorFileMusic>(null);
     const responseWaitRef = useRef<Promise<void | FlavorFileMusic>>(null);
     const itemRef = useRef<HTMLLIElement>(null);
@@ -21,6 +22,12 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     const currentDragging = useCurrentDraggingElement();
 
     const isTouch = useTouchChecker().isTouch;
+
+    const deselect = () => {
+        setIsCurrentlySelectedElement(false);
+    };
+
+    currentDragging.setDeselectAllCallback(player.NAME, deselect);
 
     if (playerRef.current == null && responseWaitRef.current == null && hasDownloaded) responseWaitRef.current = player.clone().then(c => {
         playerRef.current = c;
@@ -70,9 +77,11 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     const onClick = () => {
         if (!isTouch) return;
         currentDragging.currentDraggingElement.current = player.NAME;
+        currentDragging.deselectAll();
+        setIsCurrentlySelectedElement(true);
     };
 
-    return <li draggable onDragStart={onDragStart} onClick={onClick} key={player.NAME} ref={itemRef} className="flavor-drag-n-drop-list-item" style={{
+    return <li draggable onDragStart={onDragStart} onClick={onClick} key={player.NAME} ref={itemRef} className={`flavor-drag-n-drop-list-item ${isCurrentlySelectedElement ? "selected" : ""}`} style={{
         "--border-color-1": (FLAVOR_COLOR[player.NAME][0]),
         "--border-color-2": (FLAVOR_COLOR[player.NAME][1])
     } as any}>

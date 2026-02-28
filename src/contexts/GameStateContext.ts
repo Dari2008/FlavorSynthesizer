@@ -18,4 +18,4 @@ export function useGameState() {
     return ctx;
 }
 
-export type GameState = "loading" | "mainMenu" | "dishList" | "openShared" | "createDish-mainFlavor" | "createDish-create" | "createDish-create-viewonly" | "createDish-share";
+export type GameState = "loading" | "mainMenu" | "dishList" | "restaurant" | "openShared" | "createDish-mainFlavor" | "createDish-create" | "createDish-create-viewonly" | "createDish-share";

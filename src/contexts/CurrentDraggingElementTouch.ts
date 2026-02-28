@@ -3,6 +3,8 @@ import type { Flavor } from "../@types/Flavors";
 
 type CurrentDraggingElementTouchType = {
     currentDraggingElement: React.RefObject<Flavor | null>;
+    setDeselectAllCallback: (name: string, deselect: (() => void)) => void;
+    deselectAll: () => void;
 }
 
 export const CurrentDraggingElementTouch = createContext<CurrentDraggingElementTouchType | null>(null);

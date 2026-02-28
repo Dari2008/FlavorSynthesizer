@@ -27,6 +27,8 @@ export type Dish = {
     temporary: true | undefined;
 }
 
+export type RestaurantDish = Omit<ServerDish, "share">;
+
 export type DishVolumes = {
     master: number;
     mainFlavor: number;

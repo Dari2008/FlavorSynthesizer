@@ -4,9 +4,9 @@ import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 type SynthLines = {
     delete: (uuid: string) => void;
     onWheel: (e: WheelEvent) => void;
-    addSynthRepainter: (uuid: string, sr: () => void) => void;
+    // addSynthRepainter: (uuid: string, sr: () => void) => void;
     addCurrentPositionRepainter: (uuid: string, sr: () => void) => void;
-    repaintAll: () => void;
+    // repaintAll: () => void;
     deleteSelectedElements: () => void;
     addCollisionCheckerCallback: (uuid: string, cb: (fromOffset: number, toOffset: number) => boolean) => void;
     addOnElementMove: (uuid: string, cb: (secondsOffset: number) => void) => void;
@@ -24,6 +24,7 @@ type SynthLines = {
     updateCurrentPlayingStatistic: () => void;
     synthLines: FlavorSynthLine[];
     setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>;
+    zoomed: (posX: number, delta: number) => void;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

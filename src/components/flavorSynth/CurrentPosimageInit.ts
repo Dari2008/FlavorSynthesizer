@@ -12,8 +12,7 @@ export async function initCurrentPosImages() {
         currentPosAnimationImages = [];
 
         await (async () => {
-            const batchSize = 5;
-            for (let i = 0; i < imageCount; i += batchSize) {
+            for (let i = 0; i < imageCount; i++) {
                 const img = new Image();
                 img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
                 await new Promise(res => img.onload = res);

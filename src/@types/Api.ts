@@ -1,5 +1,5 @@
 import type { Flavor } from "./Flavors";
-import type { DishVolumes, ServerDish } from "./User";
+import type { Dish, DishVolumes, RestaurantDish, ServerDish } from "./User";
 
 export type APIResponse<T, E extends object = {}> = ErrorAPIResponse<E> | SuccessAPIResponse<T>;
 
@@ -80,4 +80,8 @@ type JWTData = {
 
 export type VisibilityStateChangeResponse = {
 
+}
+
+export type LoadRestaurantData = {
+    dishes: RestaurantDish[];
 }

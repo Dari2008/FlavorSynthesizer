@@ -12,8 +12,8 @@ export const IMAGES_TO_LOAD: {
     "main_background_repeatable": {
         url: "./imgs/repeatable_background.png"
     },
-    "dunno_box": {
-        url: "./mainMenu/bg/box_dunno.png"
+    "restaurant": {
+        url: "./mainMenu/bg/restaurant.png"
     },
     "create_dish": {
         url: "./mainMenu/bg/create_new_dish.png"
@@ -131,7 +131,7 @@ export async function loadImage(image: ImageName): Promise<string | undefined> {
 export type ImageName =
     "main_background" |
     "main_background_repeatable" |
-    "dunno_box" |
+    "restaurant" |
     "create_dish" |
     "open_shared_dish" |
     "list_dishes" |
