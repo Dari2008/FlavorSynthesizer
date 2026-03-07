@@ -207,7 +207,6 @@ export class MainFlavorFileMusic {
         this.stop();
 
         const now = Tone.now();
-
         this.player?.start(now, offset);
     }
 

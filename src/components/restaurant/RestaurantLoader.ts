@@ -8,7 +8,7 @@ export class RestaurantLoader {
 
     private static DISH_LIST: RestaurantDish[] = [];
 
-    public static async loadRestaurantData(limit: number = 20): Promise<void> {
+    public static async loadRestaurantData(limit: number = 20): Promise<RestaurantDish[]> {
 
         // const all: RestaurantDish[] = [
         //     {
@@ -39,8 +39,8 @@ export class RestaurantLoader {
         });
 
         if (response.status == "error") {
-            Utils.error("Failed to load restaurant menu");
-            return;
+            Utils.error(response.message ?? "Failed to load restaurant menu");
+            return [];
         }
 
         const uuids = RestaurantLoader.DISH_LIST.map(e => e.uuid);
@@ -51,6 +51,7 @@ export class RestaurantLoader {
                 uuids.push(dish.uuid);
             }
         }
+        return RestaurantLoader.DISH_LIST;
     }
 
     public static async loadDishesSortedAfter(sortedAfter: "newest" | "oldest" | "flavorCount", limit: number = 20): Promise<RestaurantDish[]> {
@@ -64,7 +65,7 @@ export class RestaurantLoader {
         });
 
         if (response.status == "error") {
-            Utils.error("Failed to load restaurant menu");
+            Utils.error(response.message ?? "Failed to load restaurant menu");
             return [];
         }
 

@@ -69,6 +69,8 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
         const offsetX = percentageX * DRAG_DEFAULT_LENGTH * pixelsPerSecond;
         const offsetY = percentageY * newHeight;
 
+        console.log(offsetX, offsetY, pixelsPerSecond);
+
         e.dataTransfer.setDragImage(createDragImageFor(player.NAME), offsetX, offsetY);
         e.dataTransfer.setData("text/offsetImage", JSON.stringify({ offsetX, offsetY }));
         e.dataTransfer.setData("text/elementLength", DRAG_DEFAULT_LENGTH.toString());

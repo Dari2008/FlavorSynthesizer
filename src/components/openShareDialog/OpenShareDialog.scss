@@ -260,6 +260,13 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
                 align-items: center;
             }
 
+            .share-flavors-flavor {
+                .text {
+                    opacity: 0;
+                    pointer-events: none;
+                }
+            }
+
             .share-flavors-flavor-no-selected,
             .share-flavors-flavor {
                 // width: calc( - 10px);
@@ -288,6 +295,10 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
                     max-height: 100%;
                     overflow: hidden;
                     object-fit: contain;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
                 }
 
                 .flavor-image {}

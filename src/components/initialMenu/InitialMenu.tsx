@@ -5,7 +5,6 @@ import ImageMenu from "../imageMenu/ImageMenu";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
 import { useLoadingAnimation } from "../../contexts/LoadingAnimationContext";
-import { RestaurantLoader } from "../restaurant/RestaurantLoader";
 
 export default function InitialMenu() {
 
@@ -18,7 +17,6 @@ export default function InitialMenu() {
 
     const gameState = useGameState();
     const user = useUser();
-    const loading = useLoadingAnimation();
     const loginOrRegisterLoading = useLoadingAnimation().withKey("loginOrRegister");
 
 
@@ -80,9 +78,6 @@ export default function InitialMenu() {
                 gameState.setGameState("dishList");
                 break;
             case "restaurant":
-                loading.startLoading("restaurant");
-                await RestaurantLoader.loadRestaurantData(20);
-                loading.stopLoading("restaurant");
                 gameState.setGameState("restaurant");
                 break;
             case "none":

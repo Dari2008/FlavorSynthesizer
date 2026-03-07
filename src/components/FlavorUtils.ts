@@ -155,8 +155,6 @@ export function constrainSpan(s: { from: number; to: number; }): { from: number;
 
 
 export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: string = crypto.randomUUID()): FlavorElement {
-
-
     const d: FlavorElement = {
         from: from,
         to: to,

@@ -1,8 +1,9 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
+import { getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -25,7 +26,7 @@ const BG_IMAGES = [
 export default function OpenShareDialog({ open }: { open: (openData: OpenData) => void }) {
 
     // const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
-    const currentFlavorsSelectedRef = useRef<FlavorsSelected[]>([]);
+    const [currentFlavorsSelected, setCurrentFlavorsSelected] = useState<FlavorsSelected[]>([]);
     const comboBoxRef = useRef<HTMLDivElement>(null);
     const digitsRef = useRef<HTMLDivElement>(null);
     const uploadedImageInputRef = useRef<HTMLInputElement>(null);
@@ -39,18 +40,25 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
     const gameState = useGameState();
 
+    useEffect(() => {
+        setSpanFirstTime(window.innerWidth, {
+            from: 0,
+            to: 60
+        });
+        setSpan(window.innerWidth, getSpan());
+    }, []);
+
     const getFlavorIndex = (index: number) => {
-        return currentFlavorsSelectedRef.current.find(e => e.index == index);
+        return currentFlavorsSelected.find(e => e.index == index);
     };
 
     const setFlavor = (index: number, flavor: Flavor) => {
-        const newFlavorsSelected = currentFlavorsSelectedRef.current.filter(e => e.index != index);
+        const newFlavorsSelected = currentFlavorsSelected.filter(e => e.index != index);
         newFlavorsSelected.push({
             flavor: flavor,
             index: index
         });
-        // setCurrentFlavorsSelected([...newFlavorsSelected]);
-        currentFlavorsSelectedRef.current = newFlavorsSelected;
+        setCurrentFlavorsSelected([...newFlavorsSelected]);
     };
 
 
@@ -80,8 +88,11 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
             const flavorName = e.dataTransfer.getData("text/plain") as Flavor;
             setFlavor(part, flavorName);
         }
-        checkForValidFlavors();
     };
+
+    useEffect(() => {
+        checkForValidFlavors();
+    }, [currentFlavorsSelected]);
 
     const checkForValidFlavors = () => {
         for (let i = 0; i < SHARE_FLAVOR_COMBO_LENGTH; i++) {
@@ -94,10 +105,10 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     }
 
     const openFlavors = () => {
-        if (currentFlavorsSelectedRef.current.length > 6) return;
+        if (currentFlavorsSelected.length > 6) return;
         open({
             type: "flavors",
-            flavors: currentFlavorsSelectedRef.current.sort((a, b) => a.index - b.index).map(e => e.flavor)
+            flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor)
         });
     };
 
@@ -151,6 +162,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                                     <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
                                     <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
                                     <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
+                                    <div className="text">Drag a flavor here</div>
                                 </div>
                             })
                         }

@@ -16,9 +16,17 @@ import { useGameState } from "../../contexts/GameStateContext";
 
 dayjs.extend(customFormat);
 export default function Restaurant() {
-    console.log(RestaurantLoader.getDishes());
-    const [dishes, setDishes] = useState<RestaurantDish[]>(RestaurantLoader.getDishes());
+    const [dishes, setDishes] = useState<RestaurantDish[]>([]);
     const [isLoading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        (async () => {
+            setLoading(true);
+            const dishes = await RestaurantLoader.loadRestaurantData();
+            setDishes(dishes);
+            setLoading(false);
+        })();
+    }, []);
 
     const newestButtonRef = useRef<HTMLButtonElement>(null);
     const oldestButtonRef = useRef<HTMLButtonElement>(null);
@@ -130,9 +138,11 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
     const startTime = useRef<number>(Tone.now());
 
     const mainFlavorsPlayer = getMainFlavorByName(dish.mainFlavor);
+    const playerRef = useRef(new ElementPlayer());
 
     const containsSolo = dish.tracks.filter(e => e.solo).length > 0;
     const elements = dish.tracks.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: crypto.randomUUID() })));
+
 
     const updateProgresssBar = () => {
         if (endTimeRef.current == -1) return;
@@ -142,11 +152,11 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
         if (progressBarRef.current) progressBarRef.current.value = percentage * 100;
     };
 
-    const clock = new Tone.Clock(updateProgresssBar, 60);
+    const clockRef = useRef(new Tone.Clock(updateProgresssBar, 60));
 
     const stoppedPlaying = () => {
-        clock.stop();
-        player.stop();
+        clockRef.current.stop();
+        playerRef.current.stop();
         mainFlavorsPlayer?.stop();
         Tone.getTransport().stop();
         setPlaying(false);
@@ -156,8 +166,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
         stopPlaybackRef(stoppedPlaying);
     }, [stopPlaybackRef]);
 
-    const player = new ElementPlayer();
-    player.onStop = stoppedPlaying;
+    playerRef.current.onStop = stoppedPlaying;
 
     const clickedPlay = async () => {
 
@@ -166,28 +175,32 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
             return;
         }
 
+        startedPlayback();
+
+        if (elements.length == 0) return;
+
         Tone.getTransport().stop();
         Tone.getTransport().position = "0:0:0";
         Tone.getTransport().bpm.value = 110;
-        if (elements.length == 0) return;
-        player.stop();
-        player.setVolumes(dish.volumes);
-        player.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
-        endTimeRef.current = await player.play(0);
+
+        playerRef.current.setVolumes(dish.volumes);
+        playerRef.current.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
+        endTimeRef.current = await playerRef.current.play(0);
 
         if (!containsSolo) {
             mainFlavorsPlayer?.setVolumes(dish.volumes);
             mainFlavorsPlayer?.play(0);
         }
-        Tone.getTransport().start("0", "0:0:0");
-        Tone.start();
-        clock.start();
+
+        clockRef.current.start();
 
         startTime.current = Tone.now();
         updateProgresssBar();
-        startedPlayback();
 
         setPlaying(true);
+
+        Tone.getTransport().start("0", "0:0:0");
+        Tone.start();
 
     };
 
