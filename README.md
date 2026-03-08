@@ -96,7 +96,7 @@ Flavor Synthesizer is built around a timeline-based audio engine using [Tone.js]
 ### Core Data Model
 Each Dish is composed of:
 ```typescript
-Dish {
+type Dish = {
   synthLines: SynthLine[]
   masterVolume: number
   flavorVolume: number
@@ -106,7 +106,7 @@ Dish {
 ```
 
 ```typescript
-SynthLine {
+type SynthLine = {
   flavors: Flavor[]
   volume: number
   isMuted: boolean
@@ -116,7 +116,7 @@ SynthLine {
 ```
 
 ```typescript
-Flavor {
+type Flavor = {
   flavorId: string
   from: number      // start time (seconds or ticks)
   to: number        // end time
