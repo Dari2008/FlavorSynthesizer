@@ -23,6 +23,7 @@ import PixelDiv from "../pixelDiv/PixelDiv";
 import { FlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
 import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
+import Utils from "../../utils/Utils";
 
 
 type EventListWithUUID<T> = {
@@ -96,7 +97,7 @@ export default function FlavorSynth() {
 
     const addSynth = () => {
         if (isReadonly) return;
-        const uuid = crypto.randomUUID();
+        const uuid = Utils.uuidv4Exclude(synthLines.map(e => e.uuid));
         const synthLine: FlavorSynthLine = {
             uuid: uuid,
             elements: [],

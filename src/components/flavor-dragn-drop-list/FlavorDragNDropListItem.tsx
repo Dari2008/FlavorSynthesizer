@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import { FlavorFileMusic } from "../../audio/FlavorMusic"
 import { FLAVOR_COLOR, type Flavor } from "../../@types/Flavors";
-import { createElementForFlavor, drawElement, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
+import { createElementForFlavor, drawElement, FLAVOR_HEIGHT, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
 import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
-import { useTouchChecker } from "../../contexts/TouchCheckerContext";
+import setCurrentDragging from "../flavorSynth/CurrentDraggingReference";
 
 type Props = {
     player: FlavorFileMusic;
@@ -21,7 +21,7 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
 
     const currentDragging = useCurrentDraggingElement();
 
-    const isTouch = useTouchChecker().isTouch;
+    // const isTouch = useTouchChecker().isTouch;
 
     const deselect = () => {
         setIsCurrentlySelectedElement(false);
@@ -47,8 +47,12 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
         }
     };
 
+    const image = createDragImageFor(player.NAME);
+
     const onDragStart = (e: React.DragEvent<HTMLLIElement>) => {
-        e.dataTransfer.setData("text/plain", player.NAME);
+        e.dataTransfer.setData("flavor/plain", player.NAME);
+
+        console.log("Started dreaging", player.NAME);
 
         const x = e.clientX;
         const y = e.clientY;
@@ -69,21 +73,23 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
         const offsetX = percentageX * DRAG_DEFAULT_LENGTH * pixelsPerSecond;
         const offsetY = percentageY * newHeight;
 
-        console.log(offsetX, offsetY, pixelsPerSecond);
 
-        e.dataTransfer.setDragImage(createDragImageFor(player.NAME), offsetX, offsetY);
-        e.dataTransfer.setData("text/offsetImage", JSON.stringify({ offsetX, offsetY }));
-        e.dataTransfer.setData("text/elementLength", DRAG_DEFAULT_LENGTH.toString());
+        e.dataTransfer.setData("flavor/offsetImage", JSON.stringify({ offsetX, offsetY }));
+        e.dataTransfer.setData("flavor/elementLength", DRAG_DEFAULT_LENGTH.toString());
+        e.dataTransfer.setData("text/plain", "Hi");
+        e.dataTransfer.setDragImage(image, offsetX, offsetY);
+
+        setCurrentDragging(player.NAME, { offsetX, offsetY }, DRAG_DEFAULT_LENGTH);
     };
 
-    const onClick = () => {
-        if (!isTouch) return;
-        currentDragging.currentDraggingElement.current = player.NAME;
-        currentDragging.deselectAll();
-        setIsCurrentlySelectedElement(true);
-    };
+    // const onClick = () => {
+    //     if (!isTouch) return;
+    //     currentDragging.currentDraggingElement.current = player.NAME;
+    //     currentDragging.deselectAll();
+    //     setIsCurrentlySelectedElement(true);
+    // };
 
-    return <li draggable onDragStart={onDragStart} onClick={onClick} key={player.NAME} ref={itemRef} className={`flavor-drag-n-drop-list-item ${isCurrentlySelectedElement ? "selected" : ""}`} style={{
+    return <li draggable onDragStart={onDragStart} key={player.NAME} ref={itemRef} className={`flavor-drag-n-drop-list-item ${isCurrentlySelectedElement ? "selected" : ""}`} style={{
         "--border-color-1": (FLAVOR_COLOR[player.NAME][0]),
         "--border-color-2": (FLAVOR_COLOR[player.NAME][1])
     } as any}>
@@ -97,14 +103,20 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     </li>
 }
 
-function createDragImageFor(flavorName: Flavor): HTMLCanvasElement {
+function createDragImageFor(flavorName: Flavor): HTMLImageElement {
     const canvas = document.createElement("canvas");
+    canvas.width = 10 * getPixelsPerSecond();
+    canvas.height = FLAVOR_HEIGHT;
     const ctx = canvas.getContext("2d");
     if (ctx == null) {
-        return canvas;
+        return new Image();
     }
     drawElement(createElementForFlavor(flavorName, 0, 10), ctx, 0);
-    return canvas;
+
+    const img = new Image();
+    img.src = canvas.toDataURL();
+    img.style.visibility = "hidden";
+    return img;
 }
 
 // function hexToRgbValues(hex: string): string {

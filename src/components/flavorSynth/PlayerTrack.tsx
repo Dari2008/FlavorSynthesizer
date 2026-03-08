@@ -14,6 +14,7 @@ import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
 import Utils from "../../utils/Utils";
 import { useFlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
+import { getCurrentDragging } from "./CurrentDraggingReference";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -64,7 +65,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         elements: [],
         muted: false,
         solo: false,
-        uuid: crypto.randomUUID(),
+        uuid: Utils.uuidv4(),
         volume: 1
     };
 
@@ -1263,11 +1264,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
 
     const onDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
+        console.log("DRopped", e.dataTransfer.getData("flavor/plain"));
         if (isReadonly) return;
         e.preventDefault();
-        const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
-        const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
-        const flavorNameRaw = e.dataTransfer.getData("text/plain");
+        const offsetImageRaw = e.dataTransfer.getData("flavor/offsetImage");
+        const elementLengthRaw = e.dataTransfer.getData("flavor/elementLength");
+        const flavorNameRaw = e.dataTransfer.getData("flavor/plain");
 
 
         if (!offsetImageRaw || !elementLengthRaw) {
@@ -1328,26 +1330,29 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
         if (isReadonly) return;
         try {
-            const offsetImageRaw = e.dataTransfer.getData("text/offsetImage");
-            const elementLengthRaw = e.dataTransfer.getData("text/elementLength");
-            const flavorNameRaw = e.dataTransfer.getData("text/plain");
+
+            const currentDragging = getCurrentDragging();
+
+            const offsetImage = !!e.dataTransfer.getData("flavor/offsetImage") ? JSON.parse(e.dataTransfer.getData("flavor/offsetImage")) : currentDragging?.offsetImage;
+            const elementLength = !!e.dataTransfer.getData("flavor/elementLength") ? parseInt(e.dataTransfer.getData("flavor/elementLength"), 10) : currentDragging?.elementLength;
+            const flavorName = (!!e.dataTransfer.getData("flavor/plain") ? e.dataTransfer.getData("flavor/plain") : currentDragging?.flavor) as Flavor | null | undefined;
 
 
-            if (!offsetImageRaw || !elementLengthRaw) {
+            if (!offsetImage || !elementLength || !flavorName) {
                 currentDraggingElementRef.current = null;
                 renderElementsWDebounce();
                 return;
             }
-            const offsetImage = JSON.parse(offsetImageRaw);
-            const elementLength = parseInt(elementLengthRaw, 10);
-            const flavorName = flavorNameRaw as Flavor;
+
             const box = canvasRef.current?.getBoundingClientRect();
             const x = e.clientX - (box?.left ?? 0);
             // const y = e.clientY - (box?.top ?? 0);
 
             const currentPos = calculateCurrentPosSeconds(x - offsetImage.offsetX);
 
+
             if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
+                console.log("Is Empty");
                 let startPos = -1;
                 let endPos = -1;
                 for (let start = 0; start <= elementLength; start++) {
@@ -1363,6 +1368,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 if (startPos != -1 && endPos != -1 && startPos != endPos) {
                     currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
                     e.preventDefault();
+                    console.log("Allowed");
                     renderElementsWDebounce();
                     return;
                 }
@@ -1375,6 +1381,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             currentDraggingElementRef.current = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
 
             e.preventDefault();
+            console.log("Allowed");
         } catch (ex) {
             currentDraggingElementRef.current = null;
         }

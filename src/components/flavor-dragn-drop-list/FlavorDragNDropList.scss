@@ -37,6 +37,7 @@
         padding-inline: 5px;
         border-radius: 10px;
         box-sizing: border-box;
+        -webkit-user-drag: element;
 
         &.selected {
             .wrapper span {

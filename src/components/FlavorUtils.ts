@@ -1,6 +1,7 @@
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../@types/Flavors";
 import { FLAVORS } from "../audio/Flavors";
 import { STAR_MASK_IMAGE } from "../Images";
+import Utils from "../utils/Utils";
 import type { FlavorElement } from "./flavorSynth/PlayerTrack";
 
 export const STROKES_COLORS = "white";
@@ -154,7 +155,7 @@ export function constrainSpan(s: { from: number; to: number; }): { from: number;
 }
 
 
-export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: string = crypto.randomUUID()): FlavorElement {
+export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: string = Utils.uuidv4()): FlavorElement {
     const d: FlavorElement = {
         from: from,
         to: to,

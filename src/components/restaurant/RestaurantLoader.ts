@@ -18,7 +18,7 @@ export class RestaurantLoader {
         //         name: "Test",
         //         publishState: "public",
         //         type: "dish",
-        //         uuid: crypto.randomUUID(),
+        //         uuid: Utils.uuidv4(),
         //         tracks: [],
         //         temporary: undefined,
         //         volumes: {

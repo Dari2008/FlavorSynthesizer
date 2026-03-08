@@ -13,6 +13,7 @@ import { createElementForFlavor } from "../FlavorUtils";
 import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
 import Skeleton from "react-loading-skeleton";
 import { useGameState } from "../../contexts/GameStateContext";
+import Utils from "../../utils/Utils";
 
 dayjs.extend(customFormat);
 export default function Restaurant() {
@@ -141,7 +142,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
     const playerRef = useRef(new ElementPlayer());
 
     const containsSolo = dish.tracks.filter(e => e.solo).length > 0;
-    const elements = dish.tracks.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: crypto.randomUUID() })));
+    const elements = dish.tracks.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: Utils.uuidv4() })));
 
 
     const updateProgresssBar = () => {

@@ -5,6 +5,7 @@
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ![Creating of a Dish](./readmeImgs/showCreationOfDish.gif)
+
 🌐 **Live Demo:** https://flavorsynth.frobeen.com/
 
 ## Description
@@ -76,7 +77,6 @@ Download progress indicator for remote dishes.
 - Drag edge of flavor → resize
 - Shift + Wheel → horizontal scroll
 - Ctrl + Wheel → zoom
-- Click → select flavor
 - Ctrl + Click → multi-select
 - Touch gestures supported
 

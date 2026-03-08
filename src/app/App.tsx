@@ -414,7 +414,7 @@ export default function App() {
                 share: undefined,
                 createdAt: dayjs().format("YYYY-MM-DD HH:mm:ss"),
                 name: title,
-                uuid: crypto.randomUUID()
+                uuid: Utils.uuidv4Exclude(dishes.map(e => e.uuid))
             } as Dish;
         }));
         setGameState("createDish-create");
@@ -608,7 +608,7 @@ async function checkIfDataDownloaded() {
     if (val != null) return false;
 
     const dbs = await indexedDB.databases();
-    return dbs.length == DOWNLOAD_GROUP_COUNT;
+    return dbs.length >= DOWNLOAD_GROUP_COUNT;
 }
 
 function getLoggedInUser(): User | null {

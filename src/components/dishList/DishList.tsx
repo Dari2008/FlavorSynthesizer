@@ -192,13 +192,7 @@ export default function DishList() {
             newName = element.name + ` (${index})`;
         }
 
-        let newUUID = crypto.randomUUID();
-
-        const uuids = dishes.map(e => e.uuid);
-
-        while (uuids.includes(newUUID)) {
-            newUUID = crypto.randomUUID();
-        }
+        const newUUID = Utils.uuidv4Exclude(dishes.map(e => e.uuid));
 
         const newDish = {
             ...element,
