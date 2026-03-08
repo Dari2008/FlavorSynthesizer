@@ -128,15 +128,18 @@ States are managed using React Contexts.
 
 
 ## Installation
-  ### Run
+  ### Client
+  #### Run
   ```bash
   npm install
   npm run dev
   ```
-  ### Build
+  #### Build
   ```bash
   npm run build
   ```
+  ### Server
+  Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks
 
 ## Project Structure
 - src/       - Application source code  
