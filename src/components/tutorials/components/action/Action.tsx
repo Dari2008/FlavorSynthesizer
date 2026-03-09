@@ -2,7 +2,6 @@ import { useState, type HTMLAttributes, type ReactNode } from "react";
 import "./Action.scss";
 import { useTutorialProgress } from "../../context/TutorialProgressContext";
 import PixelDiv from "../../../pixelDiv/PixelDiv";
-import PixelButton from "../../../pixelDiv/PixelButton";
 
 type ActionProps = HTMLAttributes<HTMLDivElement> & {
     text: ReactNode;

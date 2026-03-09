@@ -2,7 +2,6 @@ import type { HTMLAttributes, ReactNode } from "react";
 import "./Text.scss";
 import { useTutorialProgress } from "../../context/TutorialProgressContext";
 import PixelDiv from "../../../pixelDiv/PixelDiv";
-import PixelButton from "../../../pixelDiv/PixelButton";
 
 type TextProps = HTMLAttributes<HTMLDivElement> & {
     text: ReactNode;

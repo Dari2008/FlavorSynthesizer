@@ -12,7 +12,7 @@ export default function HomeTutorial() {
     ], tutorials.finishedTutorial);
 
 
-    return <TutorialProgressContext.Provider value={{ ...steps, title: "Select Main Flavor Tutorial" }}>
+    return <TutorialProgressContext.Provider value={{ ...steps, title: "Home Tutorial" }}>
         <div className="tutorial home-tutorial">
             <Text text={
                 <>

@@ -53,6 +53,8 @@ export default function Restaurant() {
 
         currentButtonSorted.current = button;
 
+        stopPlaybacks.current.forEach(e => e());
+
         setLoading(true);
         setDishes(await RestaurantLoader.loadDishesSortedAfter(button));
 

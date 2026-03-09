@@ -2,26 +2,22 @@ import "./DishList.scss";
 import { useDishes } from "../../contexts/DishesContext";
 import dayjs from "dayjs";
 import customFormat from "dayjs/plugin/customParseFormat"
-import { FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import { useEffect, useRef, useState } from "react";
 import type { Dish, LocalDish } from "../../@types/User";
 import { useCurrentDishIndex } from "../../contexts/CurrentDish";
 import { useGameState } from "../../contexts/GameStateContext";
-import type { APIResponse, Digit, VisibilityStateChangeResponse } from "../../@types/Api";
+import type { APIResponse, VisibilityStateChangeResponse } from "../../@types/Api";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import PixelButton from "../pixelDiv/PixelButton";
 import { ElementPlayer } from "../flavorSynth/ElementPlayer";
 import * as Tone from "tone";
 import { getMainFlavorByName } from "../../audio/Flavors";
-import PixelLI from "../pixelDiv/PixelLI";
 import Toggle from "../toggle/Toggle";
 import { Network } from "../../utils/Network";
 import { BASE_URL } from "../../utils/Statics";
 import { useUser } from "../../contexts/UserContext";
 import Utils from "../../utils/Utils";
-import ProgressCanvas from "../progressCanvas/ProgressCanvas";
 import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
-import { useTutorials } from "../tutorials/context/TutorialContext";
 import DishListItem from "./DishListItem";
 import withTutorialStarter from "../../hooks/TutorialStarter";
 

@@ -1,8 +1,8 @@
 import { createContext, useContext } from "react";
-import type { TutorialAction, TutorialList } from "../Tutorials";
+import type { TutorialAction } from "../Tutorials";
 
 type TutorialContextType = {
-    startTutorial: (tutorial: TutorialList) => void;
+    startTutorial: (tutorial: TutorialAction) => void;
     onAction: (action: TutorialAction) => void;
     isTutorialFinished: (tutorial: TutorialAction) => boolean;
     finishedTutorial: () => void;

@@ -7,6 +7,7 @@ import type { FlavorSynthLine } from "../FlavorSynth";
 import { useCurrentDish } from "../../../contexts/CurrentDish";
 import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
+import { useConfirm } from "../../dialogs/ConfirmDialogContext";
 
 export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
@@ -18,6 +19,8 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
     const change = useSynthChange();
 
     const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0);
+
+    const confirm = useConfirm();
 
     // const [isMuted, setMuted] = dishActions.muted;
 
@@ -48,7 +51,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
 
     const deleteSynth = () => {
         if (!flavorSynthLine) return;
-        const deleteS = confirm("Do you want to delete this Synth Line?");
+        const deleteS = confirm.confirm("Do you want to delete this Synth Line?", "noYes");
         if (!deleteS) return;
         synthLines.delete(flavorSynthLine.uuid);
         change.changed();
