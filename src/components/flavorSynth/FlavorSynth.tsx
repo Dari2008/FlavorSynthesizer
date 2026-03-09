@@ -24,6 +24,8 @@ import { FlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuCon
 import { useTouchChecker } from "../../contexts/TouchCheckerContext";
 import { useCurrentDish } from "../../contexts/CurrentDish";
 import Utils from "../../utils/Utils";
+import withTutorialStarter from "../../hooks/TutorialStarter";
+import { useTutorials } from "../tutorials/context/TutorialContext";
 
 
 type EventListWithUUID<T> = {
@@ -89,6 +91,10 @@ export default function FlavorSynth() {
 
     const currentDish = useCurrentDish();
 
+    const tutorials = useTutorials();
+
+    withTutorialStarter("editor-opened");
+
     playerRef.current.onStop = () => {
         setPlaying(false);
         isPlayingRef.current = false;
@@ -97,6 +103,9 @@ export default function FlavorSynth() {
 
     const addSynth = () => {
         if (isReadonly) return;
+
+        tutorials.onAction("editor-addedSynthLine");
+
         const uuid = Utils.uuidv4Exclude(synthLines.map(e => e.uuid));
         const synthLine: FlavorSynthLine = {
             uuid: uuid,

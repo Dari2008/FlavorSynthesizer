@@ -4,6 +4,7 @@ import "./OpenShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
 import { getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
+import withTutorialStarter from "../../hooks/TutorialStarter";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -47,6 +48,8 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
         });
         setSpan(window.innerWidth, getSpan());
     }, []);
+
+    withTutorialStarter("openedOpenShare");
 
     const getFlavorIndex = (index: number) => {
         return currentFlavorsSelected.find(e => e.index == index);

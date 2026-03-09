@@ -24,7 +24,7 @@
     }
 
     .loading-span {
-        font-size: clampW(0.5em, 5em, 200px, 2000px);
+        font-size: clampDef(5em);
         text-rendering: optimizeLegibility !important;
         display: flex;
         text-shadow: 0px 4px 5px black;
@@ -33,11 +33,11 @@
         &::after {
             content: "";
             animation: dots 1500ms ease-in-out 0ms infinite forwards;
-            font-size: clampW(0.5em, 5em, 200px, 2000px);
+            font-size: clampDef(5em);
             line-height: clampW(0.1em, 1em, 200px, 20000px);
             text-wrap: nowrap;
             white-space: pre;
-            width: clampW(0.3em, 3em, 200px, 2000px) !important;
+            width: clampDef(3em) !important;
             display: block;
             margin-block: auto;
             margin-left: 5px;

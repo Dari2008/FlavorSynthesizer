@@ -23,7 +23,7 @@
         justify-content: center;
         align-items: center;
         margin: 0;
-        font-size: clampW(0.4em, 4em, 200px, 2000px);
+        font-size: clampDef(4em);
     }
 
     .close {
@@ -31,7 +31,7 @@
         top: 10px;
         right: 10px;
         font-family: PixelFont;
-        font-size: clampW(0.4em, 4em, 200px, 2000px);
+        font-size: clampDef(4em);
         line-height: 2rem;
         background-color: transparent;
         border: none;
@@ -77,7 +77,7 @@
                 position: absolute;
                 top: 100%;
                 left: 50%;
-                font-size: clampW(0.3em, 3em, 200px, 2000px);
+                font-size: clampDef(3em);
                 transform: translate(-50%, -100%);
                 height: min-content;
                 transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;

@@ -165,25 +165,29 @@ button,
 a:not([role]) {
     border-radius: 8px;
     border: 1px solid transparent;
+    --border-size: 1px; // for Pixel button
+    --background-color: #{$gray-900};
+    --border-color: #{$gray-900};
     padding: 0.6em 1.2em;
     font-size: 1em;
     font-weight: 500;
     font-family: inherit;
-    background-color: $gray-900;
+    background-color: #{$gray-900};
     cursor: pointer;
-    transition: border-color 0.25s;
+    transition: --border-color 0.25s;
 }
 
 button:hover,
 a:not([role]):hover {
     border-color: $themeColor3;
+    --border-color: #{$themeColor3}; // for Pixel button
 }
 
 button:focus,
 a:not([role]):focus,
 button:focus-visible,
 a:not([role]):focus-visible {
-    outline: 4px auto -webkit-focus-ring-color;
+    outline: none;
 }
 
 // @media (prefers-color-scheme: light) {}
@@ -234,7 +238,7 @@ a:not([role]):focus-visible {
     justify-content: center;
     align-items: center;
     font-family: "Dejavu";
-    font-size: clampW(1em, 3em, 200px, 2000px);
+    font-size: clampDef(3em);
     text-align: center;
 }
 
@@ -269,7 +273,7 @@ a:not([role]):focus-visible {
         border-radius: 10px;
         padding: 10px;
         opacity: 0;
-        font-size: clampW(0.3em, 1em, 200px, 2000px);
+        font-size: clampDef(1em);
 
         transition: transform $transitionTime ease-in-out,
             opacity $transitionTime ease-in-out;
@@ -320,4 +324,24 @@ a:not([role]):focus-visible {
 .close {
     padding: 0;
     margin: 0;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }

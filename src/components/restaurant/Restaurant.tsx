@@ -14,6 +14,8 @@ import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackg
 import Skeleton from "react-loading-skeleton";
 import { useGameState } from "../../contexts/GameStateContext";
 import Utils from "../../utils/Utils";
+import { DATE_FORMAT, DISPLAY_DATE_FORMAT } from "../../utils/Statics";
+import withTutorialStarter from "../../hooks/TutorialStarter";
 
 dayjs.extend(customFormat);
 export default function Restaurant() {
@@ -28,6 +30,8 @@ export default function Restaurant() {
             setLoading(false);
         })();
     }, []);
+
+    withTutorialStarter("openedRestaurant");
 
     const newestButtonRef = useRef<HTMLButtonElement>(null);
     const oldestButtonRef = useRef<HTMLButtonElement>(null);
@@ -222,7 +226,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
             </button>
         </div>
         <span className="created-by">{dish.createdBy ?? "Unknown"}</span>
-        <span className="creation-date">{dayjs(dish.createdAt, "YYYY-MM-DD HH:mm:ss").format("YYYY/MM/DD hh:mm")}</span>
+        <span className="creation-date">{dayjs(dish.createdAt, DATE_FORMAT).format(DISPLAY_DATE_FORMAT)}</span>
         <span className="name">{dish.name}</span>
     </div>
 }

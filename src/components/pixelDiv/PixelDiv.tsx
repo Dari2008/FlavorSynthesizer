@@ -15,7 +15,6 @@
 // }
 
 import { useEffect, useRef, type DetailedHTMLProps, type HTMLAttributes, type ReactNode } from "react";
-import "./PixelDiv.scss";
 
 type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
 

@@ -3,6 +3,7 @@ import "./MainFlavorSelectionDialog.scss";
 import { MAIN_FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useMainFlavor } from "../../contexts/MainFlavorContext";
+import withTutorialStarter from "../../hooks/TutorialStarter";
 
 export default function MainFlavorSelectionDialog() {
 
@@ -20,6 +21,8 @@ export default function MainFlavorSelectionDialog() {
             gameState.setGameState("createDish-create");
         }, 300);
     };
+
+    withTutorialStarter("openedCreate");
 
     return <div className="main-flavor-selection-dialog">
         <h1>Select Main Flavor</h1>

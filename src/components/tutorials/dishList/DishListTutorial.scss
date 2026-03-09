@@ -1,0 +1,38 @@
+.dishlist-tutorial {
+    .dish-list-default-item-wrapper {
+        width: min(max(50vw, 500px), 97vw);
+    }
+
+    .tutorial-right-click-options {
+        img {
+            margin-right: 10px;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            margin-block: 10px;
+        }
+    }
+
+    .redirect-button {
+        margin-left: 0.3em !important;
+    }
+
+    .play-inline {
+        height: 1em;
+        aspect-ratio: 1 / 1;
+        vertical-align: middle;
+    }
+
+    .toggle-wrapper {
+        label {
+            display: none;
+        }
+
+        .toggle {
+            margin-left: 0px;
+            pointer-events: none !important;
+        }
+    }
+}

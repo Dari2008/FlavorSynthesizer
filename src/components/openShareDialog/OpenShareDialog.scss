@@ -1,7 +1,7 @@
 @use "../../utils/Variables.scss" as *;
 @use "../../utils/clamp.scss" as *;
 
-$gap: clampW(0.4em, 4em, 200px, 2000px);
+$gap: clampDef(4em);
 
 #root:has(.open-share-dialog-wrapper.visible) .flavor-drag-n-drop-list {
     backdrop-filter: brightness(30%) contrast(110%);
@@ -31,7 +31,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
 
     .open-share-dialog {
         position: relative;
-        margin: clampW(0.4em, 4em, 200px, 2000px);
+        margin: clampDef(4em);
         padding: 20px;
         border-radius: 20px;
         justify-self: center;
@@ -131,7 +131,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             right: 20px;
 
             .close {
-                font-size: clampW(0.4em, 4em, 200px, 2000px);
+                font-size: clampDef(4em);
                 aspect-ratio: 1 / 1;
                 width: max-content;
                 line-height: 0;
@@ -161,7 +161,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: clampW(0.4em, 4em, 200px, 2000px);
+        font-size: clampDef(4em);
         margin: 0;
     }
 
@@ -171,7 +171,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
         justify-content: center;
         align-items: center;
         text-align: center;
-        font-size: clampW(0.2em, 2em, 200px, 2000px);
+        font-size: clampDef(2em);
         margin: 0;
     }
 
@@ -204,7 +204,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             align-items: center;
             text-align: center;
             margin: 0;
-            font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+            font-size: clampDef(1.3em);
             opacity: 0.4;
         }
 
@@ -230,8 +230,8 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             }
 
             button {
-                font-size: clampW(0.14em, 1.4em, 200px, 2000px);
-                padding: clampW(0.07em, 0.7em, 200px, 2000px) clampW(0.13em, 1.3em, 200px, 2000px) !important;
+                font-size: clampDef(1.4em);
+                padding: clampDef(0.7em) clampDef(1.3em) !important;
                 line-height: 1rem;
             }
         }
@@ -281,8 +281,8 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
                 margin-block: auto;
 
                 .text {
-                    font-size: clampW(0.14em, 1.4em, 200px, 2000px);
-                    line-height: clampW(0.1em, 1em, 200px, 2000px);
+                    font-size: clampDef(1.4em);
+                    line-height: clampDef(1em);
                     padding: 5px;
                     display: flex;
                     justify-content: center;
@@ -341,7 +341,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             position: absolute;
             bottom: 20px;
             right: 20px;
-            font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+            font-size: clampDef(1.3em);
             padding: 5px 10px;
         }
 
@@ -357,7 +357,7 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
             .upload {
                 width: max-content;
                 margin-inline: auto;
-                font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+                font-size: clampDef(1.3em);
             }
 
             .imageUpload {
@@ -389,10 +389,10 @@ $gap: clampW(0.4em, 4em, 200px, 2000px);
                     border: 1px solid var(--secondary-color);
                 }
 
-                font-size: clampW(0.3em, 3em, 200px, 2000px);
+                font-size: clampDef(3em);
                 outline: none;
                 border: none;
-                width: clampW(0.25em, 2.5em, 200px, 2000px);
+                width: clampDef(2.5em);
                 border-radius: 10px;
                 display: flex;
                 justify-content: center;

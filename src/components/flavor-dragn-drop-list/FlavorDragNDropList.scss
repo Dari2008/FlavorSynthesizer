@@ -41,7 +41,7 @@
 
         &.selected {
             .wrapper span {
-                font-size: clampW(0.16em, 1.6em, 200px, 2000px) !important;
+                font-size: clampDef(1.6em) !important;
             }
 
             .wrapper {
@@ -62,7 +62,7 @@
             border: none;
             text-shadow: 0px 0px 20px var(--border-color-2);
             color: color-mix(in srgb, var(--border-color-1) 50%, white 50%);
-            font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+            font-size: clampDef(1.3em);
 
             &:hover {
                 color: color-mix(in srgb, var(--border-color-1) 90%, white 10%);
@@ -150,7 +150,7 @@
                 img {
                     grid-area: 1 / 1 / 2 / 2;
                     aspect-ratio: 1 / 1;
-                    width: clampW(0.2em, 2em, 200px, 2000px);
+                    width: clampDef(2em);
                     filter: drop-shadow(3px 3px 7px #000000);
                     z-index: 100;
                     padding-left: 5px;
@@ -163,7 +163,7 @@
                     text-transform: uppercase;
                     font-weight: 600;
                     font-family: PixelFont;
-                    font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+                    font-size: clampDef(1.3em);
                     transition: font-size 0.2s ease-in-out;
                 }
             }

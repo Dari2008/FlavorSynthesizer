@@ -35,7 +35,7 @@
 
     .share-dialog {
         position: relative;
-        margin: clampW(0.4em, 4em, 200px, 2000px);
+        margin: clampDef(4em);
         padding: 20px;
         border-radius: 20px;
         justify-self: center;
@@ -352,8 +352,8 @@
                 margin-block: auto;
 
                 .text {
-                    font-size: clampW(0.14em, 1.4em, 200px, 2000px);
-                    line-height: clampW(0.1em, 1em, 200px, 2000px);
+                    font-size: clampDef(1.4em);
+                    line-height: clampDef(1em);
                     padding: 5px;
                     display: flex;
                     justify-content: center;
@@ -412,7 +412,7 @@
             position: absolute;
             bottom: 20px;
             right: 20px;
-            font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+            font-size: clampDef(1.3em);
             padding: 5px 10px;
         }
 
@@ -501,6 +501,7 @@
             justify-content: center;
             align-items: center;
             opacity: 0.7;
+            margin-inline: auto;
         }
 
         .center {
@@ -612,7 +613,7 @@
         left: 50%;
         translate: -50% -50%;
         transform-origin: 50% 50%;
-        font-size: clampW(0.2em, 2em, 200px, 2000px);
+        font-size: clampDef(2em);
     }
 
     .loader {

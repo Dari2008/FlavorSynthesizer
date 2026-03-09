@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from "react";
 import "./Toggle.scss";
 
-export default function Toggle({ checked = false, children, onToggleChange, setToggledRef }: { checked?: boolean; children: ReactNode; onToggleChange: (val: boolean) => void; setToggledRef: React.RefObject<(val: boolean) => void> }) {
+export default function Toggle({ checked = false, children, onToggleChange, setToggledRef }: { checked?: boolean; children: ReactNode; onToggleChange: (val: boolean) => void; setToggledRef?: React.RefObject<(val: boolean) => void> }) {
 
     const [toggled, setToggled] = useState<boolean>(checked);
 
-    setToggledRef.current = setToggled;
+    if (setToggledRef) setToggledRef.current = setToggled;
 
     const toggleStateChanged = () => {
         setToggled(!toggled);

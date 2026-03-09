@@ -1,1 +1,0 @@
-A combination of fruits (images from flavors) to share them you have to open them set the fruits from the list (drag n drop)

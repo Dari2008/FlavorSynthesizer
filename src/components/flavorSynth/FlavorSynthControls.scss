@@ -78,9 +78,6 @@
         pointer-events: none;
         gap: 0.5em;
 
-        .activeFlavorsPlaying {}
-
-        .totalFlavorsUsed {}
     }
 
     .controls {
@@ -92,7 +89,7 @@
         .skip-prev,
         .skip-next {
             font-family: Fontawesome;
-            font-size: clampW(0.13em, 1.3em, 200px, 2000px);
+            font-size: clampDef(1.3em);
             aspect-ratio: 1 / 1;
             padding: 0px;
             margin: 0;
@@ -106,7 +103,7 @@
 
         .play {
             font-family: Fontawesome;
-            font-size: clampW(0.15em, 1.5em, 200px, 2000px);
+            font-size: clampDef(1.5em);
             aspect-ratio: 1 / 1;
             padding: 0px;
             margin: 0;
@@ -145,17 +142,17 @@
         gap: 20px;
 
 
-        .volume {
-            // grid-area: 1 / 6 / 3 / 7;
-        }
+        // .volume {
+        //     // grid-area: 1 / 6 / 3 / 7;
+        // }
 
-        .mainFlavorVolume {
-            // grid-area: 1 / 7 / 3 / 8;
-        }
+        // .mainFlavorVolume {
+        //     // grid-area: 1 / 7 / 3 / 8;
+        // }
 
-        .masterVolume {
-            // grid-area: 1 / 8 / 3 / 9;
-        }
+        // .masterVolume {
+        //     // grid-area: 1 / 8 / 3 / 9;
+        // }
     }
 
 

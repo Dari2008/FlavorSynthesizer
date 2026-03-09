@@ -42,7 +42,7 @@
 
     h1 {
         width: 100%;
-        font-size: clampW(0.5em, 5em, 200px, 2000px);
+        font-size: clampDef(5em);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -62,7 +62,7 @@
         top: 40%;
         left: 50%;
         transform: translate(-50%, -100%);
-        font-size: clampW(0.4em, 4em, 200px, 2000px);
+        font-size: clampDef(4em);
         height: 0;
         margin: 0;
     }
@@ -108,8 +108,8 @@
         position: fixed;
         top: 10px;
         right: 20px;
-        font-size: clampW(0.6em, 6em, 200px, 2000px);
-        line-height: clampW(0.2em, 2em, 200px, 2000px);
+        font-size: clampDef(6em);
+        line-height: clampDef(2em);
         aspect-ratio: 1 / 1;
         background: transparent;
         padding: 0;
@@ -222,8 +222,8 @@
 
             .name {
                 grid-area: 2 / 1 / 3 / 3;
-                font-size: clampW(0.2em, 2em, 200px, 2000px);
-                line-height: clampW(0.1em, 1em, 200px, 2000px);
+                font-size: clampDef(2em);
+                line-height: clampDef(1em);
                 display: block;
                 text-align: center;
                 text-overflow: ellipsis;
@@ -234,7 +234,7 @@
 
             .created-by {
 
-                font-size: clampW(0.12em, 1.2em, 200px, 2000px);
+                font-size: clampDef(1.2em);
 
                 &::before {
                     content: "by";
@@ -247,7 +247,7 @@
 
             .creation-date {
                 grid-area: 3 / 2 / 4 / 3;
-                font-size: clampW(0.12em, 1.2em, 200px, 2000px);
+                font-size: clampDef(1.2em);
                 opacity: 0.8;
             }
         }

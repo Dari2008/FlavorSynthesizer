@@ -32,7 +32,7 @@
         right: max(min(20vw, 250px), 100px);
         background-color: transparent;
         border: none;
-        font-size: clampW(0.5em, 5em, 200px, 2000px);
+        font-size: clampDef(5em);
         padding: 0;
         margin: 0;
         line-height: 1rem;
@@ -108,12 +108,12 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: clampW(0.35em, 3.5em, 200px, 2000px);
+            font-size: clampDef(3.5em);
             border: none;
             outline: none;
             white-space: nowrap;
             min-width: 50px;
-            line-height: clampW(0.35em, 3.5em, 200px, 2000px);
+            line-height: clampDef(3.5em);
             background-color: transparent;
             width: calc(100% - 50px);
             margin-left: auto;
@@ -143,7 +143,7 @@
 
         .subtitle {
             height: min-content;
-            font-size: clampW(0.2em, 2em, 200px, 2000px);
+            font-size: clampDef(2em);
         }
     }
 
@@ -189,7 +189,7 @@ body {
     border-top-right-radius: 20px;
     background: rgba(0, 0, 0, 0.3);
     backdrop-filter: none;
-    font-size: clampW(0.12em, 1.2em, 200px, 2000px);
+    font-size: clampDef(1.2em);
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
 

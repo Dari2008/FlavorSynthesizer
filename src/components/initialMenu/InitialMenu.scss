@@ -70,7 +70,7 @@
 
         .label-for-image {
             position: absolute;
-            font-size: clampW(0.2em, 2em, 200px, 2000px);
+            font-size: clampDef(2em);
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
             z-index: 10000;
@@ -128,14 +128,14 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: clampW(0.3em, 5em, 200px, 2000px);
+        font-size: clampDef(5em);
         margin: 0;
         z-index: 10;
         margin-inline: auto;
     }
 
     .subtitle {
-        font-size: clampW(0.2em, 2em, 200px, 2000px);
+        font-size: clampDef(2em);
         width: max-content;
         text-align: center;
         display: flex;
@@ -203,6 +203,7 @@
                 align-items: center;
                 padding: 0px 5px;
                 background-color: $gray-700;
+                --background-color: $gray-700;
                 gap: 10px;
 
                 img {

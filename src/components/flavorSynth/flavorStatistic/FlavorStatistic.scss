@@ -79,7 +79,7 @@ div:has(>.flavor-statistic) {
         border-left: none;
         border-right: none;
         height: max-content;
-        font-size: clampW(0.15em, 1.5em, 200px, 2000px);
+        font-size: clampDef(1.5em);
         align-self: start;
         line-height: 1.2em;
     }
@@ -93,7 +93,7 @@ div:has(>.flavor-statistic) {
         align-items: center;
         text-align: center;
         opacity: 0.5;
-        font-size: clampW(0.1em, 1em, 200px, 2000px);
+        font-size: clampDef(1em);
         line-height: 1.1em;
     }
 

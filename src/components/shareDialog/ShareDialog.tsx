@@ -13,6 +13,7 @@ import type { Dish, LocalDish, ServerDish } from "../../@types/User";
 import PixelButton from "../pixelDiv/PixelButton";
 import { Network } from "../../utils/Network";
 import { useDishes } from "../../contexts/DishesContext";
+import withTutorialStarter from "../../hooks/TutorialStarter";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -55,6 +56,8 @@ export default function ShareDialog() {
     const currentDish = useCurrentDish();
     const gameState = useGameState();
     const dishes = useDishes();
+
+    withTutorialStarter("editor-share");
 
     // const [BG_IMAGES, setBgImages] = useState<(string | undefined)[]>([]);
 

@@ -22,7 +22,7 @@
         align-items: center;
         text-align: center;
         margin-bottom: 20vh;
-        font-size: clampW(0.8em, 4em, 200px, 2000px);
+        font-size: clampDef(4em);
     }
 
     span {

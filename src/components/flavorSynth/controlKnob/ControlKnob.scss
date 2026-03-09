@@ -36,7 +36,7 @@ $margin: 20px;
     }
 
     .volume-display {
-        font-size: clampW(0.09em, 0.9em, 200px, 2000px);
+        font-size: clampDef(0.9em);
         font-weight: bold;
         // color: #00ffff;
         color: #ffffff;
@@ -115,7 +115,7 @@ $margin: 20px;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: clampW(0.125em, 1.25em, 200px, 2000px);
+        font-size: clampDef(1.25em);
         margin: 0;
         padding: 0;
         user-select: none;

@@ -105,7 +105,7 @@ export default class Utils {
     }
 
     static uuidv4() {
-        return v4();
+        return v4() as `${string}-${string}-${string}-${string}-${string}`;
     }
 
     static uuidv4Exclude(allreadyused: string[]): UUID {
