@@ -245,7 +245,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
             isPlaying && <PixelDiv className="progress-bar"><progress ref={progressBarRef} max={100}></progress></PixelDiv>
         }
         <div className="image">
-            <img src={dish.share?.aiImage ?? "./imgs/dishList/no-image-image.png"} alt="Dish Image" />
+            <img src={!!dish.share?.aiImage ? dish.share?.aiImage : "./imgs/dishList/no-image-image.png"} alt="Dish List Image" />
             <button className="play" onClick={clickedPlay}>
                 {
                     isPlaying

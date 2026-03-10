@@ -1,6 +1,8 @@
 .dishlist-tutorial {
-    .dish-list-default-item-wrapper {
-        width: min(max(50vw, 500px), 97vw);
+
+    .dish-list-default-item-wrapper,
+    .dish-list-item-wrapper {
+        width: calc(min(max(50vw, 500px), 97vw) - 40px);
     }
 
     .tutorial-right-click-options {

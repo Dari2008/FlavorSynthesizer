@@ -8,7 +8,7 @@ import Utils from "../../utils/Utils";
 import { loginUser, registerUser } from "../../utils/UserUtils";
 import { useUser } from "../../contexts/UserContext";
 import { useGameState } from "../../contexts/GameStateContext";
-import { useCurrentDish } from "../../contexts/CurrentDish";
+import { useCurrentDish, useCurrentDishIndex } from "../../contexts/CurrentDish";
 import type { Dish, LocalDish, ServerDish } from "../../@types/User";
 import PixelButton from "../pixelDiv/PixelButton";
 import { Network } from "../../utils/Network";
@@ -57,6 +57,7 @@ export default function ShareDialog() {
     const currentDish = useCurrentDish();
     const gameState = useGameState();
     const dishes = useDishes();
+    const currentDishIndex = useCurrentDishIndex();
 
     withTutorialStarter("editor-share");
 
@@ -140,6 +141,7 @@ export default function ShareDialog() {
     };
 
     const publish = async () => {
+
         const tracks = currentDish?.data;
         if (!tracks) return;
         if (tracks.length == 0) {
@@ -157,6 +159,8 @@ export default function ShareDialog() {
             Utils.error("Your flavor code has to be 6 flavors long");
             return;
         }
+
+        dishes.saveCurrentDish();
 
         const compiledDish = {
             name: currentDish.name,
@@ -216,19 +220,25 @@ export default function ShareDialog() {
             //     code: response.dishData.code,
             //     flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor) as ShareFlavors
             // };
-            dishes.setDishes(dishes => dishes.map(dish => {
-                if (dish.uuid != currentDish.uuid) return dish;
-                return {
-                    ...dish,
-                    uuid: response.changedUUID ?? dish.uuid,
-                    publishState: "public",
-                    share: {
-                        aiImage: response.dishData.aiImage,
-                        code: response.dishData.code,
-                        flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor) as ShareFlavors
-                    }
-                }
-            }));
+            let uuid = "";
+            dishes.setDishes(dishes => {
+                const result = dishes.map(dish => {
+                    if (dish.uuid != currentDish.uuid) return dish;
+                    uuid = dish.uuid;
+                    return {
+                        ...dish,
+                        uuid: (!!response.changedUUID) ? response.changedUUID : dish.uuid,
+                        publishState: "public",
+                        share: {
+                            aiImage: response.dishData.aiImage,
+                            code: response.dishData.code,
+                            flavors: currentFlavorsSelected.sort((a, b) => a.index - b.index).map(e => e.flavor) as ShareFlavors
+                        }
+                    } as Dish;
+                });
+                currentDishIndex.setIndex(result.findIndex(e => e.uuid == ((!!response.changedUUID) ? response.changedUUID : uuid)));
+                return result;
+            });
         }
 
 

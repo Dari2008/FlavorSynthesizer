@@ -79,7 +79,9 @@ Download progress indicator for remote dishes.
 - Ctrl + Wheel → zoom
 - Ctrl + Click → multi-select
 - Touch gestures supported
-- Ctrl + Z / Y -> Undo / Redo
+- Ctrl + Z / Y → Undo / Redo
+- Drag on the timeline → start playback from there
+- Long press on Flavor -> Open menu
 
 ### Dish List
 - Right Click → Menu

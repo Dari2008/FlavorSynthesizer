@@ -102,12 +102,12 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
             navigator.clipboard.writeText(str);
         }
 
-        return <li className="dish-list-item-wrapper" data-list-entry-uuid={dish.uuid} onClick={clickedOpen} ref={shareOptionsLiRef}>
-            <PixelDiv className={"dish-list-item" + (((dish as any).publishState ?? "private") == "private" ? "" : " public")} data-list-entry-uuid={dish.uuid}>
+        return <PixelLI className="dish-list-item-wrapper" max-pixel-width={40} data-list-entry-uuid={dish.uuid} onClick={clickedOpen} ref={shareOptionsLiRef}>
+            <PixelDiv max-pixel-width={40} className={"dish-list-item" + (((dish as any).publishState ?? "private") == "private" ? "" : " public")} data-list-entry-uuid={dish.uuid}>
                 {defaultStruct}
             </PixelDiv>
-            <PixelDiv className="foldout" ref={shareOptionsFoldout}>
-                <PixelDiv className="info flavors">
+            <PixelDiv max-pixel-width={40} className="foldout" ref={shareOptionsFoldout}>
+                <PixelDiv max-pixel-width={40} className="info flavors">
                     <div className="content">
                         {
                             ((dish as any).share.flavors as Flavor[]).map((flavor, i) => {
@@ -119,7 +119,7 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
                         <PixelButton onClick={copyFlavors} ref={flavorsButtonRef}>Copy</PixelButton>
                     </div>
                 </PixelDiv>
-                <PixelDiv className="info code">
+                <PixelDiv max-pixel-width={40} className="info code">
                     <div className="content">
                         {
                             ((dish as any).share.code as Digit[]).map((digit, i) => {
@@ -131,7 +131,7 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
                         <PixelButton onClick={copyCode} ref={codeButtonRef}>Copy</PixelButton>
                     </div>
                 </PixelDiv>
-                <PixelDiv className="info url">
+                <PixelDiv max-pixel-width={40} className="info url">
                     <div className="content">
                         {
                             "https://" + location.hostname + "/?code=" + ((dish as any).share.code as Digit[]).join("")
@@ -142,7 +142,7 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
                     </div>
                 </PixelDiv>
             </PixelDiv>
-        </li>
+        </PixelLI>
     }
     return <PixelLI className={"dish-list-default-item-wrapper" + (((dish as any).publishState ?? "private") == "private" ? "" : " public")} data-list-entry-uuid={dish.uuid}>
         {defaultStruct}
