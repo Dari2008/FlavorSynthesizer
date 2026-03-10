@@ -12,7 +12,8 @@ var FILES_CACHE: {
     [key: string]: {
         [key in BPM]: Promise<string>;
     };
-} = {};
+} = (window as any).FILES_CACHE ?? {};
+(window as any).FILES_CACHE = FILES_CACHE;
 
 export default abstract class FlavorMusic {
     public FLAVOR_NAME: MainFlavor | undefined;
@@ -81,7 +82,7 @@ export class FlavorFileMusic {
         for (const bpm of BPM_VALS as BPM[]) {
             all.push(this.downloadSingle(bpm));
         }
-        await Promise.all(all);
+        await Promise.allSettled(all);
     }
 
     public play(bpm: BPM) {
@@ -91,7 +92,7 @@ export class FlavorFileMusic {
 
         // Tone.Transport.start();
         // this.files[bpm].toDestination();
-        this.files[bpm].start()
+        this.files[bpm].sync().start()
         MUSIC_PLAYERS.push(this.files[bpm]);
 
     }
@@ -100,7 +101,7 @@ export class FlavorFileMusic {
         const clone = new FlavorFileMusic(this.index, this.NAME, false);
         clone.files = {} as any;
 
-        for (const bpm of BPM_VALS) {
+        for (const bpm of [110]) {
             const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
             const player = new Player();
             player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
@@ -119,12 +120,16 @@ export class FlavorFileMusic {
         return clone;
     }
 
-    public playSegment(from: number, to: number, bpm: BPM) {
+    public async playSegment(start: number, offset: number, duration: number, bpm: BPM) {
         this.stopAllBpms();
-        this.files[bpm].toDestination();
+        if (this.loadedAllPromise)
+            await this.loadedAllPromise;
+
+        // const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
+        // this.files[bpm].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
         this.files[bpm].loop = true;
-        this.files[bpm].start(from);
-        this.files[bpm].stop(to);
+        this.files[bpm].toDestination();
+        this.files[bpm].sync().start(start, offset).stop(start + duration);
         MUSIC_PLAYERS.push(this.files[bpm]);
     }
 
@@ -138,7 +143,7 @@ export class FlavorFileMusic {
     }
 
     public stopAllBpms() {
-        this.files[110].stop();
+        if (this.files[110].state == "started") this.files[110].stop();
     }
 
     public dispose() {
@@ -203,31 +208,33 @@ export class MainFlavorFileMusic {
         if (this.player) this.player.volume.value = this.getVolumeFor("mainFlavor");
     }
 
-    public play(offset: number = 0) {
-        this.stop();
-
-        const now = Tone.now();
-        this.player?.start(now, offset);
-    }
-
-    public async clone(loop: boolean = false): Promise<MainFlavorFileMusic> {
-        const clone = new MainFlavorFileMusic(this.index, this.NAME, false);
-
-        for (const bpm of BPM_VALS) {
-            const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
-            const player = new Player();
-            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
-            await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
-            player.fadeIn = FADE_TIME;
-            player.fadeOut = FADE_TIME;
-            player.toDestination();
-            player.autostart = false;
-            player.loop = loop;
-            clone.player = player;
+    public async play(start: number, offset: number = 0) {
+        if (!this.player) {
+            await this.download();
         }
-
-        return clone;
+        this.stop();
+        const currPos = Tone.getTransport().seconds;
+        this.player?.sync().start(currPos + start + 0.1, offset);
     }
+
+    // public async clone(loop: boolean = false): Promise<MainFlavorFileMusic> {
+    //     const clone = new MainFlavorFileMusic(this.index, this.NAME, false);
+
+    //     for (const bpm of BPM_VALS) {
+    //         const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
+    //         const player = new Player();
+    //         player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+    //         await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
+    //         player.fadeIn = FADE_TIME;
+    //         player.fadeOut = FADE_TIME;
+    //         player.toDestination();
+    //         player.autostart = false;
+    //         player.loop = loop;
+    //         clone.player = player;
+    //     }
+
+    //     return clone;
+    // }
 
     public playSegment(from: number, to: number) {
         this.stop();
@@ -237,8 +244,7 @@ export class MainFlavorFileMusic {
         if (!this.player) return;
         this.player.toDestination();
         this.player.loop = true;
-        this.player.start(from);
-        this.player.stop(to);
+        this.player.sync().start(from).stop(to);
     }
 
 
@@ -253,12 +259,14 @@ export class MainFlavorFileMusic {
 
     public stop() {
         if (!this.player) return;
-        if (this.player.state == "started") this.player.stop();
+        if (this.player.state == "started") {
+            this.player.unsync().stop();
+        }
     }
 
     public dispose() {
         if (!this.player) return;
-        if (this.player.state == "started") this.player.stop();
+        if (this.player.state == "started") this.player.unsync().stop();
         if (!this.player.disposed) this.player.dispose();
     }
 

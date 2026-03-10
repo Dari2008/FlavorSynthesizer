@@ -13,7 +13,7 @@ export default function ProgressCanvas({ progress, maxProgress, progressChangeRe
         const render = () => {
             const width = canvas.width;
             const height = canvas.height;
-            const barWidth = Math.min(width / 2, height / 2) / 6;
+            const barWidth = Math.min(width / 2, height / 2) / 4;
 
             const totalPixels = width * 2 + height * 2;
             const normProgress = progress / maxProgress;

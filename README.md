@@ -79,6 +79,7 @@ Download progress indicator for remote dishes.
 - Ctrl + Wheel → zoom
 - Ctrl + Click → multi-select
 - Touch gestures supported
+- Ctrl + Z / Y -> Undo / Redo
 
 ### Dish List
 - Right Click → Menu
@@ -150,7 +151,8 @@ States are managed using React Contexts.
 
 
 ## Planned Features
-- [ ] Public dish publishing & discovery
+- [x] Public dish publishing & discovery
+- [x] Tutorial System
 - [ ] Experience (XP) system
 - [ ] Achievement system
 - [ ] Real-time collaborative composition

@@ -14,7 +14,7 @@ export class ElementPlayer {
         master: 100
     };
 
-    public onStop: (() => void) | null = null;
+    public onStop: () => void = () => 0;
 
     constructor() {
     }
@@ -41,9 +41,9 @@ export class ElementPlayer {
             this.players.push({
                 element: el,
                 player: clonedPlayer,
-                play: (from: number, to: number) => {
+                playAt: (start: number, offset: number, duration: number) => {
                     clonedPlayer.stopAllBpms();
-                    clonedPlayer.playSegment(from, to, 110);
+                    clonedPlayer.playSegment(start, offset, duration, 110);
                 }
             });
         }));
@@ -65,25 +65,32 @@ export class ElementPlayer {
     public stop() {
         this.players.forEach(({ player }) => {
             player.stopAllBpms();
+        });
+    }
+
+    public disposeAll() {
+        this.players.forEach(({ player }) => {
             player.dispose();
         });
     }
 
-    async play(offset: number = 0) {
+    async play(start: number = Tone.now(), offset: number = 0) {
         await this.cloningPromise;
-        const now = Tone.now() - offset;
-        this.players.forEach(({ element, player, play }) => {
-            if (element.to <= offset) return;
+
+        const startTime = Tone.getTransport().seconds;
+        this.players.forEach(({ element, player, playAt }) => {
+            if (element.to <= start) return;
             player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
-            play(now + element.from, now + element.to);
+            // const startPos = Math.max(start + element.from, start);
+            playAt(element.from + startTime, Math.max((offset - element.from), 0), element.to - element.from);
         });
         const lastElement = this.findLastPlayer();
         if (lastElement) {
             lastElement.player.getPlayer(110).onstop = () => {
-                this.onStop?.();
+                this.onStop();
             };
-            if (lastElement.element.to <= offset) {
-                this.onStop?.();
+            if ((lastElement.element.to + Tone.now()) <= start) {
+                this.onStop();
             }
             return lastElement.element.to;
         }
@@ -113,5 +120,5 @@ export class ElementPlayer {
 type ElementPlayerPlayer = {
     player: FlavorFileMusic;
     element: FlavorElement & { lineUuid: string };
-    play: (from: number, to: number) => void;
+    playAt: (startPos: number, offset: number, duration: number) => void;
 }

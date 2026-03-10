@@ -166,7 +166,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         clearCanvas(ctx, allElementsOffCanvasRef.current);
         for (const element of [...flavorSynthLine.elements, currentDraggingElementRef.current]) {
             if (element == null) continue;
-            if (element.uuid === interPlayerDrag.ref.current?.uuid && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
+            if (element.uuid === interPlayerDrag.ref.current && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
             if (element.from >= span.to && element.to <= span.from) continue;
 
             const isSelected = synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == element.uuid) != -1;
@@ -696,6 +696,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     });
                 }
                 startPosses = undefined;
+                currentPlaying.updateElements();
             }
         };
 
@@ -709,7 +710,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }
             const box = canvasRef.current?.getBoundingClientRect();
             const x = e.clientX - (box?.left ?? 0);
-            // const y = e.clientY - (box?.top ?? 0);
+            const y = e.clientY - (box?.top ?? 0);
+
+            if (y <= timelineOffCanvasRef.current.height) return;
 
             synthSelector.setSelectedSynthLine(flavorSynthLine.uuid);
             const currentSecondClicked = calculateCurrentPosSeconds(x);
@@ -778,7 +781,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (isReadonly) return;
             if (!isMouseDown) return;
             if (targetElement != null) {
-                interPlayerDrag.ref.current = targetElement;
+                interPlayerDrag.ref.current = targetElement.uuid;
+                interPlayerDrag.originSynthLine.current = synthLineUUID;
                 interPlayerDrag.offsetLeft.current = moveStartOffsetToEnd;
                 interPlayerDrag.onPlaced.current = () => {
                     targetElement = null;
@@ -798,7 +802,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const onMouseEnter = () => {
             if (isReadonly) return;
-            if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.includes(interPlayerDrag.ref.current)) {
+            if (targetElement != null && interPlayerDrag.ref.current && flavorSynthLine.elements.map(e => e.uuid).includes(interPlayerDrag.ref.current)) {
                 interPlayerDrag.ref.current = null;
                 interPlayerDrag.originalStartPos.current = null;
                 interPlayerDrag.offsetLeft.current = 0;
@@ -807,6 +811,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const onMouseMoveExternalElement = (xOrg: number, _yOrg: number) => {
             if (isReadonly) return;
+            if (!interPlayerDrag.originSynthLine.current) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
@@ -814,7 +819,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const seconds = calculateCurrentPosSeconds(x);
                 const offset = interPlayerDrag.offsetLeft.current ?? 0;
                 const currentDragPos = seconds - offset;
-                const element = interPlayerDrag.ref.current;
+
+                const element = synthLines.getSynthLineByUUID(interPlayerDrag.originSynthLine.current)?.elements.find(e => e.uuid == interPlayerDrag.ref.current);
+                if (!element) return;
 
                 const elementSpan = element.to - element.from;
 
@@ -836,6 +843,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
         const onReleaseExternalElement = (xOrg: number, _yOrg: number) => {
             if (isReadonly) return;
+            if (!interPlayerDrag.originSynthLine.current) return;
             if (interPlayerDrag.ref.current != null) {
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
@@ -843,7 +851,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const seconds = calculateCurrentPosSeconds(x);
                 const offset = interPlayerDrag.offsetLeft.current ?? 0;
                 const currentDragPos = seconds - offset;
-                const element = interPlayerDrag.ref.current;
+                const originalSynthTrack = synthLines.getSynthLineByUUID(interPlayerDrag.originSynthLine.current);
+                if (!originalSynthTrack) return;
+
+                const element = originalSynthTrack.elements.find(e => e.uuid == interPlayerDrag.ref.current);
+                if (!element) return;
+
                 const elementSpan = element.to - element.from;
                 const originalPos = interPlayerDrag.originalStartPos.current;
 
@@ -851,6 +864,11 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const newTo = currentDragPos + elementSpan
 
                 if (!isEmpty(element, newFrom, newTo)) {
+                    interPlayerDrag.onPlaced.current();
+                    interPlayerDrag.originSynthLine.current = null;
+                    interPlayerDrag.ref.current = null;
+                    currentDraggingElementRef.current = null;
+                    targetElement = null;
                     synthLines.repaintAllElements();
                     return;
                 }
@@ -874,9 +892,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                 // synthLines.deleteElement(element.uuid);
 
+
                 // element.from = newFrom;
                 // element.to = newTo;
+                originalSynthTrack.elements = originalSynthTrack.elements.filter(e => e.uuid != element.uuid);
                 flavorSynthLine.elements = [...flavorSynthLine.elements, { ...element, from: newFrom, to: newTo }];
+
                 // flavorSynthLine.elements.push(element);
 
 
@@ -885,6 +906,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 // interPlayerDrag.ref.current = null;
                 targetElement = null;
                 change.changed();
+                currentPlaying.updateElements();
             }
         };
 
@@ -945,10 +967,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     }
 
 
-                    console.log(elementFromResize,
-                        elementToResize,
-                        elementClicked)
-
                     if (elementFromResize) {
                         resizeSide.current = "from";
                         currentlyResizingElement.current = elementFromResize.uuid;
@@ -982,7 +1000,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const touch = getTouch(touches, 0);
                 mousePosRef.current = touch;
                 const diffX = getDiff(startDraggedPositionTouch.current, mousePosRef.current, "x") as number;
-                console.log(currentDragging.currentDraggingElement.current);
                 if (currentDragging.currentDraggingElement.current && !startedDragAtTimeline.current) {
                     // if (currentDraggingElementRef.current) currentDraggingElementRef.current.to = calculateCurrentPosSeconds(mousePosRef.current.x);
                     if (currentDraggingElementRef.current && currentDraggingElementRef.current.from != currentDraggingElementRef.current.to)
@@ -1030,11 +1047,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 if (!currentlyResizingElement.current && currentDragging.currentDraggingElement.current && !startedDragAtTimeline.current) {
                     if (currentDraggingElementRef.current) {
                         const newPos = calculateCurrentPosSeconds(mousePosRef.current.x);
-                        console.log(
-                            newPos,
-                            currentDraggingElementRef.current.from,
-                            currentDraggingElementRef.current.to
-                        );
 
                         const startPosition = startDraggedPositionSecondsTouch.current.x;
 
@@ -1178,7 +1190,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const centerX = touch2.x - touch1.x;
                 const deltaZoom = deltaX - lastDeltaZoom;
                 lastDeltaZoom = deltaX;
-                console.log(deltaZoom);
                 synthLines.zoomed(centerX, deltaZoom);
             }
         };
@@ -1264,7 +1275,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
 
     const onDrop = (e: React.DragEvent<HTMLCanvasElement>) => {
-        console.log("DRopped", e.dataTransfer.getData("flavor/plain"));
         if (isReadonly) return;
         e.preventDefault();
         const offsetImageRaw = e.dataTransfer.getData("flavor/offsetImage");
@@ -1352,7 +1362,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
 
             if (isEmpty(null, currentPos, currentPos + elementLength) == false) {
-                console.log("Is Empty");
                 let startPos = -1;
                 let endPos = -1;
                 for (let start = 0; start <= elementLength; start++) {
@@ -1368,7 +1377,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 if (startPos != -1 && endPos != -1 && startPos != endPos) {
                     currentDraggingElementRef.current = createElementForFlavor(flavorName, startPos, endPos);
                     e.preventDefault();
-                    console.log("Allowed");
                     renderElementsWDebounce();
                     return;
                 }
@@ -1381,7 +1389,6 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             currentDraggingElementRef.current = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
 
             e.preventDefault();
-            console.log("Allowed");
         } catch (ex) {
             currentDraggingElementRef.current = null;
         }

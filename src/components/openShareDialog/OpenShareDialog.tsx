@@ -5,6 +5,7 @@ import { FLAVORS } from "../../audio/Flavors";
 import { useGameState } from "../../contexts/GameStateContext";
 import { getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 import withTutorialStarter from "../../hooks/TutorialStarter";
+import { getCurrentDragging } from "../flavorSynth/CurrentDraggingReference";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -67,29 +68,23 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
     const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         if (!e.dataTransfer) return;
-        if (e.dataTransfer.getData("text/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("text/plain") as Flavor)) {
+        const dragging = getCurrentDragging();
+        if ((dragging && dragging.flavor && FLAVORS.map(e => e.NAME).includes(dragging.flavor)) || (e.dataTransfer.getData("flavor/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("flavor/plain") as Flavor))) {
             e.preventDefault();
             e.stopPropagation();
         }
     };
 
-    const onDropFlavor = (e: React.DragEvent<HTMLDivElement>) => {
+    const onDropFlavor = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         if (!e.dataTransfer) return;
-        if (e.dataTransfer.getData("text/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("text/plain") as Flavor)) {
+        const dragging = getCurrentDragging();
+        if ((dragging && dragging.flavor && FLAVORS.map(e => e.NAME).includes(dragging.flavor)) || (e.dataTransfer.getData("flavor/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("flavor/plain") as Flavor))) {
             e.preventDefault();
             e.stopPropagation();
-            const box = comboBoxRef.current?.getBoundingClientRect();
-            if (!box) return;
-            const x = e.clientX - box?.left;
-            const width = box.width;
 
-            const singleFlavorWidth = width / 6;
-
-            const part = Math.floor(x / singleFlavorWidth);
-
-
-            const flavorName = e.dataTransfer.getData("text/plain") as Flavor;
-            setFlavor(part, flavorName);
+            const flavorName = ((!!e.dataTransfer.getData("flavor/plain")) ? e.dataTransfer.getData("flavor/plain") : dragging?.flavor) as Flavor;
+            if (!flavorName) return;
+            setFlavor(index, flavorName);
         }
     };
 
@@ -149,19 +144,19 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     <h2>Open Shared Flavors</h2>
                     <span>Open a shared dish with a flavor combo.</span>
 
-                    <div className="combo content" onDragOver={onDragOver} onDrop={onDropFlavor} ref={comboBoxRef}>
+                    <div className="combo content" ref={comboBoxRef}>
                         {
                             Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
                                 const name = getFlavorIndex(i);
                                 if (!name) {
-                                    return <div key={i} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
+                                    return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
                                         <div className="bgImage main-color"></div>
                                         <div className="bgImage main-color-2"></div>
                                         <div className="text">Drag a flavor here</div>
                                     </div>;
                                 }
 
-                                return <div key={i} className="share-flavors-flavor">
+                                return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor">
                                     <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
                                     <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
                                     <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />

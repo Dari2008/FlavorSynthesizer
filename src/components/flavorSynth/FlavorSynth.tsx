@@ -69,7 +69,8 @@ export default function FlavorSynth() {
     const currentPlayingFlavorCountRef = useRef<HTMLSpanElement>(null)
     const totalAmountOfFlavorsRef = useRef<HTMLSpanElement>(null)
 
-    const currentDragingRef = useRef<FlavorElement>(null);
+    const currentDragingRef = useRef<string>(null);
+    const originSynthLine = useRef<string>(null);
     const originalStartPos = useRef<[number, number]>(null);
     const currentDragingOffsetRef = useRef<number>(0);
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
@@ -95,7 +96,7 @@ export default function FlavorSynth() {
 
     withTutorialStarter("editor-opened");
 
-    playerRef.current.onStop = () => {
+    const onStop = () => {
         setPlaying(false);
         isPlayingRef.current = false;
         stop();
@@ -359,68 +360,83 @@ export default function FlavorSynth() {
     //     };
     // }, []);
 
-    const play = () => {
+    const musicPlayStart = useRef<number>(0);
+    const musicPlayingOffset = useRef<number>(0);
+    const playsUntilRef = useRef<number>(0);
+    const currentlyStartingRef = useRef<Promise<void> | null>(null);
+
+    const play = async (offset: number = 0) => {
+        await Tone.start();
 
         Tone.getTransport().stop();
-        Tone.getTransport().position = "0:0:0";
+        Tone.getTransport().cancel("0:0:0");
         Tone.getTransport().bpm.value = 110;
+
+        const startTime = 0;
+        playsUntilRef.current = -1;
+
+        musicPlayStart.current = 0;
+        musicPlayingOffset.current = 0;
 
         const containsSolo = synthLines.filter(e => e.solo).length > 0;
         isSoloPlay.current = containsSolo;
         const elements = synthLines.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
         if (elements.length == 0) return;
+
         playerRef.current.stop();
+        playerRef.current.disposeAll();
         playerRef.current.setVolumes(volumes.current);
         playerRef.current.loadElements(elements);
 
         if (!containsSolo) {
+            mainFlavorsPlayer?.stop();
             mainFlavorsPlayer?.setVolumes(volumes.current);
-            mainFlavorsPlayer?.play(cusorPos.current);
+            await mainFlavorsPlayer?.play(startTime, offset);
         }
 
-        playerRef.current.play(cusorPos.current);
+        playsUntilRef.current = await playerRef.current.play(startTime, offset);
+
         setPlaying(true);
         isPlayingRef.current = true;
-        currentPlayingOffsetRef.current = Tone.now() - cusorPos.current;
+        currentPlayingOffsetRef.current = Tone.getTransport().seconds;
         repaintAllCurrentPositions();
         startStatisticLoop();
-        Tone.getTransport().start("0", "0:0:0");
-        Tone.start();
+        Tone.getTransport().start(Tone.now(), Tone.Time(offset + cusorPos.current).toBarsBeatsSixteenths());
+
     };
 
     const skip = (n: number) => {
+        const newPos = currentPositionRef.current + n;
 
-        const containsSolo = synthLines.filter(e => e.solo).length > 0;
-        isSoloPlay.current = containsSolo;
+        Tone.getTransport().stop();
+        Tone.getTransport().position = Tone.Time(Math.max(Math.max(0, newPos), 0), "s").toBarsBeatsSixteenths();
+        Tone.getTransport().start();
 
-        currentPlayingOffsetRef.current = currentPlayingOffsetRef.current + n;
-
-        playerRef.current.stop();
-        playerRef.current.play(currentPlayingOffsetRef.current);
-        if (!containsSolo) {
-            mainFlavorsPlayer?.setVolumes(volumes.current);
-            mainFlavorsPlayer?.play(currentPlayingOffsetRef.current);
-        }
+        repaintAllCurrentPositions();
     };
 
     const stop = () => {
-        playerRef.current.stop();
         setPlaying(false);
         isPlayingRef.current = false;
-        repaintAllCurrentPositions();
         mainFlavorsPlayer?.stop();
+        playerRef.current.stop();
+        repaintAllCurrentPositions();
         stopStatisticLoop();
         Tone.getTransport().stop();
     }
 
     const currentPlayChanged = () => {
-        currentPositionRef.current = Tone.now() - currentPlayingOffsetRef.current;
         if (!isPlaying) return;
+        currentPositionRef.current = Tone.getTransport().seconds;
         repaintAllCurrentPositions();
+        if (currentPositionRef.current >= playsUntilRef.current) {
+            onStop();
+        }
     };
 
     useEffect(() => {
         const clock = new Tone.Clock(() => {
+            if (!isPlaying) return;
             currentPlayChanged();
         }, 100)
         clock.start();
@@ -486,7 +502,10 @@ export default function FlavorSynth() {
         const keydown = (e: KeyboardEvent) => {
             if (e.code == "Space") {
                 setPlaying(playing => {
-                    playing ? stop() : play();
+                    playing ? stop() : (async () => {
+                        if (currentlyStartingRef.current) await currentlyStartingRef.current;
+                        currentlyStartingRef.current = play();
+                    })();
                     return !playing;
                 })
                 e.preventDefault();
@@ -509,7 +528,6 @@ export default function FlavorSynth() {
 
         const resized = () => {
             widthRef.current = getCurrentTrackWidth(isReadonly);
-            console.log(widthRef.current);
             repaintAllElements();
             repaintAllTimelines();
             // repaintAll();
@@ -598,11 +616,20 @@ export default function FlavorSynth() {
                 //         elements: synthLine.elements.filter(e => !selectedElementsRef.current.includes(e.uuid))
                 //     }
                 // }));
-                console.log("Repainted")
                 repaintAllElements();
             }
         }
     }
+
+    const getSynthLineByUUID = (uuid: string) => {
+        return synthLines.find(e => e.uuid == uuid) ?? null;
+    }
+
+    const updateCurrentPlayingElements = () => {
+        if (!isPlayingRef.current) return;
+        stop();
+        currentlyStartingRef.current = play(currentPositionRef.current);
+    };
 
     return <>
         <SynthLinesContext.Provider value={{
@@ -626,12 +653,13 @@ export default function FlavorSynth() {
             updateCurrentPlayingStatistic,
             synthLines,
             setSynthLines,
-            zoomed
+            zoomed,
+            getSynthLineByUUID
         }}>
             <FlavorSynthContextMenu.Provider value={{ openContextMenu }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
-                    <CurrentlyPlayingContext.Provider value={{ isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
-                        <CurrentInterPlayerDragContext.Provider value={{ ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
+                    <CurrentlyPlayingContext.Provider value={{ updateElements: updateCurrentPlayingElements, isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
+                        <CurrentInterPlayerDragContext.Provider value={{ originSynthLine, ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
                             <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
                                 <div className="lines">
                                     {
@@ -681,13 +709,22 @@ export default function FlavorSynth() {
                                     <button className="skip-prev" title="Skip 1s back" onClick={onSkipPrev}>
                                         <img src="./imgs/actionButtons/prev.png" alt="previous btn" className="action-btn prev-img" />
                                     </button>
-                                    <button className="play" onClick={() => { isPlaying ? stop() : play(); }}>{
+                                    <button className="play" onClick={() => {
                                         isPlaying
                                             ?
-                                            <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                            stop()
                                             :
-                                            <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
-                                    }
+                                            (async () => {
+                                                if (currentlyStartingRef.current) await currentlyStartingRef.current;
+                                                currentlyStartingRef.current = play();
+                                            })();
+                                    }}>{
+                                            isPlaying
+                                                ?
+                                                <img src="./imgs/actionButtons/pause.png" alt="pause btn" className="action-btn pause-ptn" />
+                                                :
+                                                <img src="./imgs/actionButtons/play.png" alt="play btn" className="action-btn play-ptn" />
+                                        }
                                     </button>
                                     <button className="skip-next" title="Skip 1s forward" onClick={onSkipNext}>
                                         <img src="./imgs/actionButtons/next.png" alt="next btn" className="action-btn next-img" />
@@ -743,8 +780,6 @@ export type CurrentSpan = {
 
 function getCurrentTrackWidth(isReadonly: boolean) {
     const width = window.innerWidth;
-
-    console.log(isReadonly);
 
     const listWidth = (!isReadonly) ? Math.min(Math.max(width * 0.2, 100), 250) : 40;
 

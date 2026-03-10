@@ -25,6 +25,7 @@ type SynthLines = {
     synthLines: FlavorSynthLine[];
     setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>;
     zoomed: (posX: number, delta: number) => void;
+    getSynthLineByUUID: (uuid: string) => FlavorSynthLine | null;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

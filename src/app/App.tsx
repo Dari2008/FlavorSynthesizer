@@ -511,7 +511,7 @@ export default function App() {
                                                                     </div>
                                                                     <input className="title-input" maxLength={20} type="text" disabled={isReadonly} onInput={() => {
                                                                         if (currentDishTitleRef.current && !isReadonly) {
-                                                                            setCurrentDishName(currentDishTitleRef.current.value || "Unnamed");
+                                                                            setCurrentDishName(currentDishTitleRef.current.value == undefined || currentDishTitleRef.current.value == null ? "Unnamed" : currentDishTitleRef.current.value);
                                                                         }
                                                                     }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
                                                                 </div>

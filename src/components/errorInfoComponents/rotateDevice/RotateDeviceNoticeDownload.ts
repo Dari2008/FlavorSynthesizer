@@ -16,7 +16,7 @@ export async function initRotateNotice() {
             ROTATE_NOTICE_ANIMATION_IMAGES.push(image);
         }));
     }
-    await Promise.all(all);
+    await Promise.allSettled(all);
 }
 
 export function setLoadingFrameRotateNotice(base64: string, index: number) {

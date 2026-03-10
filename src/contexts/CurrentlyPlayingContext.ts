@@ -5,6 +5,7 @@ type CurrentlyPlayingContextType = {
     isSoloPlay: React.RefObject<boolean>;
     currentPositionRef: React.RefObject<number>;
     cusorPos: React.RefObject<number>;
+    updateElements: () => void;
 }
 
 export const CurrentlyPlayingContext = createContext<CurrentlyPlayingContextType | null>(null);

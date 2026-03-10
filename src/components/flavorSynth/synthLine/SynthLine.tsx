@@ -64,7 +64,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
             <button className="solo" onClick={() => setSolo(!isSolo)} {...{ "data-solo": isSolo ? "" : undefined }}>{isSolo ? "\uf025" : "\ue77c"}</button>
             <input type="range" name="volume" className="volume" min={0} max={1} step={0.01} onChange={volumeChanged} ref={(ref) => { volumeRef.current = ref; if (ref) ref.value = (flavorSynthLine?.volume ?? 0) + "" }} />
         </div>
-        <div className="line" {...{ "data-muted": isMuted ? "" : undefined }}>
+        <div className="line" {...{ "data-muted": isMuted ? "" : undefined, "data-solo": isSolo ? "" : undefined }}>
             <div className="playerTrack">
                 <p className="tooltip" ref={tooltipRef}></p>
                 <PlayerTrack widthRef={widthRef} synthLineUUID={synthLineUUID}></PlayerTrack>

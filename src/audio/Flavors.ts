@@ -70,5 +70,5 @@ export async function intitializeAllAudios() {
     let all = [];
     all.push(...FLAVORS.map(e => e.download()));
     all.push(MAIN_FLAVORS.map(e => e.download()));
-    await Promise.all(all);
+    await Promise.allSettled(all);
 }

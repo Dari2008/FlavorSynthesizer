@@ -231,32 +231,56 @@ export default function DishList() {
         };
 
         const mainFlavorsPlayer = getMainFlavorByName(dish.mainFlavor);
-        Tone.getTransport().stop();
-        Tone.getTransport().position = "0:0:0";
-        Tone.getTransport().bpm.value = 110;
+        // Tone.getTransport().stop();
+        // Tone.getTransport().position = "0:0:0";
+        // Tone.getTransport().bpm.value = 110;
 
         const containsSolo = dish.data.filter(e => e.solo).length > 0;
         const elements = dish.data.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: line.uuid })));
         if (elements.length == 0) return;
+        // player.stop();
+        // player.setVolumes(dish.volumes);
+        // player.loadElements(elements);
+
+        // if (!containsSolo) {
+        //     mainFlavorsPlayer?.setVolumes(dish.volumes);
+        //     mainFlavorsPlayer?.play(0);
+        // }
+        const startTime = 0;
+
+        await Tone.start();
+
+        Tone.getTransport().stop();
+        Tone.getTransport().cancel("0:0:0");
+        Tone.getTransport().bpm.value = 110;
+
+
         player.stop();
+        player.disposeAll();
         player.setVolumes(dish.volumes);
         player.loadElements(elements);
 
         if (!containsSolo) {
+            mainFlavorsPlayer?.stop();
             mainFlavorsPlayer?.setVolumes(dish.volumes);
-            mainFlavorsPlayer?.play(0);
+            await mainFlavorsPlayer?.play(startTime, 0);
         }
 
-        const startTime = Tone.now();
+        const endTime = await player.play(startTime, 0);
 
-        const endTime = await player.play(0);
+        Tone.getTransport().start(Tone.now(), "0:0:0");
+
+
+
+        // const startTime = Tone.now();
+
+        // const endTime = await player.play(0);
         Tone.getTransport().start("0", "0:0:0");
         Tone.start();
 
         const clock = new Tone.Clock(() => {
             if (endTime == -1) return;
-            const time = Tone.now();
-            const timeTaken = time - startTime;
+            const timeTaken = Tone.getTransport().seconds;
             const percentage = timeTaken / endTime;
             progressChangeRef.current?.(percentage * 100);
         }, 60);

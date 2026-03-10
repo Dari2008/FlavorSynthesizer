@@ -142,7 +142,6 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
     const [isPlaying, setPlaying] = useState<boolean>(false);
     const endTimeRef = useRef<number>(-1);
     const progressBarRef = useRef<HTMLProgressElement>(null);
-    const startTime = useRef<number>(Tone.now());
 
     const mainFlavorsPlayer = getMainFlavorByName(dish.mainFlavor);
     const playerRef = useRef(new ElementPlayer());
@@ -152,9 +151,12 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
 
 
     const updateProgresssBar = () => {
+
         if (endTimeRef.current == -1) return;
-        const time = Tone.now();
-        const timeTaken = time - startTime.current;
+        if (Tone.getTransport().seconds >= endTimeRef.current) {
+            stoppedPlaying();
+        }
+        const timeTaken = Tone.getTransport().seconds;
         const percentage = timeTaken / endTimeRef.current;
         if (progressBarRef.current) progressBarRef.current.value = percentage * 100;
     };
@@ -173,8 +175,6 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
         stopPlaybackRef(stoppedPlaying);
     }, [stopPlaybackRef]);
 
-    playerRef.current.onStop = stoppedPlaying;
-
     const clickedPlay = async () => {
 
         if (isPlaying) {
@@ -182,32 +182,61 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
             return;
         }
 
+        // startedPlayback();
+
+        // if (elements.length == 0) return;
+
+        // Tone.getTransport().stop();
+        // Tone.getTransport().position = "0:0:0";
+        // Tone.getTransport().bpm.value = 110;
+
+        // playerRef.current.setVolumes(dish.volumes);
+        // playerRef.current.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
+        // endTimeRef.current = await playerRef.current.play(0);
+
+        // if (!containsSolo) {
+        //     mainFlavorsPlayer?.setVolumes(dish.volumes);
+        //     mainFlavorsPlayer?.play(0);
+        // }
+
+        // clockRef.current.start();
+
+        // startTime.current = Tone.now();
+        // updateProgresssBar();
+
+        // setPlaying(true);
+
+        // Tone.getTransport().start("0", "0:0:0");
+        // Tone.start();
+
         startedPlayback();
 
-        if (elements.length == 0) return;
+        await Tone.start();
 
         Tone.getTransport().stop();
-        Tone.getTransport().position = "0:0:0";
+        Tone.getTransport().cancel("0:0:0");
         Tone.getTransport().bpm.value = 110;
 
+        const startTime = 0;
+
+        playerRef.current.stop();
+        playerRef.current.disposeAll();
         playerRef.current.setVolumes(dish.volumes);
         playerRef.current.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
-        endTimeRef.current = await playerRef.current.play(0);
 
         if (!containsSolo) {
+            mainFlavorsPlayer?.stop();
             mainFlavorsPlayer?.setVolumes(dish.volumes);
-            mainFlavorsPlayer?.play(0);
+            await mainFlavorsPlayer?.play(startTime);
         }
 
-        clockRef.current.start();
-
-        startTime.current = Tone.now();
-        updateProgresssBar();
+        endTimeRef.current = await playerRef.current.play(startTime);
 
         setPlaying(true);
+        Tone.getTransport().start(Tone.now(), "0:0:0");
+        clockRef.current.start();
+        updateProgresssBar();
 
-        Tone.getTransport().start("0", "0:0:0");
-        Tone.start();
 
     };
 

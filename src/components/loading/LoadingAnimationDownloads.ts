@@ -16,7 +16,7 @@ export async function initLoadingAnimation() {
             LOADING_ANIMATION_IMAGES.push(image);
         }));
     }
-    await Promise.all(all);
+    await Promise.allSettled(all);
 }
 
 export function setLoadingFrame(base64: string, index: number) {

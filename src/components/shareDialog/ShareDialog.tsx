@@ -14,6 +14,7 @@ import PixelButton from "../pixelDiv/PixelButton";
 import { Network } from "../../utils/Network";
 import { useDishes } from "../../contexts/DishesContext";
 import withTutorialStarter from "../../hooks/TutorialStarter";
+import { getCurrentDragging } from "../flavorSynth/CurrentDraggingReference";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -117,32 +118,24 @@ export default function ShareDialog() {
 
 
     const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-        if (isPublished) return;
         if (!e.dataTransfer) return;
-        if (e.dataTransfer.getData("text/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("text/plain") as Flavor)) {
+        const dragging = getCurrentDragging();
+        if ((dragging && dragging.flavor && FLAVORS.map(e => e.NAME).includes(dragging.flavor)) || (e.dataTransfer.getData("flavor/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("flavor/plain") as Flavor))) {
             e.preventDefault();
             e.stopPropagation();
         }
     };
 
-    const onDropFlavor = (e: React.DragEvent<HTMLDivElement>) => {
-        if (isPublished) return;
+    const onDropFlavor = (e: React.DragEvent<HTMLDivElement>, index: number) => {
         if (!e.dataTransfer) return;
-        if (e.dataTransfer.getData("text/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("text/plain") as Flavor)) {
+        const dragging = getCurrentDragging();
+        if ((dragging && dragging.flavor && FLAVORS.map(e => e.NAME).includes(dragging.flavor)) || (e.dataTransfer.getData("flavor/plain") && FLAVORS.map(e => e.NAME).includes(e.dataTransfer.getData("flavor/plain") as Flavor))) {
             e.preventDefault();
             e.stopPropagation();
-            const box = comboBoxRef.current?.getBoundingClientRect();
-            if (!box) return;
-            const x = e.clientX - box?.left;
-            const width = box.width;
 
-            const singleFlavorWidth = width / 6;
-
-            const part = Math.floor(x / singleFlavorWidth);
-
-
-            const flavorName = e.dataTransfer.getData("text/plain") as Flavor;
-            setFlavor(part, flavorName);
+            const flavorName = (!!e.dataTransfer.getData("flavor/plain") ? e.dataTransfer.getData("flavor/plain") : dragging?.flavor) as Flavor;
+            if (!flavorName) return;
+            setFlavor(index, flavorName);
         }
     };
 
@@ -345,19 +338,19 @@ export default function ShareDialog() {
                             <h2>Set Flavor For Sharing</h2>
                             <span>Set a matching Flavor combo for your dish. Drag and Drop Flavors from the list into the fields. Then publish it. </span>
 
-                            <div className="combo content" onDragOver={onDragOver} onDrop={onDropFlavor} ref={comboBoxRef}>
+                            <div className="combo content" ref={comboBoxRef}>
                                 {
                                     Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
                                         const name = getFlavorIndex(i);
                                         if (!name) {
-                                            return <div key={i} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
+                                            return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
                                                 <div className="bgImage main-color"></div>
                                                 <div className="bgImage main-color-2"></div>
                                                 <div className="text">Drag a flavor here</div>
                                             </div>;
                                         }
 
-                                        return <div key={i} className="share-flavors-flavor">
+                                        return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor">
                                             <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
                                             <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
                                             <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
@@ -579,7 +572,7 @@ async function copyImageOfFlavors(flavors: FlavorsSelected[]) {
     });
 
 
-    await Promise.all(allImagePromises);
+    await Promise.allSettled(allImagePromises);
 
     const blob = await canvas.convertToBlob();
     navigator.clipboard.write([
