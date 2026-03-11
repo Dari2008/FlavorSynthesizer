@@ -6,7 +6,15 @@
 
 ![Creating of a Dish](./readmeImgs/showCreationOfDish.gif)
 
+
 🌐 **Live Demo:** https://flavorsynth.frobeen.com/
+
+# Logo
+I finally added a logo:
+
+![Logo](./public/logo/Logo.png)
+
+It’s a machine where glass tubes at the top filled with flavors are placed then they come mixed out at the bottom.
 
 ## Description
 Flavor Synthesizer is a browser-based music sandbox game where players compose playable “dishes” by arranging flavors on a timeline.
