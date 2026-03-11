@@ -9,7 +9,7 @@
 
 🌐 **Live Demo:** https://flavorsynth.frobeen.com/
 
-# Logo
+## Logo
 I finally added a logo:
 
 ![Logo](./public/logo/Logo.png)
