@@ -92,7 +92,7 @@ export class FlavorFileMusic {
 
         // Tone.Transport.start();
         // this.files[bpm].toDestination();
-        this.files[bpm].sync().start()
+        this.files[bpm].unsync().start(Tone.now());
         MUSIC_PLAYERS.push(this.files[bpm]);
 
     }

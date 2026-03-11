@@ -41,7 +41,7 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     const setPlaying = (playing: boolean) => {
         setPl(playing);
         if (playing) {
-            playerRef.current?.play(81);
+            playerRef.current?.play(110);
         } else {
             playerRef.current?.stopAllBpms();
         }

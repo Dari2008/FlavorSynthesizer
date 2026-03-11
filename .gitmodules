@@ -1,0 +1,3 @@
+[submodule "server"]
+	path = server
+	url = https://github.com/Dari2008/FlavorSynthesizerServer.git
