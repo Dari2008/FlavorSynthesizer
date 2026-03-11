@@ -9,12 +9,21 @@
 
 🌐 **Live Demo:** https://flavorsynth.frobeen.com/
 
-## Logo
-I finally added a logo:
 
-![Logo](./public/logo/Logo.png)
+## Table of Contents
+- [Logo](#logo)
+- [Description](#description)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Screenshots](#screenshots)
+- [Controls](#controls)
+- [Tech Stack](#tech-stack)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Project Structure](#project-structure)
+- [Planned Features](#planned-features)
+- [License](#license)
 
-It’s a machine where glass tubes at the top filled with flavors are placed then they come mixed out at the bottom.
 
 ## Description
 Flavor Synthesizer is a browser-based music sandbox game where players compose playable “dishes” by arranging flavors on a timeline.
@@ -27,6 +36,13 @@ Dishes can be:
 - Forked by other users
 - Exported as an AI-generated image matching the flavor combination
 
+
+## Logo
+I finally added a logo:
+
+![Logo](./public/logo/Logo.png)
+
+It’s a machine where glass tubes at the top filled with flavors are placed then they come mixed out at the bottom.
 
 ## Features
 - Share dishes via code or URL
@@ -150,14 +166,15 @@ States are managed using React Contexts.
   npm run build
   ```
   ### Server
-  Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks
+  Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks.
+  There is however the Node version of the server published [Server](./server/)
 
 ## Project Structure
-- src/       - Application source code  
+- src/          - Application source code  
   - audio/      - Music logic
   - components/ - React UI components
   - contexts/   - Global state management  
-- public/    - Static assets (images, audio, sprites)  
+- public/       - Static assets (images, audio, sprites)  
 
 
 ## Planned Features
