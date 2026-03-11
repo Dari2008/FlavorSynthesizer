@@ -167,7 +167,7 @@ States are managed using React Contexts.
   ```
   ### Server
   Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks.
-  There is however the Node version of the server published [Server](./server/)
+  There is however the Node version of the server published [Server](https://github.com/Dari2008/FlavorSynthesizerServer/tree/)
 
 ## Project Structure
 - src/          - Application source code  
