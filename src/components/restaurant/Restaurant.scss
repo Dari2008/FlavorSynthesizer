@@ -86,11 +86,13 @@
         }
 
         button.toggled {
-            background-color: $themeColor3;
+            background-color: $themeColor3 !important;
+            --background-color: #{$themeColor3} !important;
         }
 
         button:not(.toggled):hover {
-            background-color: $gray-500;
+            background-color: $gray-500 !important;
+            --background-color: #{$gray-500} !important;
         }
 
         .background {
@@ -254,6 +256,65 @@
                 grid-area: 3 / 2 / 4 / 3;
                 font-size: clampDef(1.2em);
                 opacity: 0.8;
+            }
+        }
+
+        .pages {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 20px;
+            margin-top: 2em;
+            width: max-content;
+            margin-inline: auto;
+            position: relative;
+
+            >.bg {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                opacity: 0.7;
+                background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(./bgs/restaurant/pages.png);
+                z-index: -1;
+
+            }
+
+            .gap {
+                width: 1em;
+            }
+
+            button {
+                transition: scale 0.3s ease-in-out;
+                aspect-ratio: 1 / 1;
+                padding: 0.2em;
+                width: clampDef(1.7em);
+                font-size: clampDef(1.4em);
+                line-height: 0em !important;
+                --border-size: 0px !important;
+                --background-color: transparent;
+                --border-color: transparent;
+
+                &.currentPage {
+                    scale: 1.2;
+                    margin-inline: 0.5em;
+                    filter: saturate(130%) brightness(110%);
+                }
+
+                .bg {
+                    background-image: url(./imgs/actionButtons/button_background_square.png) !important;
+                    background-repeat: no-repeat;
+                    background-size: 100% 100%;
+                    background-color: transparent !important;
+                    aspect-ratio: 1 / 1;
+                }
+
+
+                &:hover {
+                    scale: 1.1;
+                }
+
             }
         }
     }

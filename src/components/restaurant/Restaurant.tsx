@@ -21,15 +21,26 @@ dayjs.extend(customFormat);
 export default function Restaurant() {
     const [dishes, setDishes] = useState<RestaurantDish[]>([]);
     const [isLoading, setLoading] = useState<boolean>(false);
+    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [pageCount, setTotalPageCount] = useState<number>(0);
 
     useEffect(() => {
         (async () => {
             setLoading(true);
             const dishes = await RestaurantLoader.loadRestaurantData();
             setDishes(dishes);
+            const pages = await RestaurantLoader.getTotalNumberOfPages();
+            setTotalPageCount(pages);
             setLoading(false);
         })();
     }, []);
+
+    const loadPage = async (page: number) => {
+        if (page == currentPage) return;
+        if (page > pageCount - 1) return;
+        setCurrentPage(page);
+        setDishes(await RestaurantLoader.loadDishesSortedAfter(currentButtonSorted.current ?? undefined, page));
+    }
 
     withTutorialStarter("openedRestaurant");
 
@@ -44,21 +55,21 @@ export default function Restaurant() {
 
     const stopPlaybacks = useRef<(() => void)[]>([]);
 
-    const onClick = async (button: "newest" | "oldest" | "flavorCount") => {
+    const onClick = async (sortAfter: "newest" | "oldest" | "flavorCount") => {
         clearAllSelected();
 
-        if (newestButtonRef.current && button == "newest") newestButtonRef.current.classList.add("toggled");
-        if (oldestButtonRef.current && button == "oldest") oldestButtonRef.current.classList.add("toggled");
-        if (flavorCountButtonRef.current && button == "flavorCount") flavorCountButtonRef.current.classList.add("toggled");
+        if (newestButtonRef.current && sortAfter == "newest") newestButtonRef.current.classList.add("toggled");
+        if (oldestButtonRef.current && sortAfter == "oldest") oldestButtonRef.current.classList.add("toggled");
+        if (flavorCountButtonRef.current && sortAfter == "flavorCount") flavorCountButtonRef.current.classList.add("toggled");
 
-        currentButtonSorted.current = button;
+        currentButtonSorted.current = sortAfter;
 
         stopPlaybacks.current.forEach(e => e());
 
         setLoading(true);
-        setDishes(await RestaurantLoader.loadDishesSortedAfter(button));
+        setDishes(await RestaurantLoader.loadDishesSortedAfter(sortAfter, currentPage));
 
-        if (currentButtonSorted.current != button) return;
+        if (currentButtonSorted.current != sortAfter) return;
         setLoading(false);
         // switch (button) {
         //     case "newest":
@@ -129,6 +140,28 @@ export default function Restaurant() {
                         dishes.map(dish => <RestaurantDish key={dish.uuid} dish={dish} startedPlayback={startedPlayback} stopPlaybackRef={addStopRef} />)
                     }
                 </div>
+                <PixelDiv className="pages">
+                    <div className="bg"></div>
+                    {
+                        currentPage > 0 && <PixelButton onClick={() => loadPage(0)}>{1}</PixelButton>
+                    }
+                    {
+                        currentPage - 1 > 0 && <>
+                            <div className="gap"></div>
+                            <PixelButton onClick={() => loadPage(currentPage - 1)}>{currentPage - 1 + 1}</PixelButton>
+                        </>
+                    }
+                    <PixelButton className="currentPage">{currentPage + 1}</PixelButton>
+                    {
+                        currentPage + 1 < pageCount - 1 && <>
+                            <PixelButton onClick={() => loadPage(currentPage + 1)}>{currentPage + 1 + 1}</PixelButton>
+                            <div className="gap"></div>
+                        </>
+                    }
+                    {
+                        pageCount > 1 && currentPage < pageCount - 1 && <PixelButton onClick={() => loadPage(pageCount - 1)}>{pageCount}</PixelButton>
+                    }
+                </PixelDiv>
             </div>
 
             <></>

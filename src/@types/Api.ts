@@ -86,3 +86,6 @@ export type VisibilityStateChangeResponse = {
 export type LoadRestaurantData = {
     dishes: RestaurantDish[];
 }
+export type LoadRestaurantPageCount = {
+    pages: number;
+}

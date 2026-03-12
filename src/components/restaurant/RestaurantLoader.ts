@@ -1,4 +1,4 @@
-import { type APIResponse, type LoadRestaurantData } from "../../@types/Api";
+import { type APIResponse, type LoadRestaurantData, type LoadRestaurantPageCount } from "../../@types/Api";
 import type { RestaurantDish } from "../../@types/User";
 import { Network } from "../../utils/Network";
 import { BASE_URL } from "../../utils/Statics";
@@ -8,7 +8,7 @@ export class RestaurantLoader {
 
     private static DISH_LIST: RestaurantDish[] = [];
 
-    public static async loadRestaurantData(limit: number = 20): Promise<RestaurantDish[]> {
+    public static async loadRestaurantData(page: number = 0): Promise<RestaurantDish[]> {
 
         // const all: RestaurantDish[] = [
         //     {
@@ -34,7 +34,7 @@ export class RestaurantLoader {
         const response = await Network.loadJson<APIResponse<LoadRestaurantData>>(BASE_URL + "/restaurant/loadMenu.php", {
             method: "POST",
             body: JSON.stringify({
-                limit: limit
+                page: page
             })
         });
 
@@ -54,12 +54,26 @@ export class RestaurantLoader {
         return RestaurantLoader.DISH_LIST;
     }
 
-    public static async loadDishesSortedAfter(sortedAfter: "newest" | "oldest" | "flavorCount", limit: number = 20): Promise<RestaurantDish[]> {
+    public static async getTotalNumberOfPages() {
+
+        const response = await Network.loadJson<APIResponse<LoadRestaurantPageCount>>(BASE_URL + "/restaurant/getPageCount.php", {
+            method: "GET",
+        });
+
+        if (response.status == "error") {
+            Utils.error(response.message ?? "Failed to load restaurant menu");
+            return 0;
+        }
+
+        return response.pages;
+    }
+
+    public static async loadDishesSortedAfter(sortedAfter: "newest" | "oldest" | "flavorCount" | undefined, currentPage: number = 0): Promise<RestaurantDish[]> {
 
         const response = await Network.loadJson<APIResponse<LoadRestaurantData>>(BASE_URL + "/restaurant/loadMenu.php", {
             method: "POST",
             body: JSON.stringify({
-                limit: limit,
+                page: currentPage,
                 sortedAfter: sortedAfter
             })
         });
