@@ -58,6 +58,11 @@ It’s a machine where glass tubes at the top filled with flavors are placed the
 - Audio enabled
 
 ## Screenshots
+### Tutorials
+![Tutorials](./readmeImgs/tutorials.png)
+
+Tutorials are everywhere in the game.
+
 #### Main Menu
 ![Main Menu](./readmeImgs/mainMenu.png)
 
