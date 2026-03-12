@@ -73,6 +73,11 @@ Entry point of the application.
 
 Overview of locally and remotely stored dishes.
 
+### Restaurant
+![Restaurant](./readmeImgs/restaurant.png)
+
+List of all public dishes.
+
 #### Open a Shared Dish
 ![Open Shared Dish](./readmeImgs/openSharedDish.png)
 
