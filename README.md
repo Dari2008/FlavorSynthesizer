@@ -167,17 +167,32 @@ States are managed using React Contexts.
 ## Installation
   ### Client
   #### Run
+  First you have to set the backend url in src/utils/Statics.ts -> BASE_URL
+  then:
   ```bash
+  git clone https://github.com/Dari2008/FlavorSynthesizer.git
   npm install
   npm run dev
   ```
   #### Build
   ```bash
+  git clone https://github.com/Dari2008/FlavorSynthesizer.git
+  npm install
   npm run build
   ```
   ### Server
-  Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks.
-  There is however the Node version of the server published [Server](https://github.com/Dari2008/FlavorSynthesizerServer/)
+  #### Run
+  First you have to rename .env.example -> .env and change the database login
+  then:
+  ```bash
+  git clone https://github.com/Dari2008/FlavorSynthesizerServer.git
+  npm install
+  npm run dev
+  ```
+  By default it runs on port 2223
+
+  <!-- Currently I can't publish the server since it would be a security risk but I plan on publishing it once I rewrote it in node.js and fixed all security risks.
+  There is however the Node version of the server published [Server](https://github.com/Dari2008/FlavorSynthesizerServer/) -->
 
 ## Project Structure
 - src/          - Application source code  
