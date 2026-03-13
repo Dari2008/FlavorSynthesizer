@@ -14,6 +14,7 @@ export default function IntitialLandingEditorTutorial() {
         "statistic",
         "save",
         "share",
+        "openMultiplayer",
         "changeMainFlavor",
         "changeName",
         "flavorList"
@@ -72,6 +73,13 @@ export default function IntitialLandingEditorTutorial() {
                             return <Text text={
                                 <>
                                     The Share button (<img src="./imgs/actionButtons/share.png" className="inline-image" />) above the Save button lets you share your dish with other users.
+                                </>
+                            } />
+
+                        case "openMultiplayer":
+                            return <Text text={
+                                <>
+                                    the button right (<img src="./imgs/actionButtons/save.png" className="inline-image" />) opens your dish as a multiplayer that means other people can join your "meeeting" and edit the same dish live.
                                 </>
                             } />
 

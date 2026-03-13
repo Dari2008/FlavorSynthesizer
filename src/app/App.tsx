@@ -10,7 +10,7 @@ import ShareDialog from "../components/shareDialog/ShareDialog";
 import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
 import { ToastContainer } from "react-toastify";
 import { useConfirm } from "../components/dialogs/ConfirmDialogContext";
-import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
+import { type ShareDigits, type Digit, type OpenShareResponse } from "../@types/Api";
 import { BASE_URL, DATE_FORMAT, URL_EXTENSION } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
@@ -42,6 +42,11 @@ import DeviceNotSupported from "../components/errorInfoComponents/notSupported/N
 import Restaurant from "../components/restaurant/Restaurant";
 import dayjs from "dayjs";
 import Tutorials, { type TutorialAction } from "../components/tutorials/Tutorials";
+import { MultiplayerServer, type PlayerJoined } from "../serverCommunication/ServerCommunication";
+import { MultiplayerContext } from "../contexts/MultiplayerContext";
+import MultiplayerSettingsOverlay from "../components/multiplayerSettingsOverlay/MultiplayerSettingsOverlay";
+import { useInput } from "../components/dialogs/InputDialogContext";
+import MultiplayerChatOverlay from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -54,6 +59,13 @@ export default function App() {
     const currentDishTitleRef = useRef<HTMLInputElement>(null);
     const [dishes, setDishes] = useState<(Dish | LocalDish)[]>([]);
     const [currentDishIndex, setCurrentDishIndex] = useState<number>(-1);
+
+    const multiplayerManagerRef = useRef<MultiplayerServer>(null);
+    const [isMultiplayer, setIsMultiplayer] = useState<boolean>(false);
+    const [playersJoined, setPlayersJoined] = useState<PlayerJoined[]>([]);
+    const [multiplayerCode, setMultiplayerCode] = useState<ShareDigits>([0, 0, 0, 0, 0, 0]);
+    const [isMultiplayerOverlayOpen, setMultiplayerOverlayOpen] = useState<boolean>(false);
+    const [isMultiplayerChatOpen, setMultiplayerChatOpen] = useState<boolean>(false);
 
     const [gameState, _setGameState] = useState<GameState>("mainMenu");
     const [oldGameStates, setOldGameStates] = useState<GameState[]>(["mainMenu"]);
@@ -248,6 +260,7 @@ export default function App() {
         });
     }, []);
     const confirm = useConfirm().confirm;
+    const input = useInput().input;
 
     const setMainFlavor = (flavor: MainFlavor) => {
         setMF(flavor);
@@ -306,6 +319,8 @@ export default function App() {
                 ...response.dish,
                 tracks: undefined
             },
+            createdAt: (response.dish as any).createdAt ?? undefined,
+            createdBy: (response.dish as any).createdBy ?? "Unknown",
             data: response.dish.tracks.map(e => {
                 return {
                     uuid: Utils.uuidv4(),
@@ -464,125 +479,219 @@ export default function App() {
         Object.values(deselectAllRef.current).forEach(e => e());
     };
 
+    const startMultiplayer = async () => {
+        if (multiplayerManagerRef.current) return;
+        multiplayerManagerRef.current = new MultiplayerServer();
+        if (!currentDish) {
+            Utils.error("You dont have a dish open");
+            return;
+        }
+        let name: string | undefined | false = userLoggedIn?.displayName
+        if (!userLoggedIn || !name) {
+            name = await input("Type a name with wich you want to join the meeting:", "cancelOk", "text");
+        }
+
+        if (!name) return;
+
+        let response = null;
+        if (currentDish.type == "localDish") {
+            response = await multiplayerManagerRef.current.create({
+                mainFlavor: currentDish.mainFlavor,
+                name: currentDish.name,
+                publishState: "private",
+                share: undefined,
+                tracks: currentDish.data,
+                type: "dish",
+                uuid: currentDish.uuid,
+                volumes: currentDish.volumes
+            }, name, userLoggedIn?.jwt);
+        } else {
+            response = await multiplayerManagerRef.current.create(currentDish.uuid, name, userLoggedIn?.jwt);
+        }
+        if (!response) return false;
+
+        multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
+            setPlayersJoined(players => [...players, playerJoined]);
+            return true;
+        };
+
+        const code = multiplayerManagerRef.current.getCode();
+        console.log(code);
+        if (!code) {
+            Utils.error("Failed to get code to share! Try again later");
+            return;
+        }
+
+        setIsMultiplayer(true);
+        setMultiplayerCode(code);
+        setMultiplayerOverlayOpen(true);
+    };
+
+    const joinGame = async (digits: ShareDigits) => {
+        if (multiplayerManagerRef.current) return;
+        multiplayerManagerRef.current = new MultiplayerServer();
+        if (!currentDish) {
+            Utils.error("You dont have a dish open");
+            return;
+        }
+        let name: string | undefined | false = userLoggedIn?.displayName
+        if (!userLoggedIn || !name) {
+            name = await input("Type a name with wich you want to join the meeting:", "cancelOk", "text");
+        }
+
+        if (!name) return;
+
+        let response = await multiplayerManagerRef.current.join(digits, name, userLoggedIn?.jwt);
+        if (!response) return false;
+
+        multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
+            setPlayersJoined(players => [...players, playerJoined]);
+            return true;
+        };
+
+        setIsMultiplayer(true);
+        // setMultiplayerCode(code);
+        setMultiplayerOverlayOpen(true);
+        setGameState("createDish-create");
+    }
+
     return <>
-        <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef, setDeselectAllCallback, deselectAll }}>
-            <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>
-                <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
-                    <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>
-                        <CurrentDishActionsContext value={{ synthLines: [currentDish?.data ?? [], setSynthLines], volumes: [volumes, setVolumes] }}>
-                            <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
-                                <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
-                                    <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>
-                                        <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000), deleteDisheWithUUID, forkCurrentDish: withDebounce(forkCurrentDish, 10000) }}>
-                                            <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
-                                                <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
-                                                <Tutorials startTutorialRef={startTutorial}>
+        <MultiplayerContext.Provider value={{
+            isMultiplayer,
+            managerRef: multiplayerManagerRef,
+            startMultiplayer,
+            playersJoined,
+            multiplayerCode,
+            setMultiplayerOverlayOpen,
+            setMultiplayerChatOpen,
+            isMultiplayerOverlayOpen,
+            isMultiplayerChatOpen,
+            joinGame
+        }}>
+            <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef, setDeselectAllCallback, deselectAll }}>
+                <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>
+                    <SynthChangeContext.Provider value={{ changed: onSynthLineChanged }}>
+                        <LoadingAnimationContext.Provider value={{ startLoading, stopLoading }}>
+                            <CurrentDishActionsContext value={{ synthLines: [currentDish?.data ?? [], setSynthLines], volumes: [volumes, setVolumes] }}>
+                                <MainFlavorContext.Provider value={{ mainFlavor, setMainFlavor }}>
+                                    <GameStateContext.Provider value={{ gameState, setGameState, goBack, createNewActiveDish }}>
+                                        <CurrentDishIndexContext.Provider value={{ val: currentDishIndex, setIndex: setCurrentDishIndex, openDishFromObj }}>
+                                            <DishesContext.Provider value={{ dishes, setDishes, saveCurrentDish: withDebounce(saveCurrentDish, 2000), deleteDisheWithUUID, forkCurrentDish: withDebounce(forkCurrentDish, 10000) }}>
+                                                <UserContext.Provider value={{ user: userLoggedIn, setUser: setUserLoggedIn }}>
+                                                    <ToastContainer position="bottom-right" draggable newestOnTop theme="dark" />
+                                                    <Tutorials startTutorialRef={startTutorial}>
 
-                                                    {
-                                                        hasDownloadedData && shouldRotateDeviceVar && <RotateDeviceNotice />
-                                                    }
+                                                        {
+                                                            hasDownloadedData && shouldRotateDeviceVar && <RotateDeviceNotice />
+                                                        }
 
-                                                    {
-                                                        !isDeviceSupported && <DeviceNotSupported />
-                                                    }
+                                                        {
+                                                            !isDeviceSupported && <DeviceNotSupported />
+                                                        }
 
-                                                    <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
-                                                        <InitialMenu />
-                                                    </Activity>
+                                                        <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
+                                                            <InitialMenu />
+                                                        </Activity>
 
-                                                    <Activity mode={gameState == "restaurant" ? "visible" : "hidden"}>
-                                                        <Restaurant />
-                                                    </Activity>
+                                                        <Activity mode={gameState == "restaurant" ? "visible" : "hidden"}>
+                                                            <Restaurant />
+                                                        </Activity>
 
-                                                    <Activity mode={!hasDownloadedData || currentlyLoading.includes("downloadData") ? "visible" : "hidden"}>
-                                                        <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
-                                                    </Activity>
+                                                        <Activity mode={!hasDownloadedData || currentlyLoading.includes("downloadData") ? "visible" : "hidden"}>
+                                                            <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
+                                                        </Activity>
 
-                                                    <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
-                                                        <MainFlavorSelectionDialog />
-                                                    </Activity>
+                                                        <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
+                                                            <MainFlavorSelectionDialog />
+                                                        </Activity>
 
-                                                    {
-                                                        (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
-                                                            <div className="title">
-                                                                <div className="bg-wrapper">
-                                                                    <div className="img-wrapper">
-                                                                        <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
-                                                                        <div className="bg-image"></div>
-                                                                        <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                                        {
+                                                            (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
+                                                                <div className="title">
+                                                                    <div className="bg-wrapper">
+                                                                        <div className="img-wrapper">
+                                                                            <img src="./imgs/nameTag/name_tag_left.png" className="bg-image-start"></img>
+                                                                            <div className="bg-image"></div>
+                                                                            <img src="./imgs/nameTag/name_tag_right.png" className="bg-image-end"></img>
+                                                                        </div>
+                                                                        <input className="title-input" maxLength={20} type="text" disabled={isReadonly} onInput={() => {
+                                                                            if (currentDishTitleRef.current && !isReadonly) {
+                                                                                const newName = currentDishTitleRef.current.value == undefined || currentDishTitleRef.current.value == null ? "Unnamed" : currentDishTitleRef.current.value;
+                                                                                setCurrentDishName(newName);
+                                                                                isMultiplayer && multiplayerManagerRef.current?.getServerCommunication().withDebounce().rename(newName);
+                                                                            }
+                                                                        }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
                                                                     </div>
-                                                                    <input className="title-input" maxLength={20} type="text" disabled={isReadonly} onInput={() => {
-                                                                        if (currentDishTitleRef.current && !isReadonly) {
-                                                                            setCurrentDishName(currentDishTitleRef.current.value == undefined || currentDishTitleRef.current.value == null ? "Unnamed" : currentDishTitleRef.current.value);
-                                                                        }
-                                                                    }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
                                                                 </div>
-                                                            </div>
 
-                                                            <CurrentMainThemeSelector />
-                                                            <FlavorSynth />
+                                                                <MultiplayerSettingsOverlay />
+                                                                <MultiplayerChatOverlay />
 
-                                                            <button className="close" onClick={async () => {
-                                                                if (!document.title.startsWith("*")) {
-                                                                    setGameState("mainMenu");
-                                                                    return;
-                                                                }
-                                                                const close = await confirm("Do you want to close the dish and loose all unsaved changes?", "noYes");
-                                                                if (close) {
-                                                                    setTitle(title.replaceAll("*", ""));
-                                                                    setGameState("mainMenu");
-                                                                }
-                                                            }}>x</button>
-                                                        </>
-                                                    }
+                                                                <CurrentMainThemeSelector />
+                                                                <FlavorSynth />
 
-                                                    {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
+                                                                <button className="close" onClick={async () => {
+                                                                    if (!document.title.startsWith("*")) {
+                                                                        setGameState("mainMenu");
+                                                                        return;
+                                                                    }
+                                                                    const close = await confirm("Do you want to close the dish and loose all unsaved changes?", "noYes");
+                                                                    if (close) {
+                                                                        setTitle(title.replaceAll("*", ""));
+                                                                        setGameState("mainMenu");
+                                                                    }
+                                                                }}>x</button>
+                                                            </>
+                                                        }
+
+                                                        {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
                             </Activity> */}
 
-                                                    <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
-                                                        <ShareDialog></ShareDialog>
-                                                    </Activity>
+                                                        <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
+                                                            <ShareDialog></ShareDialog>
+                                                        </Activity>
 
-                                                    <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
-                                                        <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
-                                                    </Activity>
+                                                        <Activity mode={(gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") ? "visible" : "hidden"}>
+                                                            <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
+                                                        </Activity>
 
-                                                    <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
-                                                        <OpenShareDialog open={open}></OpenShareDialog>
-                                                    </Activity>
+                                                        <Activity mode={gameState == "openShared" ? "visible" : "hidden"}>
+                                                            <OpenShareDialog open={open}></OpenShareDialog>
+                                                        </Activity>
 
-                                                    <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
-                                                        <DishList />
-                                                    </Activity>
+                                                        <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
+                                                            <DishList />
+                                                        </Activity>
 
-                                                    {gameState == "loading" && <Loading />}
+                                                        {gameState == "loading" && <Loading />}
 
 
-                                                    <div className="save-message" ref={savedMessageRef}>
-                                                        Saved Current Dish
-                                                    </div>
+                                                        <div className="save-message" ref={savedMessageRef}>
+                                                            Saved Current Dish
+                                                        </div>
 
-                                                    {/* {
+                                                        {/* {
 
             !hasSelectedNewMainFlavor && 
         } */}
-                                                    {/* {
+                                                        {/* {
             hasSelectedNewMainFlavor &&
             <>
             </>
         } */}
 
-                                                </Tutorials>
-                                            </UserContext.Provider>
-                                        </DishesContext.Provider>
-                                    </CurrentDishIndexContext.Provider>
-                                </GameStateContext.Provider>
-                            </MainFlavorContext.Provider>
-                        </CurrentDishActionsContext>
-                    </LoadingAnimationContext.Provider>
-                </SynthChangeContext.Provider>
-            </TouchCheckerContext.Provider>
-        </CurrentDraggingElementTouch.Provider>
+                                                    </Tutorials>
+                                                </UserContext.Provider>
+                                            </DishesContext.Provider>
+                                        </CurrentDishIndexContext.Provider>
+                                    </GameStateContext.Provider>
+                                </MainFlavorContext.Provider>
+                            </CurrentDishActionsContext>
+                        </LoadingAnimationContext.Provider>
+                    </SynthChangeContext.Provider>
+                </TouchCheckerContext.Provider>
+            </CurrentDraggingElementTouch.Provider>
+        </MultiplayerContext.Provider>
     </>;
 }
 

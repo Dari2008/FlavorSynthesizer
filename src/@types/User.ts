@@ -31,6 +31,8 @@ export type RestaurantDish = Omit<ServerDish, "share"> & {
     share?: {
         aiImage?: string;
     }
+    createdBy: string;
+    createdAt: string;
 };
 
 export type DishVolumes = {
@@ -43,7 +45,7 @@ export type LocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage"
     type: "localDish";
 };
 
-export type ServerDish = Omit<Dish, "data"> & {
+export type ServerDish = Omit<Dish, "data" | "createdAt" | "createdBy"> & {
     tracks: ServerFlavorSynthLine[];
 }
 

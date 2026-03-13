@@ -26,6 +26,7 @@ import { useCurrentDish } from "../../contexts/CurrentDish";
 import Utils from "../../utils/Utils";
 import withTutorialStarter from "../../hooks/TutorialStarter";
 import { useTutorials } from "../tutorials/context/TutorialContext";
+import { useMultiplayer } from "../../contexts/MultiplayerContext";
 
 
 type EventListWithUUID<T> = {
@@ -82,6 +83,7 @@ export default function FlavorSynth() {
 
     const dishes = useDishes();
     const dishActions = useCurrentDishActions();
+    const multiplayer = useMultiplayer();
 
     const change = useSynthChange();
 
@@ -502,6 +504,11 @@ export default function FlavorSynth() {
 
     useEffect(() => {
         const keydown = (e: KeyboardEvent) => {
+            if (e.target instanceof Node) {
+                const node = (e.target as Node);
+                if (node.nodeName.toLowerCase() == "textarea") return;
+                if (node.nodeName.toLowerCase() == "input") return;
+            }
             if (e.code == "Space") {
                 setPlaying(playing => {
                     playing ? stop() : (async () => {
@@ -701,15 +708,30 @@ export default function FlavorSynth() {
                                 </div>
 
                                 <div className="buttons-reversed">
-                                    <button className="share" onClick={async () => { await dishes.saveCurrentDish(); gameState.setGameState("createDish-share"); }}>
+                                    <button className="share" title="Share the Dish" onClick={async () => { await dishes.saveCurrentDish(); gameState.setGameState("createDish-share"); }}>
                                         <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                     </button>
-                                    <button className="save" onClick={dishes.saveCurrentDish}>
+                                    {
+                                        !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
+                                            <img src="./imgs/actionButtons/multiplayer.png" alt="Multiplayer btn" className="multiplayer-action action-btn" />
+                                        </button>
+                                    }
+                                    {
+                                        multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                            <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
+                                        </button>
+                                    }
+                                    <button className="save" title="Save Dish" onClick={dishes.saveCurrentDish}>
                                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                     {
+                                        multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
+                                            <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
+                                        </button>
+                                    }
+                                    {
                                         isReadonly &&
-                                        <button className="fork" onClick={dishes.forkCurrentDish}>
+                                        <button className="fork" title="Fork the dish" onClick={dishes.forkCurrentDish}>
                                             <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
                                         </button>
                                     }
@@ -752,15 +774,30 @@ export default function FlavorSynth() {
                                     </div>
                                 </PixelDiv>
                                 <div className="buttons">
-                                    <button className="share" onClick={() => gameState.setGameState("createDish-share")}>
+                                    <button className="share" title="Share the Dish" onClick={() => gameState.setGameState("createDish-share")}>
                                         <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                     </button>
-                                    <button className="save" onClick={dishes.saveCurrentDish}>
+                                    {
+                                        !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
+                                            <img src="./imgs/actionButtons/multiplayer.png" alt="Multiplayer btn" className="multiplayer-action action-btn" />
+                                        </button>
+                                    }
+                                    {
+                                        multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                            <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
+                                        </button>
+                                    }
+                                    <button className="save" title="Save Dish" onClick={dishes.saveCurrentDish}>
                                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                     {
+                                        multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
+                                            <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
+                                        </button>
+                                    }
+                                    {
                                         isReadonly &&
-                                        <button className="fork" onClick={dishes.forkCurrentDish}>
+                                        <button className="fork" title="Fork the dish" onClick={dishes.forkCurrentDish}>
                                             <img src="./imgs/actionButtons/fork.png" alt="Fork btn" className="fork-action action-btn" />
                                         </button>
                                     }

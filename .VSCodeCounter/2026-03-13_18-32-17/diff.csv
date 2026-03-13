@@ -1,0 +1,16 @@
+"filename", "language", "TypeScript", "Markdown", "JSON", "SCSS", "TypeScript JSX", "comment", "blank", "total"
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_15-40-05\details.md", "Markdown", 0, 217, 0, 0, 0, 0, 6, 223
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_15-40-05\diff-details.md", "Markdown", 0, 75, 0, 0, 0, 0, 6, 81
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_15-40-05\diff.md", "Markdown", 0, 68, 0, 0, 0, 0, 7, 75
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_15-40-05\results.json", "JSON", 0, 0, 1, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_15-40-05\results.md", "Markdown", 0, 115, 0, 0, 0, 0, 7, 122
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\User.ts", "TypeScript", 2, 0, 0, 0, 0, 0, 0, 2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.tsx", "TypeScript JSX", 0, 0, 0, 0, 59, 0, 8, 67
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynth.tsx", "TypeScript JSX", 0, 0, 0, 0, 12, 0, 0, 12
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynthControls.scss", "SCSS", 0, 0, 0, 12, 0, 0, 2, 14
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.scss", "SCSS", 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.tsx", "TypeScript JSX", 0, 0, 0, 0, 29, 0, 3, 32
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\initialLandingEditor\IntitialLandingEditorTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 7, 0, 1, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\MultiplayerContext.ts", "TypeScript", 19, 0, 0, 0, 0, 0, 3, 22
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\serverCommunication\ServerCommunication.ts", "TypeScript", 89, 0, 0, 0, 0, 0, 10, 99
+"Total", "-", 110, 475, 1, 12, 107, 0, 54, 759

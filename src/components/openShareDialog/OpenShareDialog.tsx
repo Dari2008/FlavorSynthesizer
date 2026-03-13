@@ -6,6 +6,12 @@ import { useGameState } from "../../contexts/GameStateContext";
 import { getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
 import withTutorialStarter from "../../hooks/TutorialStarter";
 import { getCurrentDragging } from "../flavorSynth/CurrentDraggingReference";
+import PixelInput from "../pixelDiv/PixelInput";
+import PixelButton from "../pixelDiv/PixelButton";
+import { useMultiplayer } from "../../contexts/MultiplayerContext";
+import type { ShareDigits } from "../../@types/Api";
+import PixelDiv from "../pixelDiv/PixelDiv";
+import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -33,6 +39,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     const digitsRef = useRef<HTMLDivElement>(null);
     const uploadedImageInputRef = useRef<HTMLInputElement>(null);
     const currentUploadedFileNameDisplayRef = useRef<HTMLInputElement>(null);
+    const [shareJoin, setShareJoin] = useState<"share" | "join" | "none">("none");
 
     const [isOkButtonCodeIsDisabled, setOkButtonCodeIsDisabled] = useState<boolean>(true);
     const [isOkButtonFlavorsIsDisabled, setOkButtonFlavorsIsDisabled] = useState<boolean>(true);
@@ -41,6 +48,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     const bgImageIndex = useRef<number>(generateRandomBackgroundImage());
 
     const gameState = useGameState();
+    const multiplayer = useMultiplayer();
 
     useEffect(() => {
         setSpanFirstTime(window.innerWidth, {
@@ -48,6 +56,12 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
             to: 60
         });
         setSpan(window.innerWidth, getSpan());
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            setShareJoin("none");
+        };
     }, []);
 
     withTutorialStarter("openedOpenShare");
@@ -136,9 +150,30 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
     };
 
 
+    const joinCode = () => {
+        const digits = Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+            if (!digitsRef.current) return undefined;
+            const element = digitsRef.current.querySelector(`input[data-index="${i}"]`) as HTMLInputElement;
+            return Math.round(parseInt(element.value ?? "0") % 10) as Digit;
+        }).filter(e => (e != null && e != undefined));
+
+        if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) return;
+        multiplayer.joinGame(digits as ShareDigits);
+    }
+
+
     return <div className={"open-share-dialog-wrapper" + (gameState.gameState == "openShared" ? " visible" : "")}>
-        <div role="dialog" className="open-share-dialog" style={{ "--bg-image": `url(${ROOT_PATH + BG_IMAGES[bgImageIndex.current]})` } as any}>
-            <div className="content-wrapper">
+        <PixelDivWBorder max-pixel-width={40} role="dialog" className="open-share-dialog">
+            <PixelDiv className="image-bg" style={{ "--bg-image": `url(${ROOT_PATH + BG_IMAGES[bgImageIndex.current]})` } as any}></PixelDiv>
+
+            {
+                shareJoin == "none" && <div className="content-wrapper choose">
+                    <PixelButton className="join" onClick={() => setShareJoin("join")}>Join a Multiplayer dish</PixelButton>
+                    <PixelButton className="share" onClick={() => setShareJoin("share")}>Open a shared dish</PixelButton>
+                </div>
+            }
+
+            {shareJoin == "share" && <div className="content-wrapper share">
                 <h1>Open Shared Dish</h1>
                 <div className="open-share-flavors open-share-default-layout">
                     <h2>Open Shared Flavors</h2>
@@ -224,126 +259,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     <div className="content" ref={digitsRef}>
                         {
                             Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                const ref = useRef<HTMLInputElement>(null);
-                                return <input key={i} className="digit" data-index={i} ref={(r) => {
-                                    ref.current = r;
-                                    if (r) {
-                                        const parentDiv = r.parentElement;
-                                        if (!parentDiv) return;
-
-                                        const next = parentDiv.querySelector(
-                                            `input[data-index='${i + 1}']`
-                                        ) as HTMLInputElement | null;
-
-                                        const prev = parentDiv.querySelector(
-                                            `input[data-index='${i - 1}']`
-                                        ) as HTMLInputElement | null;
-
-                                        const paste = (content: string | undefined) => {
-                                            content = content?.replaceAll(/\s/g, "");
-                                            if (content?.length != SHARE_FLAVOR_COMBO_LENGTH) return;
-                                            for (let i = 0; i < SHARE_FLAVOR_COMBO_LENGTH; i++) {
-                                                const c = parentDiv.querySelector(`input[data-index='${i}']`) as HTMLInputElement | null;
-                                                if (c) c.value = content.at(i) ?? "0";
-                                            }
-                                            checkForValid();
-                                            (parentDiv.querySelector(`input[data-index='${SHARE_FLAVOR_COMBO_LENGTH - 1}']`) as HTMLInputElement | null)?.focus();
-                                        };
-
-                                        const checkForValid = () => {
-                                            const digits = Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                                if (!digitsRef.current) return undefined;
-                                                const element = digitsRef.current.querySelector(`input[data-index="${i}"]`) as HTMLInputElement;
-                                                if (!element.value) return;
-                                                return Math.round(parseInt(element.value) % 10) as Digit;
-                                            }).filter(e => (e != null && e != undefined));
-                                            if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) {
-                                                setOkButtonCodeIsDisabled(true);
-                                                return;
-                                            }
-                                            setOkButtonCodeIsDisabled(false);
-                                        };
-
-                                        r.addEventListener("paste", (e: ClipboardEvent) => {
-                                            const content = e.clipboardData?.getData("text").trim().replace(/[^\d]/g, "");
-                                            e.preventDefault();
-                                            paste(content);
-                                        });
-
-                                        r.addEventListener("input", () => {
-                                            checkForValid();
-                                        });
-
-                                        r.addEventListener('keydown', (e: KeyboardEvent) => {
-                                            const val = r.value;
-                                            switch (e.key) {
-                                                case "0":
-                                                    r.value = "0";
-                                                    break;
-                                                case "1":
-                                                    r.value = "1";
-                                                    break;
-                                                case "2":
-                                                    r.value = "2";
-                                                    break;
-                                                case "3":
-                                                    r.value = "3";
-                                                    break;
-                                                case "4":
-                                                    r.value = "4";
-                                                    break;
-                                                case "5":
-                                                    r.value = "5";
-                                                    break;
-                                                case "6":
-                                                    r.value = "6";
-                                                    break;
-                                                case "7":
-                                                    r.value = "7";
-                                                    break;
-                                                case "8":
-                                                    r.value = "8";
-                                                    break;
-                                                case "9":
-                                                    r.value = "9";
-                                                    break;
-                                                case "Backspace":
-                                                    if (val.length == 0) {
-                                                        prev?.focus();
-                                                    } else {
-                                                        r.value = "";
-                                                    }
-                                                    checkForValid();
-                                                    e.preventDefault();
-                                                    return;
-                                                case "ArrowLeft":
-                                                    e.preventDefault();
-                                                    prev?.focus();
-                                                    return;
-                                                case "ArrowRight":
-                                                    e.preventDefault();
-                                                    next?.focus();
-                                                    return;
-
-                                                case "v":
-                                                    if (e.ctrlKey) {
-                                                        return;
-                                                    }
-                                                    e.preventDefault();
-                                                    return;
-
-                                                default:
-                                                    e.preventDefault();
-                                                    return;
-                                            }
-                                            e.preventDefault();
-                                            next?.setSelectionRange(0, 1);
-                                            next?.focus();
-                                            checkForValid();
-                                        });
-
-                                    }
-                                }}></input>
+                                return <DigitItem key={i} setOkButtonCodeIsDisabled={setOkButtonCodeIsDisabled} i={i} digitsRef={digitsRef} />
                             })
                         }
                     </div>
@@ -353,14 +269,158 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     </div>
 
                 </div>
-            </div>
+            </div>}
+
+            {
+                shareJoin == "join" && <div className="content-wrapper join">
+                    <h1>Join a Multiplayer dish</h1>
+                    <div className="open-share-code open-share-default-layout">
+                        <h2>Join a dish</h2>
+                        <div className="content" ref={digitsRef}>
+                            {
+                                Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                                    return <DigitItem key={i} setOkButtonCodeIsDisabled={setOkButtonCodeIsDisabled} i={i} digitsRef={digitsRef} />
+                                })
+                            }
+                        </div>
+
+                        <div className="buttons">
+                            <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => joinCode()}>Open</button>
+                        </div>
+
+                    </div>
+                </div>
+            }
 
             <div className="action-buttons">
                 <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
 
-        </div>
+        </PixelDivWBorder>
     </div>;
+}
+
+function DigitItem({ i, digitsRef, setOkButtonCodeIsDisabled }: { i: number, digitsRef: React.RefObject<HTMLDivElement | null>, setOkButtonCodeIsDisabled: React.Dispatch<React.SetStateAction<boolean>> }) {
+    const ref = useRef<HTMLInputElement>(null);
+    return <PixelInput className="digit .pixel-div" data-index={i} ref={(r) => {
+        ref.current = r;
+        if (r) {
+            const parentDiv = r.parentElement;
+            if (!parentDiv) return;
+
+            const next = parentDiv.querySelector(
+                `input[data-index='${i + 1}']`
+            ) as HTMLInputElement | null;
+
+            const prev = parentDiv.querySelector(
+                `input[data-index='${i - 1}']`
+            ) as HTMLInputElement | null;
+
+            const paste = (content: string | undefined) => {
+                content = content?.replaceAll(/\s/g, "");
+                if (content?.length != SHARE_FLAVOR_COMBO_LENGTH) return;
+                for (let i = 0; i < SHARE_FLAVOR_COMBO_LENGTH; i++) {
+                    const c = parentDiv.querySelector(`input[data-index='${i}']`) as HTMLInputElement | null;
+                    if (c) c.value = content.at(i) ?? "0";
+                }
+                checkForValid();
+                (parentDiv.querySelector(`input[data-index='${SHARE_FLAVOR_COMBO_LENGTH - 1}']`) as HTMLInputElement | null)?.focus();
+            };
+
+            const checkForValid = () => {
+                const digits = Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                    if (!digitsRef.current) return undefined;
+                    const element = digitsRef.current.querySelector(`input[data-index="${i}"]`) as HTMLInputElement;
+                    if (!element.value) return;
+                    return Math.round(parseInt(element.value) % 10) as Digit;
+                }).filter(e => (e != null && e != undefined));
+                if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) {
+                    setOkButtonCodeIsDisabled(true);
+                    return;
+                }
+                setOkButtonCodeIsDisabled(false);
+            };
+
+            r.addEventListener("paste", (e: ClipboardEvent) => {
+                const content = e.clipboardData?.getData("text").trim().replace(/[^\d]/g, "");
+                e.preventDefault();
+                paste(content);
+            });
+
+            r.addEventListener("input", () => {
+                checkForValid();
+            });
+
+            r.addEventListener('keydown', (e: KeyboardEvent) => {
+                const val = r.value;
+                switch (e.key) {
+                    case "0":
+                        r.value = "0";
+                        break;
+                    case "1":
+                        r.value = "1";
+                        break;
+                    case "2":
+                        r.value = "2";
+                        break;
+                    case "3":
+                        r.value = "3";
+                        break;
+                    case "4":
+                        r.value = "4";
+                        break;
+                    case "5":
+                        r.value = "5";
+                        break;
+                    case "6":
+                        r.value = "6";
+                        break;
+                    case "7":
+                        r.value = "7";
+                        break;
+                    case "8":
+                        r.value = "8";
+                        break;
+                    case "9":
+                        r.value = "9";
+                        break;
+                    case "Backspace":
+                        if (val.length == 0) {
+                            prev?.focus();
+                        } else {
+                            r.value = "";
+                        }
+                        checkForValid();
+                        e.preventDefault();
+                        return;
+                    case "ArrowLeft":
+                        e.preventDefault();
+                        prev?.focus();
+                        return;
+                    case "ArrowRight":
+                        e.preventDefault();
+                        next?.focus();
+                        return;
+
+                    case "v":
+                        if (e.ctrlKey) {
+                            return;
+                        }
+                        e.preventDefault();
+                        return;
+
+                    default:
+                        e.preventDefault();
+                        return;
+                }
+                e.preventDefault();
+                next?.setSelectionRange(0, 1);
+                next?.focus();
+                checkForValid();
+            });
+
+        }
+    }}></PixelInput>;
 }
 
 function generateRandomBackgroundImage() {

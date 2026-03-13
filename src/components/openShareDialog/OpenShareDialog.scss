@@ -36,10 +36,13 @@ $gap: clampDef(4em);
         border-radius: 20px;
         justify-self: center;
         align-self: center;
-        background-color: rgba(0, 0, 0, 0.9);
+        // background-color: rgba(0, 0, 0, 0.9);
         height: calc(100% - 120px);
-        border: 1px solid var(--secondary-color);
-        box-shadow: 0 0 30px 1px rgba(var(--main-color-rgb), 0.4);
+        // border: 1px solid var(--secondary-color);
+        --border-color: var(--secondary-color);
+        --border-size: 1px;
+        // --background-color: rgba(0, 0, 0, 0.9);
+        // box-shadow: 0 0 30px 1px rgba(var(--main-color-rgb), 0.4);
         scrollbar-color: $gray-400 $gray-800;
 
         // display: grid;
@@ -48,10 +51,63 @@ $gap: clampDef(4em);
         // grid-column-gap: 20px;
         // grid-row-gap: 20px;  
 
-        background-image: var(--bg-image);
-        background-position: center;
-        background-size: contain;
-        background-repeat: no-repeat;
+        >.bg {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        >.image-bg {
+            position: absolute;
+            top: var(--border-size);
+            left: var(--border-size);
+            width: calc(100% - var(--border-size)*2);
+            height: calc(100% - var(--border-size)*2);
+            background-color: black;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        // background-image: var(--bg-image);
+        // background-position: center;
+        // background-size: contain;
+        // background-repeat: no-repeat;
+
+        .content-wrapper.choose {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            button {
+                width: 50%;
+                font-size: clampDef(3em);
+                line-height: clampDef(2em);
+                padding: 10px;
+            }
+        }
+
+        .content-wrapper.join {
+            display: flex;
+            flex-direction: column;
+
+            h1 {
+                height: max-content;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+                width: calc(100% - 40px);
+            }
+
+            .open-share-code {
+                height: max-content;
+                margin-bottom: auto;
+
+                .digit {
+                    border: 1px solid transparent;
+                }
+            }
+        }
 
         .content-wrapper {
             width: 100%;
@@ -386,7 +442,7 @@ $gap: clampDef(4em);
             .digit {
 
                 &:focus {
-                    border: 1px solid var(--secondary-color);
+                    border: 1px solid var(--secondary-color) !important;
                 }
 
                 font-size: clampDef(3em);

@@ -1,31 +1,34 @@
 import { useRef, type ReactNode } from "react";
 import "./ConfirmDialog.scss";
-import { ConfirmDialogContext, type ConfirmType } from "./ConfirmDialogContext";
+import { type ConfirmType } from "./ConfirmDialogContext";
+import { InputDialogContext } from "./InputDialogContext";
 import PixelButton from "../pixelDiv/PixelButton";
+import PixelInput from "../pixelDiv/PixelInput";
 
-export default function ConfirmDialog({ children }: { children: ReactNode }) {
+export default function InputDialog({ children }: { children: ReactNode }) {
     const dialogRef = useRef<HTMLDialogElement>(null);
-    const promiseResolveRef = useRef<(d: boolean) => void>(null);
+    const promiseResolveRef = useRef<(d: string | false) => void>(null);
     const questionRef = useRef<HTMLSpanElement>(null);
     const buttonCancelRef = useRef<HTMLButtonElement>(null);
     const buttonNoRef = useRef<HTMLButtonElement>(null);
     const buttonYesRef = useRef<HTMLButtonElement>(null);
     const buttonOkRef = useRef<HTMLButtonElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const response = (d: boolean) => {
+    const response = (d: string | false) => {
         if (promiseResolveRef.current) {
             promiseResolveRef.current(d);
             promiseResolveRef.current = null;
         }
     };
 
-    const customConfirm = async (text: string, type: ConfirmType = "cancelOk") => {
-        const promise = new Promise<boolean>((res) => {
-            promiseResolveRef.current = (d) => {
+    const customInput = async (text: string, type: ConfirmType = "cancelOk", inputType: React.HTMLInputTypeAttribute = "text") => {
+        const promise = new Promise<string | false>((res) => {
+            promiseResolveRef.current = (str) => {
                 if (dialogRef.current && dialogRef.current.open) {
                     dialogRef.current.close();
                 }
-                res(d);
+                res(str);
             };
 
             const set = (cancel: boolean, no: boolean, yes: boolean, ok: boolean) => {
@@ -51,6 +54,11 @@ export default function ConfirmDialog({ children }: { children: ReactNode }) {
                 questionRef.current.textContent = text;
             }
 
+            if (inputRef.current) {
+                inputRef.current.type = inputType;
+            }
+
+
             if (dialogRef.current) {
                 if (dialogRef.current.open) {
                     dialogRef.current.close();
@@ -61,16 +69,19 @@ export default function ConfirmDialog({ children }: { children: ReactNode }) {
         return promise;
     };
 
-    return <ConfirmDialogContext.Provider value={{ confirm: customConfirm }}>
-        <dialog className="confirm-dialog" ref={dialogRef}>
+    return <InputDialogContext.Provider value={{ input: customInput }}>
+        <dialog className="input-dialog" ref={dialogRef}>
             <span className="question" ref={questionRef}></span>
+            <div className="input">
+                <PixelInput ref={inputRef} />
+            </div>
             <div className="buttons">
                 <PixelButton className="cancel" onClick={() => response(false)} ref={buttonCancelRef}>Cancel</PixelButton>
                 <PixelButton className="no" onClick={() => response(false)} ref={buttonNoRef}>No</PixelButton>
-                <PixelButton className="yes" onClick={() => response(true)} ref={buttonYesRef}>Yes</PixelButton>
-                <PixelButton className="ok" onClick={() => response(true)} ref={buttonOkRef}>Ok</PixelButton>
+                <PixelButton className="yes" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonYesRef}>Yes</PixelButton>
+                <PixelButton className="ok" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonOkRef}>Ok</PixelButton>
             </div>
         </dialog>
         {children}
-    </ConfirmDialogContext.Provider>
+    </InputDialogContext.Provider>
 }

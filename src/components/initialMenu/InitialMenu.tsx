@@ -5,6 +5,7 @@ import ImageMenu from "../imageMenu/ImageMenu";
 import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
 import { useLoadingAnimation } from "../../contexts/LoadingAnimationContext";
+import PixelInput from "../pixelDiv/PixelInput";
 
 export default function InitialMenu() {
 
@@ -107,9 +108,9 @@ export default function InitialMenu() {
                     <div className="dropdown login-dropdown">
                         <img src="./mainMenu/user-dropdown/login.png" alt="" className="login-icon" />
                         <h3>{isLoginOrRegister == "login" ? "Login" : "Register"}</h3>
-                        <input type="text" placeholder={isLoginOrRegister == "login" ? "Username / E-Mail" : "Username"} className="username" ref={usernameRef} />
-                        <input type="password" placeholder="Password" className="password" ref={passwordRef} />
-                        {isLoginOrRegister == "register" && <input type="email" placeholder="E-Mail" className="email" ref={emailRef} />}
+                        <PixelInput type="text" placeholder={isLoginOrRegister == "login" ? "Username / E-Mail" : "Username"} className="username" ref={usernameRef} />
+                        <PixelInput type="password" placeholder="Password" className="password" ref={passwordRef} />
+                        {isLoginOrRegister == "register" && <PixelInput type="email" placeholder="E-Mail" className="email" ref={emailRef} />}
                         <button className="action" onClick={() => (isLoginOrRegister == "login" ? login : register)()}>{isLoginOrRegister == "login" ? "Login" : "Register"}</button>
                         {
                             isLoginOrRegister == "login" && <>

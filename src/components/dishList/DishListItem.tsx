@@ -17,8 +17,6 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
     const urlButtonRef = useRef<HTMLButtonElement>(null);
     const timeoutRef = useRef<number>(-1);
 
-    console.log(dish.uuid, (dish as Dish).share?.aiImage);
-
     const hasShareOptions = dish && (dish as Dish).publishState == "public" && (dish as Dish).share;
 
     const hasAIImage = (dish as Dish).share && (dish as Dish).share?.aiImage && (dish as Dish).share?.aiImage.length != 0;

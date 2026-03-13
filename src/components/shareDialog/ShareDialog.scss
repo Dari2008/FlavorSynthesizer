@@ -32,7 +32,6 @@
     // }
 
 
-
     .share-dialog {
         position: relative;
         margin: clampDef(4em);
@@ -52,10 +51,40 @@
         // grid-column-gap: 20px;
         // grid-row-gap: 20px;  
 
-        background-image: var(--bg-image);
-        background-position: center;
-        background-size: contain;
-        background-repeat: no-repeat;
+
+        --border-color: var(--secondary-color);
+        --border-size: 1px;
+        // --background-color: rgba(0, 0, 0, 0.9);
+        // box-shadow: 0 0 30px 1px rgba(var(--main-color-rgb), 0.4);
+        scrollbar-color: $gray-400 $gray-800;
+
+        // display: grid;
+        // grid-template-columns: calc(50% - #{calc($gap/4)}) calc(50% - #{calc($gap/4)});
+        // grid-template-rows: calc(10% - 15px) calc(30% - 15px) calc(30% - 15px) calc(30% - 15px);
+        // grid-column-gap: 20px;
+        // grid-row-gap: 20px;  
+
+        >.bg {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+        }
+
+        >.image-bg {
+            position: absolute;
+            top: var(--border-size);
+            left: var(--border-size);
+            width: calc(100% - var(--border-size)*2);
+            height: calc(100% - var(--border-size)*2);
+            background-color: black;
+            background-image: var(--bg-image);
+            background-position: center;
+            background-size: contain;
+            background-repeat: no-repeat;
+        }
+
+        // background-image: var(--bg-image);
+        // background-position: center;
+        // background-size: contain;
+        // background-repeat: no-repeat;
 
         $gap: 20px*2;
 
@@ -91,7 +120,7 @@
 
 
 
-        *:not(.background-image) {
+        *:not(.background-image):not(.image-bg) {
             z-index: 100;
         }
 

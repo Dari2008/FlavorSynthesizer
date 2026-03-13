@@ -15,6 +15,9 @@ import { Network } from "../../utils/Network";
 import { useDishes } from "../../contexts/DishesContext";
 import withTutorialStarter from "../../hooks/TutorialStarter";
 import { getCurrentDragging } from "../flavorSynth/CurrentDraggingReference";
+import PixelDiv from "../pixelDiv/PixelDiv";
+import PixelInput from "../pixelDiv/PixelInput";
+import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const COPY_WIDTH_PER_FLAVOR = 80;
@@ -307,8 +310,9 @@ export default function ShareDialog() {
     };
 
     return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
-        <div role="dialog" className="share-dialog" style={{ "--bg-image": `url(${BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : ""})` } as any}>
+        <PixelDivWBorder max-pixel-width={40} role="dialog" className="share-dialog" >
             {/* <img src={} className="background-image" /> */}
+            <PixelDiv className="image-bg" style={{ "--bg-image": `url(${BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : ""})` } as any}></PixelDiv>
 
             <div className="content-wrapper">
                 <h1>Share your dish</h1>
@@ -323,9 +327,9 @@ export default function ShareDialog() {
 
                             <div className="login-div">
                                 <h3>{isLogin ? "Login" : "Register"}</h3>
-                                {!isLogin && <input placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
-                                <input placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
-                                <input placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
+                                {!isLogin && <PixelInput placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
+                                <PixelInput placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
+                                <PixelInput placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
                                 <PixelButton className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
                                 <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
                             </div>
@@ -482,7 +486,7 @@ export default function ShareDialog() {
                                 {
                                     Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
                                         const digit = shareDigits[i];
-                                        return <div key={i} className="digit">{digit}</div>
+                                        return <PixelDiv max-pixel-width={40} key={i} className="digit">{digit}</PixelDiv>
                                     })
                                 }
                             </div>
@@ -527,7 +531,7 @@ export default function ShareDialog() {
             <div className="action-buttons">
                 <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
-        </div>
+        </PixelDivWBorder>
     </div>;
 }
 

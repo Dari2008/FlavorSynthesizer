@@ -14,27 +14,28 @@
 //     </div>
 // }
 
-import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
-import "./PixelButton.scss";
+import { useEffect, useRef, type DetailedHTMLProps, type HTMLAttributes, type ReactNode } from "react";
 import PixelDiv from "./PixelDiv";
 
-type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode; };
+type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
 
-export default function PixelButton({ children, ...rest }: PixelButtonType) {
-    rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-button";
+export default function PixelDivWBorder({ children, ...rest }: PixelDivType) {
+    rest.className = (rest.className ? rest.className : "") + " pixel-div";
     const originalFunction = rest.ref;
-    const divRef = useRef<HTMLButtonElement>(null);
+    const divRef = useRef<HTMLDivElement>(null);
+
     rest.ref = (r) => {
         if (originalFunction !== undefined) {
-            if (typeof originalFunction === "function") {
+            if (typeof originalFunction == "function") {
                 originalFunction?.(r);
             } else {
-                if (!!originalFunction) {
-                    originalFunction.current = r;
-                }
+                if (originalFunction) originalFunction.current = r;
             }
         }
         divRef.current = r;
+        if (r && rest["max-pixel-width"]) {
+            r.style.setProperty("--max-pixel-width", rest["max-pixel-width"] + "px");
+        }
     }
 
     useEffect(() => {
@@ -52,14 +53,13 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
         });
         resizeListener.observe(div);
         setSize();
-
     }, [divRef.current]);
 
-    return <button {...rest} >
+    return <div {...rest} >
         <PixelDiv className="bg"></PixelDiv>
         {/* <div className="left"></div>
         <div className="center"></div>
         <div className="right"></div> */}
         {children}
-    </button>
+    </div>
 }

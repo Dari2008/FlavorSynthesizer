@@ -15,23 +15,20 @@
 // }
 
 import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
-import "./PixelButton.scss";
-import PixelDiv from "./PixelDiv";
+import "./PixelInput.scss";
 
-type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode; };
+type PixelDivType = DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & { children?: ReactNode; };
 
-export default function PixelButton({ children, ...rest }: PixelButtonType) {
-    rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-button";
+export default function PixelInput({ children, ...rest }: PixelDivType) {
+    rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-input";
     const originalFunction = rest.ref;
-    const divRef = useRef<HTMLButtonElement>(null);
+    const divRef = useRef<HTMLInputElement>(null);
     rest.ref = (r) => {
         if (originalFunction !== undefined) {
-            if (typeof originalFunction === "function") {
+            if (typeof originalFunction == "function") {
                 originalFunction?.(r);
             } else {
-                if (!!originalFunction) {
-                    originalFunction.current = r;
-                }
+                if (originalFunction) originalFunction.current = r;
             }
         }
         divRef.current = r;
@@ -55,11 +52,5 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
 
     }, [divRef.current]);
 
-    return <button {...rest} >
-        <PixelDiv className="bg"></PixelDiv>
-        {/* <div className="left"></div>
-        <div className="center"></div>
-        <div className="right"></div> */}
-        {children}
-    </button>
+    return <input {...rest}></input>
 }

@@ -1,0 +1,210 @@
+"filename", "language", "Markdown", "JSON with Comments", "HTML", "TypeScript", "JSON", "JavaScript", "Python", "SCSS", "TypeScript JSX", "XML", "comment", "blank", "total"
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-10_11-56-41\details.md", "Markdown", 189, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 195
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-10_11-56-41\diff-details.md", "Markdown", 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 6, 15
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-10_11-56-41\diff.md", "Markdown", 12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 19
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-10_11-56-41\results.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-10_11-56-41\results.md", "Markdown", 95, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 102
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\README.md", "Markdown", 163, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 48, 213
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\eslint.config.js", "JavaScript", 0, 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 2, 24
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\index.html", "HTML", 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 5, 25
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\package-lock.json", "JSON", 0, 0, 0, 0, 4296, 0, 0, 0, 0, 0, 0, 1, 4297
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\package.json", "JSON", 0, 0, 0, 0, 44, 0, 0, 0, 0, 0, 0, 1, 45
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\Test.ts", "TypeScript", 0, 0, 0, 54, 0, 0, 0, 0, 0, 0, 0, 17, 71
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\110.json", "JSON", 0, 0, 0, 0, 153, 0, 0, 0, 0, 0, 0, 0, 153
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\124.json", "JSON", 0, 0, 0, 0, 178, 0, 0, 0, 0, 0, 0, 0, 178
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\130.json", "JSON", 0, 0, 0, 0, 153, 0, 0, 0, 0, 0, 0, 0, 153
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\81.json", "JSON", 0, 0, 0, 0, 53, 0, 0, 0, 0, 0, 0, 0, 53
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\downloader.py", "Python", 0, 0, 0, 0, 0, 0, 37, 0, 0, 0, 0, 11, 48
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\filterSilentOnes.py", "Python", 0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 1, 8, 35
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\loopMaker.py", "Python", 0, 0, 0, 0, 0, 0, 41, 0, 0, 0, 0, 17, 58
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\audio\sortAndRename.py", "Python", 0, 0, 0, 0, 0, 0, 27, 0, 0, 0, 4, 9, 40
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\createClasses.py", "Python", 0, 0, 0, 0, 0, 0, 21, 0, 0, 0, 0, 8, 29
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\flavorColors.json", "JSON", 0, 0, 0, 0, 659, 0, 0, 0, 0, 0, 0, 0, 659
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\flavorImages.json", "JSON", 0, 0, 0, 0, 75, 0, 0, 0, 0, 0, 0, 0, 75
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\flavors.json", "JSON", 0, 0, 0, 0, 75, 0, 0, 0, 0, 0, 0, 0, 75
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\images\convertImagesToJsonImageArray.py", "Python", 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 11, 44
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\images\convertImagesToJsonImageArrayMainFlavors.py", "Python", 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 0, 11, 44
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\images\createImages.py", "Python", 0, 0, 0, 0, 0, 0, 32, 0, 0, 0, 17, 17, 66
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\mainFlavorColors.json", "JSON", 0, 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 26
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\flavors\mainFlavorImages.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\manifest\favicon.svg", "XML", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\manifest\site.webmanifest", "JSON", 0, 0, 0, 0, 21, 0, 0, 0, 0, 0, 0, 0, 21
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\masks\convertGrayScaleToAlphaAsWell.py", "Python", 0, 0, 0, 0, 0, 0, 14, 0, 0, 0, 0, 5, 19
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\sprites\flavors\flavors.json", "JSON", 0, 0, 0, 0, 440, 0, 0, 0, 0, 0, 0, 0, 440
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\sprites\mainFlavors\mainFlavors.json", "JSON", 0, 0, 0, 0, 38, 0, 0, 0, 0, 0, 0, 0, 38
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\convertFoldersToFileSizeJson.py", "Python", 0, 0, 0, 0, 0, 0, 54, 0, 0, 0, 7, 17, 78
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\convertImageToSelectionJson.py", "Python", 0, 0, 0, 0, 0, 0, 22, 0, 0, 0, 8, 9, 39
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\convertToImages.py", "Python", 0, 0, 0, 0, 0, 0, 58, 0, 0, 0, 0, 18, 76
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\createSpriteImage.py", "Python", 0, 0, 0, 0, 0, 0, 31, 0, 0, 0, 7, 10, 48
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\listFileSizes.py", "Python", 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 11, 31
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\package-lock.json", "JSON", 0, 0, 0, 0, 2759, 0, 0, 0, 0, 0, 0, 1, 2760
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\package.json", "JSON", 0, 0, 0, 0, 32, 0, 0, 0, 0, 0, 0, 1, 33
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\Api.ts", "TypeScript", 0, 0, 0, 68, 0, 0, 0, 0, 0, 0, 11, 17, 96
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\ApiBodyFormats\Users.ts", "TypeScript", 0, 0, 0, 203, 0, 0, 0, 0, 0, 0, 0, 13, 216
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\Endpoints.ts", "TypeScript", 0, 0, 0, 34, 0, 0, 0, 0, 0, 0, 0, 8, 42
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\Flavors.ts", "TypeScript", 0, 0, 0, 85, 0, 0, 0, 0, 0, 0, 0, 2, 87
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\User.ts", "TypeScript", 0, 0, 0, 51, 0, 0, 0, 0, 0, 0, 0, 9, 60
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\@types\db.ts", "TypeScript", 0, 0, 0, 35, 0, 0, 0, 0, 0, 0, 0, 8, 43
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\Dotenv.ts", "TypeScript", 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 4, 24
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\endpoints\dishes\DishesEndpoints.ts", "TypeScript", 0, 0, 0, 40, 0, 0, 0, 0, 0, 0, 0, 12, 52
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\endpoints\restaurant\RestaurantEndpoints.ts", "TypeScript", 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 7, 30
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\endpoints\share\ShareEndpoints.ts", "TypeScript", 0, 0, 0, 117, 0, 0, 0, 0, 0, 0, 0, 31, 148
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\endpoints\users\UsersEndpoints.ts", "TypeScript", 0, 0, 0, 68, 0, 0, 0, 0, 0, 0, 0, 18, 86
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\endpoints\utils\EndpointUtils.ts", "TypeScript", 0, 0, 0, 129, 0, 0, 0, 0, 0, 0, 0, 23, 152
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\main\index.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 5, 22
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\sql\DBConnection.ts", "TypeScript", 0, 0, 0, 31, 0, 0, 0, 0, 0, 0, 0, 7, 38
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\sql\DishManager.ts", "TypeScript", 0, 0, 0, 243, 0, 0, 0, 0, 0, 0, 7, 41, 291
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\sql\ShareManager.ts", "TypeScript", 0, 0, 0, 352, 0, 0, 0, 0, 0, 0, 0, 61, 413
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\sql\Users.ts", "TypeScript", 0, 0, 0, 69, 0, 0, 0, 0, 0, 0, 0, 12, 81
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\src\utils\Utils.ts", "TypeScript", 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 6, 13, 79
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\server\tsconfig.json", "JSON with Comments", 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\Api.ts", "TypeScript", 0, 0, 0, 83, 0, 0, 0, 0, 0, 0, 0, 19, 102
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\Flavors.ts", "TypeScript", 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 7, 29
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\User.ts", "TypeScript", 0, 0, 0, 49, 0, 0, 0, 0, 0, 0, 0, 9, 58
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\downloadImageSizes.json", "JSON", 0, 0, 0, 0, 28, 0, 0, 0, 0, 0, 0, 0, 28
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\downloadSizes.json", "JSON", 0, 0, 0, 0, 542, 0, 0, 0, 0, 0, 0, 0, 542
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\flavorColors.json", "JSON", 0, 0, 0, 0, 659, 0, 0, 0, 0, 0, 0, 0, 659
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\flavorImages.json", "JSON", 0, 0, 0, 0, 75, 0, 0, 0, 0, 0, 0, 0, 75
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\generative-music__samples-alex-bainter.d.ts", "TypeScript", 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 5
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\mainFlavorColors.json", "JSON", 0, 0, 0, 0, 26, 0, 0, 0, 0, 0, 0, 0, 26
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\mainFlavorImages.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\Images.ts", "TypeScript", 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 145, 0, 0, 17, 37, 199
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 541, 0, 19, 93, 653
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\types.d.ts", "TypeScript", 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 0, 4
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\FlavorMusic.ts", "TypeScript", 0, 0, 0, 231, 0, 0, 0, 0, 0, 0, 26, 61, 318
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\Flavors.ts", "TypeScript", 0, 0, 0, 60, 0, 0, 0, 0, 0, 0, 6, 8, 74
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Bitter.ts", "TypeScript", 0, 0, 0, 87, 0, 0, 0, 0, 0, 0, 3, 29, 119
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Salty.ts", "TypeScript", 0, 0, 0, 93, 0, 0, 0, 0, 0, 0, 3, 30, 126
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Savory.ts", "TypeScript", 0, 0, 0, 89, 0, 0, 0, 0, 0, 0, 3, 31, 123
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Sour.ts", "TypeScript", 0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 3, 30, 119
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Spicy.ts", "TypeScript", 0, 0, 0, 92, 0, 0, 0, 0, 0, 0, 0, 30, 122
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\main\Sweet.ts", "TypeScript", 0, 0, 0, 96, 0, 0, 0, 0, 0, 0, 4, 32, 132
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\FlavorUtils.ts", "TypeScript", 0, 0, 0, 295, 0, 0, 0, 0, 0, 0, 30, 87, 412
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\MainFlavorSelectionDialog\MainFlavorSelectionDialog.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 128, 0, 0, 1, 24, 153
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\MainFlavorSelectionDialog\MainFlavorSelectionDialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 36, 0, 1, 6, 43
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\ResourceSaver.ts", "TypeScript", 0, 0, 0, 72, 0, 0, 0, 0, 0, 0, 0, 24, 96
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\cssImageLoader\CssImageLoader.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 107, 21, 128
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\currentMainTheme\CurrentMainThemeSelector.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 86, 0, 0, 1, 21, 108
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\currentMainTheme\CurrentMainThemeSelector.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 27, 0, 0, 3, 30
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\ConfirmDialog.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 37, 0, 0, 0, 5, 42
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\ConfirmDialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 67, 0, 0, 8, 75
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\ConfirmDialogContext.ts", "TypeScript", 0, 0, 0, 13, 0, 0, 0, 0, 0, 0, 0, 5, 18
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishList.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 352, 0, 0, 114, 81, 547
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 351, 0, 26, 88, 465
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishListItem.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 141, 0, 0, 14, 155
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishManager\DishManager.ts", "TypeScript", 0, 0, 0, 131, 0, 0, 0, 0, 0, 0, 0, 16, 147
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\download\Download.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 90, 0, 0, 36, 15, 141
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\download\Download.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 12, 4, 78
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\notSupported\NotSupportedNotice.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 29, 0, 0, 0, 6, 35
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\notSupported\NotSupportedNotice.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 1, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\rotateDevice\RotateDeviceNotice.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 26, 0, 0, 0, 6, 32
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\rotateDevice\RotateDeviceNotice.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 15, 56
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\rotateDevice\RotateDeviceNoticeDownload.ts", "TypeScript", 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 4, 26
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropList.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 119, 0, 0, 28, 29, 176
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 11, 0, 0, 2, 13
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropListItem.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 88, 0, 20, 30, 138
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\CurrentDraggingReference.ts", "TypeScript", 0, 0, 0, 24, 0, 0, 0, 0, 0, 0, 0, 6, 30
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\CurrentPosimageInit.ts", "TypeScript", 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 7, 25
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\ElementPlayer.ts", "TypeScript", 0, 0, 0, 108, 0, 0, 0, 0, 0, 0, 1, 15, 124
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynth.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 58, 0, 0, 4, 8, 70
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynth.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 630, 0, 45, 137, 812
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynthControls.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 155, 0, 0, 16, 42, 213
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\PlayerTrack.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 1133, 0, 122, 242, 1497
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\actionHistory\ActionHistoryManager.ts", "TypeScript", 0, 0, 0, 279, 0, 0, 0, 0, 0, 0, 0, 18, 297
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\controlKnob\ControlKnob.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 102, 0, 0, 5, 19, 126
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\controlKnob\ControlKnob.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 207, 0, 1, 48, 256
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\flavorStatistic\FlavorStatistic.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 85, 0, 0, 1, 14, 100
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\flavorStatistic\FlavorStatistic.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 1, 1, 10
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\synthLine\SynthLine.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 96, 0, 0, 0, 18, 114
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\synthLine\SynthLine.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 57, 0, 10, 12, 79
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\ImageMenu.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 276, 0, 2, 59, 337
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\selections\createNewDish.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\selections\listDishes.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\selections\openShartedDish.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\selections\restaurant.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\initialMenu\InitialMenu.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 298, 0, 0, 83, 69, 450
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\initialMenu\InitialMenu.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 130, 0, 14, 18, 162
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\loading\Loading.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 54, 0, 0, 0, 10, 64
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\loading\Loading.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 16, 57
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\loading\LoadingAnimationDownloads.ts", "TypeScript", 0, 0, 0, 22, 0, 0, 0, 0, 0, 0, 0, 4, 26
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 290, 0, 0, 55, 61, 406
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 350, 0, 2, 59, 411
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelButton.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 6, 6, 40
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelButton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 37, 0, 16, 10, 63
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelDiv.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 1, 6
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelDiv.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 37, 0, 16, 10, 63
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelImage.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 35, 0, 0, 8, 43
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelLI.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 38, 0, 16, 10, 64
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\progressCanvas\ProgressCanvas.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 58, 0, 0, 22, 80
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\restaurant\Restaurant.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 291, 0, 0, 0, 47, 338
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\restaurant\Restaurant.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 220, 0, 27, 56, 303
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\restaurant\RestaurantLoader.ts", "TypeScript", 0, 0, 0, 71, 0, 0, 0, 0, 0, 0, 19, 20, 110
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\scroollingBackgroundImage\ScrollingBackgroundImage.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 34, 0, 0, 5, 4, 43
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\scroollingBackgroundImage\ScrollingBackgroundImage.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 47, 0, 0, 3, 50
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\shareDialog\ShareDialog.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 452, 0, 0, 105, 102, 659
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\shareDialog\ShareDialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 490, 0, 43, 97, 630
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\toggle\Toggle.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 74, 0, 0, 0, 13, 87
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\toggle\Toggle.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 18, 0, 0, 6, 24
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\Tutorials.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 62, 0, 0, 17, 79
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\custom\Custom.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 86, 0, 0, 0, 12, 98
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\custom\Custom.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 42, 0, 0, 4, 46
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\image\Image.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 0, 18, 145
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\image\Image.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 41, 0, 0, 4, 45
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\text\Text.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 96, 0, 0, 0, 14, 110
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\text\Text.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 38, 0, 0, 3, 41
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\context\TutorialContext.ts", "TypeScript", 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 4, 20
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\context\TutorialProgressContext.ts", "TypeScript", 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 4, 23
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\dishList\DishListTutorial.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 0, 7, 40
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\dishList\DishListTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 132, 0, 0, 4, 136
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\EditorTutorialManager.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 0, 2, 23
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\initialLandingEditor\IntitialLandingEditorTutorial.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 7
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\initialLandingEditor\IntitialLandingEditorTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 86, 0, 0, 13, 99
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\selectMainFlavor\SelectMainFlavorTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 15, 0, 0, 5, 20
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\share\ShareTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 28, 0, 0, 6, 34
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\editor\synthLine\SynthLineTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 96, 0, 0, 12, 108
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\home\HomeTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 5, 30
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\hooks\TutorialStepHook.ts", "TypeScript", 0, 0, 0, 35, 0, 0, 0, 0, 0, 0, 0, 7, 42
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\openShared\OpenSharedTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 33, 0, 0, 4, 37
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\restaurant\RestuarantTutorial.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 7
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\restaurant\RestuarantTutorial.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 30, 0, 0, 4, 34
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CurrentDish.ts", "TypeScript", 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 0, 4, 27
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CurrentDraggingElementTouch.ts", "TypeScript", 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 3, 18
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CurrentInterPlayerDragContext.ts", "TypeScript", 0, 0, 0, 18, 0, 0, 0, 0, 0, 0, 0, 4, 22
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CurrentlyPlayingContext.ts", "TypeScript", 0, 0, 0, 16, 0, 0, 0, 0, 0, 0, 0, 3, 19
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\DishActions.ts", "TypeScript", 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 4, 19
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\DishesContext.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 3, 20
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\FlavorSynthContextMenuContext.ts", "TypeScript", 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 5, 19
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\GameStateContext.ts", "TypeScript", 0, 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 4, 21
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\LoadingAnimationContext.ts", "TypeScript", 0, 0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 3, 28
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\MainFlavorContext.ts", "TypeScript", 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 3, 17
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\SynthChangeContext.ts", "TypeScript", 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 3, 15
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\SynthLinesContext.ts", "TypeScript", 0, 0, 0, 34, 0, 0, 0, 0, 0, 0, 2, 3, 39
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\SynthSelectorContext.ts", "TypeScript", 0, 0, 0, 15, 0, 0, 0, 0, 0, 0, 0, 3, 18
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\TitleContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 19, 0, 0, 6, 25
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\TooltipContext.ts", "TypeScript", 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 3, 12
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\TouchCheckerContext.ts", "TypeScript", 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 3, 15
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\UserContext.ts", "TypeScript", 0, 0, 0, 14, 0, 0, 0, 0, 0, 0, 0, 3, 17
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\download\DownloadManager.ts", "TypeScript", 0, 0, 0, 158, 0, 0, 0, 0, 0, 0, 26, 29, 213
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\download\ImageDownloadManager.ts", "TypeScript", 0, 0, 0, 149, 0, 0, 0, 0, 0, 0, 0, 8, 157
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\hooks\Debounce.ts", "TypeScript", 0, 0, 0, 11, 0, 0, 0, 0, 0, 0, 0, 0, 11
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\hooks\Fetch.ts", "TypeScript", 0, 0, 0, 91, 0, 0, 0, 0, 0, 0, 0, 23, 114
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\hooks\JsObjectHook.ts", "TypeScript", 0, 0, 0, 101, 0, 0, 0, 0, 0, 0, 0, 40, 141
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\hooks\TutorialStarter.ts", "TypeScript", 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 1, 11
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\main\index.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 263, 0, 0, 11, 53, 327
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\main\main.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 0, 0, 0, 17, 0, 0, 4, 21
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\serverCommunication\ServerCommunication.ts", "TypeScript", 0, 0, 0, 258, 0, 0, 0, 0, 0, 0, 0, 44, 302
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Images.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 4
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Network.ts", "TypeScript", 0, 0, 0, 19, 0, 0, 0, 0, 0, 0, 0, 5, 24
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Statics.ts", "TypeScript", 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 3, 1, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\UserUtils.ts", "TypeScript", 0, 0, 0, 86, 0, 0, 0, 0, 0, 0, 0, 7, 93
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Utils.ts", "TypeScript", 0, 0, 0, 98, 0, 0, 0, 0, 0, 0, 0, 20, 118
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Variables.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 98, 0, 0, 67, 40, 205
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\clamp.scss", "SCSS", 0, 0, 0, 0, 0, 0, 0, 38, 0, 0, 0, 8, 46
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\test.html", "HTML", 0, 0, 75, 0, 0, 0, 0, 0, 0, 0, 0, 17, 92
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\todo.md", "Markdown", 11, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 16
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\tsconfig.app.json", "JSON", 0, 0, 0, 0, 24, 0, 0, 0, 0, 0, 2, 3, 29
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\tsconfig.json", "JSON with Comments", 0, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 8
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\tsconfig.node.json", "JSON", 0, 0, 0, 0, 22, 0, 0, 0, 0, 0, 2, 3, 27
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\vite.config.ts", "TypeScript", 0, 0, 0, 23, 0, 0, 0, 0, 0, 0, 1, 2, 26
+"Total", "-", 479, 32, 95, 5100, 10399, 22, 449, 3793, 5869, 1, 1259, 3308, 30806

@@ -1,4 +1,7 @@
-.confirm-dialog {
+@use "../../utils/clamp.scss" as *;
+
+.confirm-dialogm,
+.input-dialog {
     width: max-content;
     max-width: 70vw;
     position: fixed;
@@ -20,7 +23,17 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 25px;
+        font-size: clampDef(1.5em);
+    }
+
+    input {
+        width: 100%;
+        box-sizing: border-box;
+        border: none;
+        outline: none;
+        padding: 10px;
+        font-size: clampDef(2em);
+        text-align: center;
     }
 
     .buttons {
@@ -29,7 +42,7 @@
         justify-content: end;
         align-items: center;
         gap: 20px;
-        font-size: 20px;
+        font-size: clampDef(1.3em);
 
         button {
             padding: 10px 20px;

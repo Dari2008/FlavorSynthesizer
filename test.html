@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+
+    <script type="module">
+
+        let callbacks = {};
+        let currentId = 0;
+
+        async function send(ws, data) {
+            const reqId = currentId;
+            currentId++;
+            return new Promise((res) => {
+                ws.send(JSON.stringify({
+                    ...data,
+                    reqId
+                }));
+
+                callbacks[reqId] = (data) => {
+                    res(data);
+                };
+            });
+        }
+
+        async function run() {
+            const gameCreation = await (await fetch("http://localhost:2223/multiplayer/create", {
+                method: "POST",
+                headers: [
+                    ["Content-Type", "application/json"]
+                ],
+                body: JSON.stringify({
+                    jwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1dWlkIjoiYzgyMjJkNWEtNzYzZi00MTkxLWIyNjYtNjUzNmYyNzc2ZTJmIiwidXNlcm5hbWUiOiJkYXJpdXMiLCJpYXQiOjE3NzMyNTc5NjEsImV4cCI6NDM2NTI1Nzk2MX0.LYgyHcja-Tnf8HJ0HiMka3dxBY_23rU0qR-k4VV9Uko",
+                    dishUUID: "052fbc87-eebe-465c-8e01-6c578f5da837"
+                })
+            })).json();
+
+            if (gameCreation.status == "error") {
+                console.log(gameCreation);
+                return;
+            }
+
+            console.log(gameCreation);
+
+            const gameUUID = gameCreation.gameUUID;
+            const endpointUUID = gameCreation.endpointUUID;
+
+            const socket = new WebSocket("http://localhost:2223/multiplayer/live", "ws");
+            socket.addEventListener("open", async (e) => {
+                const response = await send(socket, {
+                    type: "initial",
+                    gameUUID,
+                    endpointUUID,
+                });
+                console.log(e, response);
+            });
+            socket.addEventListener("close", (e) => {
+                console.log(e);
+            });
+            socket.addEventListener("error", (e) => {
+                console.error(e);
+            });
+            socket.addEventListener("message", (e) => {
+                const data = JSON.parse(e.data);
+                if (data.status == "error") {
+                    console.error(data.message, data);
+                    return;
+                }
+
+                if (data.reqId) {
+                    callbacks[data.reqId]?.(data);
+                    return;
+                }
+
+                console.log(data);
+            });
+        }
+
+        run();
+
+    </script>
+
+</body>
+
+</html>

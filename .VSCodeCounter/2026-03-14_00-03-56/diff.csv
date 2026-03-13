@@ -1,0 +1,30 @@
+"filename", "language", "TypeScript JSX", "TypeScript", "Markdown", "JSON", "SCSS", "comment", "blank", "total"
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_18-32-17\details.md", "Markdown", 0, 0, 225, 0, 0, 0, 6, 231
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_18-32-17\diff-details.md", "Markdown", 0, 0, 23, 0, 0, 0, 6, 29
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_18-32-17\diff.md", "Markdown", 0, 0, 31, 0, 0, 0, 7, 38
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_18-32-17\results.json", "JSON", 0, 0, 0, 1, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-13_18-32-17\results.md", "Markdown", 0, 0, 117, 0, 0, 0, 7, 124
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.tsx", "TypeScript JSX", 36, 0, 0, 0, 0, 1, 5, 42
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\ConfirmDialog.scss", "SCSS", 0, 0, 0, 0, 11, 0, 2, 13
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\ConfirmDialog.tsx", "TypeScript JSX", 1, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\InputDialog.tsx", "TypeScript JSX", 77, 0, 0, 0, 0, 0, 10, 87
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dialogs\InputDialogContext.ts", "TypeScript", 0, 13, 0, 0, 0, 0, 5, 18
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishListItem.tsx", "TypeScript JSX", -1, 0, 0, 0, 0, 0, -1, -2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynth.tsx", "TypeScript JSX", 25, 0, 0, 0, 0, 0, 0, 25
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynthControls.scss", "SCSS", 0, 0, 0, 0, 2, 0, 0, 2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\initialMenu\InitialMenu.tsx", "TypeScript JSX", 1, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerChatOverlay\MultiplayerChatOverlay.scss", "SCSS", 0, 0, 0, 0, 199, 0, 30, 229
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerChatOverlay\MultiplayerChatOverlay.tsx", "TypeScript JSX", 83, 0, 0, 0, 0, 0, 14, 97
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.scss", "SCSS", 0, 0, 0, 0, 116, 0, 15, 131
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.tsx", "TypeScript JSX", 16, 0, 0, 0, 0, 0, 4, 20
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.scss", "SCSS", 0, 0, 0, 0, 30, 0, 6, 36
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.tsx", "TypeScript JSX", 47, 0, 0, 0, 0, 0, 10, 57
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelButton.tsx", "TypeScript JSX", 2, 0, 0, 0, 0, 0, 0, 2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelInput.scss", "SCSS", 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelInput.tsx", "TypeScript JSX", 33, 0, 0, 0, 0, 13, 10, 56
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelTextArea.tsx", "TypeScript JSX", 33, 0, 0, 0, 0, 0, 7, 40
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\shareDialog\ShareDialog.tsx", "TypeScript JSX", 2, 0, 0, 0, 0, 0, 0, 2
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\MultiplayerContext.ts", "TypeScript", 0, 4, 0, 0, 0, 0, 0, 4
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\main\main.tsx", "TypeScript JSX", 3, 0, 0, 0, 0, 0, 0, 3
+"c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\serverCommunication\ServerCommunication.ts", "TypeScript", 0, 53, 0, 0, 0, 0, 6, 59
+"Total", "-", 358, 70, 396, 1, 358, 14, 150, 1347

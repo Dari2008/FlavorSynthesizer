@@ -89,3 +89,14 @@ export type LoadRestaurantData = {
 export type LoadRestaurantPageCount = {
     pages: number;
 }
+
+export type MultiplayerJoinResponse = {
+    gameUUID: UUID;
+    endpointUUID: UUID;
+}
+
+export type MultiplayerCreateResponse = {
+    gameUUID: UUID;
+    endpointUUID: UUID;
+    code: ShareDigits;
+}
