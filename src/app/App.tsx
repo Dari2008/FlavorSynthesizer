@@ -11,7 +11,7 @@ import OpenShareDialog, { type OpenData } from "../components/openShareDialog/Op
 import { ToastContainer } from "react-toastify";
 import { useConfirm } from "../components/dialogs/ConfirmDialogContext";
 import type { APIResponse, Digit, OpenShareResponse } from "../@types/Api";
-import { BASE_URL, DATE_FORMAT } from "../utils/Statics";
+import { BASE_URL, DATE_FORMAT, URL_EXTENSION } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu from "../components/initialMenu/InitialMenu";
@@ -284,8 +284,11 @@ export default function App() {
         }
 
         startLoading("openSharedDish");
-        const response = await Network.loadJson<APIResponse<OpenShareResponse>>(BASE_URL + "/share/open.php", {
+        const response = await Network.loadJson<OpenShareResponse>(BASE_URL + "/share/open" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 ...data
             })
@@ -438,7 +441,6 @@ export default function App() {
 
             const isSupported = isDeviceAspectRatioFitForApp();
             const rotate = shouldRotateDevice();
-
             setShouldRotateDevice(rotate);
             setIsDeviceSupported(isSupported);
 
@@ -643,6 +645,8 @@ function shouldRotateDevice() {
 function isDeviceAspectRatioFitForApp() {
     const width = window.innerWidth;
     const height = window.innerHeight;
+
+    if (width < 500 || height < 500) return false;
 
     if (width < 600 && height < 500) return false;
     return true;

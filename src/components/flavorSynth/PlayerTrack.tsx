@@ -1030,6 +1030,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
             }
             lastDeltaZoom = -1;
+            currentPlaying.updateElements();
         };
 
         let lastDeltaZoom = -1;
@@ -1058,6 +1059,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                             currentDraggingElementRef.current.to = newTo;
                         }
                         synthLines.repaintAllElements();
+                        currentPlaying.updateElements();
                         return;
                     }
                     // synthLines.repaintAll();
@@ -1091,6 +1093,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                     synthLines.repaintAllTimelines();
                     synthLines.repaintAllElements();
+                    currentPlaying.updateElements();
                     // synthLines.repaintAll();
                     return;
                 }
@@ -1153,6 +1156,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     //     }
                     // }));
                     synthLines.repaintAllElements();
+                    currentPlaying.updateElements();
                     // synthLines.repaintAll();
                     return;
                 } else if (currentlyResizingElement.current) {
@@ -1177,6 +1181,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     element.to = newFromPos + width;
 
                     synthLines.repaintAllElements();
+                    currentPlaying.updateElements();
                     // synthLines.repaintAll();
                 }
             } else if (touches.length == 2) {
@@ -1317,6 +1322,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             currentDraggingElementRef.current = null;
             renderElementsWDebounce();
             synthLines.updateTotalStatistic();
+            currentPlaying.updateElements();
             return;
         }
         const element = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
@@ -1326,6 +1332,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         currentDraggingElementRef.current = null;
         renderElementsWDebounce();
         synthLines.updateTotalStatistic();
+        currentPlaying.updateElements();
     };
 
     const droppedNewFlavor = (element: FlavorElement) => {

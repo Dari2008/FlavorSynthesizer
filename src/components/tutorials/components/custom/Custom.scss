@@ -48,10 +48,31 @@
         line-height: clampDef(1em);
     }
 
-    .progress {
+    .close {
         position: absolute;
         top: 20px;
         right: 20px;
+        font-size: clampDef(3em);
+        line-height: 0em;
+        aspect-ratio: 1 / 1;
+        width: clampDef(1em);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        background-color: transparent;
+        border: none !important;
+        transition: scale 0.3s ease-in-out;
+
+        &:hover {
+            scale: 1.1;
+        }
+    }
+
+    .progress {
+        position: absolute;
+        top: 20px;
+        left: 20px;
         font-size: clampDef(1.5em);
         line-height: clampDef(1em);
     }

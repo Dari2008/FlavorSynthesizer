@@ -10,6 +10,7 @@ type TextProps = HTMLAttributes<HTMLDivElement> & {
 export default function Text(props: TextProps) {
     const progress = useTutorialProgress();
     return <PixelDiv max-pixel-width={40} {...{ ...props, className: (props.className ?? "") + " tutorial-text", text: undefined }}>
+        <button className="close" onClick={() => progress.skip()}>x</button>
         <div className="progress">
             {`${progress.currentStep + 1} / ${progress.maxSteps}`}
         </div>

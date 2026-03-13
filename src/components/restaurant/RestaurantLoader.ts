@@ -1,7 +1,7 @@
 import { type APIResponse, type LoadRestaurantData, type LoadRestaurantPageCount } from "../../@types/Api";
 import type { RestaurantDish } from "../../@types/User";
 import { Network } from "../../utils/Network";
-import { BASE_URL } from "../../utils/Statics";
+import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
 import Utils from "../../utils/Utils";
 
 export class RestaurantLoader {
@@ -31,8 +31,11 @@ export class RestaurantLoader {
 
         // RestaurantLoader.DISH_LIST.push(...all);
 
-        const response = await Network.loadJson<APIResponse<LoadRestaurantData>>(BASE_URL + "/restaurant/loadMenu.php", {
+        const response = await Network.loadJson<LoadRestaurantData>(BASE_URL + "/restaurant/loadMenu" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 page: page
             })
@@ -56,8 +59,11 @@ export class RestaurantLoader {
 
     public static async getTotalNumberOfPages() {
 
-        const response = await Network.loadJson<APIResponse<LoadRestaurantPageCount>>(BASE_URL + "/restaurant/getPageCount.php", {
+        const response = await Network.loadJson<LoadRestaurantPageCount>(BASE_URL + "/restaurant/getPageCount" + URL_EXTENSION, {
             method: "GET",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
         });
 
         if (response.status == "error") {
@@ -70,8 +76,11 @@ export class RestaurantLoader {
 
     public static async loadDishesSortedAfter(sortedAfter: "newest" | "oldest" | "flavorCount" | undefined, currentPage: number = 0): Promise<RestaurantDish[]> {
 
-        const response = await Network.loadJson<APIResponse<LoadRestaurantData>>(BASE_URL + "/restaurant/loadMenu.php", {
+        const response = await Network.loadJson<LoadRestaurantData>(BASE_URL + "/restaurant/loadMenu" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 page: currentPage,
                 sortedAfter: sortedAfter

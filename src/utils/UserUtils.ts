@@ -1,12 +1,15 @@
 import type { APIResponse, LoginResponse } from "../@types/Api";
 import type { User } from "../@types/User";
 import { Network } from "./Network";
-import { BASE_URL } from "./Statics";
+import { BASE_URL, URL_EXTENSION } from "./Statics";
 import Utils from "./Utils";
 
 export async function loginUser(username: string, password: string): Promise<User | false> {
-    const result = await Network.loadJson<APIResponse<LoginResponse>>(BASE_URL + "/users/login.php", {
+    const result = await Network.loadJson<LoginResponse>(BASE_URL + "/users/login" + URL_EXTENSION, {
         method: "POST",
+        headers: [
+            ["Content-Type", "application/json"]
+        ],
         body: JSON.stringify({
             username,
             password
@@ -60,8 +63,11 @@ export async function registerUser(username: string, password: string, email: st
     }
 
 
-    const result = await Network.loadJson<APIResponse<LoginResponse>>(BASE_URL + "/users/register.php", {
+    const result = await Network.loadJson<LoginResponse>(BASE_URL + "/users/register" + URL_EXTENSION, {
         method: "POST",
+        headers: [
+            ["Content-Type", "application/json"]
+        ],
         body: JSON.stringify({
             username,
             password,

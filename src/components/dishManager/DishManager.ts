@@ -2,7 +2,7 @@ import type { AddDishResponse, APIResponse, DishLoadResponse } from "../../@type
 import type { MainFlavor } from "../../@types/Flavors";
 import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynthLine, User, UUID } from "../../@types/User";
 import { Network } from "../../utils/Network";
-import { BASE_URL } from "../../utils/Statics";
+import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
 import Utils from "../../utils/Utils";
 import { createElementForFlavor } from "../FlavorUtils";
 
@@ -10,8 +10,11 @@ export default class DishManager {
 
     public static async loadDishesFromServer(user: User, integDishes: (LocalDish[]) | undefined = undefined): Promise<Dish[] | false> {
         const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<DishLoadResponse>>(BASE_URL + "/dishes/loadDishes.php", {
+        const response = await Network.loadJson<DishLoadResponse>(BASE_URL + "/dishes/loadDishes" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 jwt,
                 integDishes: integDishes ? (integDishes.map(DishManager.convertDishToServerDish)) : integDishes
@@ -29,8 +32,11 @@ export default class DishManager {
 
     public static async deleteDish(user: User, uuid: string): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/delete.php", {
+        const response = await Network.loadJson<undefined>(BASE_URL + "/dishes/update/delete" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 jwt,
                 uuid
@@ -46,8 +52,11 @@ export default class DishManager {
 
     public static async updateEntireDish(user: User, dish: Dish): Promise<boolean> {
         const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<undefined>>(BASE_URL + "/dishes/update/updateDish.php", {
+        const response = await Network.loadJson<undefined>(BASE_URL + "/dishes/update/updateDish" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 jwt,
                 ...this.convertDishToServerDish(dish)
@@ -62,8 +71,11 @@ export default class DishManager {
 
     public static async addDish(user: User, dish: Dish | LocalDish): Promise<UUID | boolean> {
         const jwt = user.jwt;
-        const response = await Network.loadJson<APIResponse<AddDishResponse>>(BASE_URL + "/dishes/update/addDish.php", {
+        const response = await Network.loadJson<AddDishResponse>(BASE_URL + "/dishes/update/addDish" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 jwt,
                 ...this.convertDishToServerDish(dish)

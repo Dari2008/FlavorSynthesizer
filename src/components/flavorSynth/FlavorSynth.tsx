@@ -408,9 +408,11 @@ export default function FlavorSynth() {
     const skip = (n: number) => {
         const newPos = currentPositionRef.current + n;
 
-        Tone.getTransport().stop();
-        Tone.getTransport().position = Tone.Time(Math.max(Math.max(0, newPos), 0), "s").toBarsBeatsSixteenths();
-        Tone.getTransport().start();
+        stop();
+        play(newPos);
+        // Tone.getTransport().stop();
+        // Tone.getTransport().position = Tone.Time(Math.max(Math.max(0, newPos), 0), "s").toBarsBeatsSixteenths();
+        // Tone.getTransport().start();
 
         repaintAllCurrentPositions();
     };
@@ -630,6 +632,14 @@ export default function FlavorSynth() {
         stop();
         currentlyStartingRef.current = play(currentPositionRef.current);
     };
+
+
+    // Stop music when leaving
+    useEffect(() => {
+        return () => {
+            stop();
+        }
+    }, []);
 
     return <>
         <SynthLinesContext.Provider value={{

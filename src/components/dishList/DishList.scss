@@ -341,8 +341,12 @@ $listBG: $gray-400;
         img {
             height: 90%;
             opacity: 0.6;
-            filter: grayscale(90%);
             margin: auto;
+
+            &:not(.custom-ai-image) {
+                filter: grayscale(90%);
+            }
+
             // grid-area: 1 / 1 / 2 / 2;
         }
 
@@ -420,7 +424,9 @@ $listBG: $gray-400;
     display: flex !important;
     flex-direction: column;
     margin-block: 20px;
-    padding: 20px;
+    // padding: 20px;
+    padding: 0;
+    width: 95%;
     image-rendering: pixelated;
     position: relative;
     margin-inline: auto;

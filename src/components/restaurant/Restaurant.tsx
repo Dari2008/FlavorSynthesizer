@@ -98,6 +98,13 @@ export default function Restaurant() {
         stopPlaybacks.current.push(stop);
     }
 
+    // Stop music when leaving
+    useEffect(() => {
+        return () => {
+            stopPlaybacks.current.forEach(e => e());
+        }
+    }, []);
+
     return <div className="restaurant">
         <div className="background"></div>
         <div className="foreground"></div>

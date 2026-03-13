@@ -18,6 +18,13 @@ export function useTutorialSteps<T>(steps: T[], finish: () => void) {
         });
     };
 
+    const skip = () => {
+        setCurrentStep(() => {
+            return steps.length - 1;
+        });
+        finish();
+    }
+
 
     const currentData = {
         currentStep,
@@ -27,6 +34,7 @@ export function useTutorialSteps<T>(steps: T[], finish: () => void) {
         next,
         prev,
         finish,
+        skip,
         maxSteps: steps.length
     };
 

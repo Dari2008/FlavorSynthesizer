@@ -1,6 +1,12 @@
 @use "../../utils/Variables.scss" as *;
 @use "../../utils/clamp.scss" as *;
 
+#root:has(.loading-div) {
+    .has-to-download {
+        display: none !important;
+    }
+}
+
 .download-prompt {
     position: fixed;
     top: 0;

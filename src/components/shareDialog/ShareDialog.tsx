@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
-import { BASE_URL } from "../../utils/Statics";
+import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
 import type { APIResponse, Digit, FlavorsSelected, ShareErrorResponse, ShareFlavors, ShareResponse } from "../../@types/Api";
 import Utils from "../../utils/Utils";
 import { loginUser, registerUser } from "../../utils/UserUtils";
@@ -186,8 +186,11 @@ export default function ShareDialog() {
         } as ServerDish;
         setIsLoading(true);
         setIsGeneratingImage(true);
-        const response = await Network.loadJson<APIResponse<ShareResponse, ShareErrorResponse>>(BASE_URL + "/share/share.php", {
+        const response = await Network.loadJson<ShareResponse, ShareErrorResponse>(BASE_URL + "/share/share" + URL_EXTENSION, {
             method: "POST",
+            headers: [
+                ["Content-Type", "application/json"]
+            ],
             body: JSON.stringify({
                 jwt: user.user?.jwt ?? undefined,
                 dish: compiledDish,
@@ -197,9 +200,10 @@ export default function ShareDialog() {
 
         setIsGeneratingImage(false);
         setIsLoading(false);
+        console.log(response);
 
         if (response.status == "error") {
-            if ((response as ShareErrorResponse).flavorComboExists) {
+            if (response.flavorComboExists) {
                 Utils.error("This flavor combo already exists!");
                 return;
             }
@@ -249,8 +253,11 @@ export default function ShareDialog() {
         const password = loginPasswordRef.current?.value;
 
         setIsLoading(true);
-        // const result = await Network.loadJson<APIResponse<LoginResponse>>(BASE_URL + "/users/login.php", {
+        // const result = await Network.loadJson<APIResponse<LoginResponse>>(BASE_URL + "/users/login" + URL_EXTENSION, {
         //     method: "POST",
+        // headers: [
+        //     ["Content-Type", "application/json"]
+        // ],
         //     body: JSON.stringify({
         //         username,
         //         password

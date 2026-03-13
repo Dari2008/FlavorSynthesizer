@@ -4,6 +4,7 @@ type TutorialProgressContextType = {
     next: () => void;
     prev: () => void;
     finish: () => void;
+    skip: () => void;
     isFinished: boolean;
     currentStep: number;
     maxSteps: number;

@@ -8,6 +8,7 @@ import { useCurrentDish } from "../../../contexts/CurrentDish";
 import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
 import { useConfirm } from "../../dialogs/ConfirmDialogContext";
+import { useCurrentlyPlaying } from "../../../contexts/CurrentlyPlayingContext";
 
 export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
     const synthLines = useSynthLines();
@@ -23,9 +24,11 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
     const confirm = useConfirm();
 
     // const [isMuted, setMuted] = dishActions.muted;
+    const currentPlaying = useCurrentlyPlaying();
 
-    const [isMuted, setMuted] = useJsObjectHook<FlavorSynthLine, "muted">(flavorSynthLine, "muted", false, (e) => { change.changed(); return e; });
-    const [isSolo, setSolo] = useJsObjectHook<FlavorSynthLine, "solo">(flavorSynthLine, "solo", false, (e) => { change.changed(); return e; });
+    const [isMuted, setMuted] = useJsObjectHook<FlavorSynthLine, "muted">(flavorSynthLine, "muted", false, (e) => { change.changed(); currentPlaying.updateElements(); return e; });
+    const [isSolo, setSolo] = useJsObjectHook<FlavorSynthLine, "solo">(flavorSynthLine, "solo", false, (e) => { change.changed(); currentPlaying.updateElements(); return e; });
+
     // const setSolo = (s: boolean) => {
     //     if (isSolo != s) setS(s);
     //     flavorSynthLine.solo = s;
@@ -47,6 +50,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
             flavorSynthLine.volume = vol;
             change.changed();
         }
+        currentPlaying.updateElements();
     }
 
     const deleteSynth = () => {
@@ -55,6 +59,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
         if (!deleteS) return;
         synthLines.delete(flavorSynthLine.uuid);
         change.changed();
+        currentPlaying.updateElements();
     };
 
     return <TooltipContext.Provider value={tooltipRef}>

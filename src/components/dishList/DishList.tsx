@@ -14,7 +14,7 @@ import * as Tone from "tone";
 import { getMainFlavorByName } from "../../audio/Flavors";
 import Toggle from "../toggle/Toggle";
 import { Network } from "../../utils/Network";
-import { BASE_URL } from "../../utils/Statics";
+import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
 import { useUser } from "../../contexts/UserContext";
 import Utils from "../../utils/Utils";
 import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
@@ -227,7 +227,8 @@ export default function DishList() {
 
         const player = new ElementPlayer();
         player.onStop = () => {
-            currentStopCallbackFunction.current();
+            if (currentPlayingUUID == dish.uuid)
+                currentStopCallbackFunction.current();
         };
 
         const mainFlavorsPlayer = getMainFlavorByName(dish.mainFlavor);
@@ -310,6 +311,7 @@ export default function DishList() {
 
         setCurrentPlayingUUID(dish.uuid);
         currentStopCallbackFunction.current = () => {
+            console.log("stoopped", dish.uuid);
             clock.stop();
             player.stop();
             mainFlavorsPlayer?.stop();
@@ -341,8 +343,11 @@ export default function DishList() {
 
             if (!user.user) return;
 
-            const responsePromise = Network.loadJson<APIResponse<VisibilityStateChangeResponse>>(BASE_URL + "/share/setDishState.php", {
+            const responsePromise = Network.loadJson<APIResponse<VisibilityStateChangeResponse>>(BASE_URL + "/share/setDishState" + URL_EXTENSION, {
                 method: "POST",
+                headers: [
+                    ["Content-Type", "application/json"]
+                ],
                 body: JSON.stringify({
                     jwt: user.user.jwt,
                     dishUUID: currentSelectedElementRef.current,
@@ -364,6 +369,13 @@ export default function DishList() {
         }
     }
 
+
+    // Stop music when leaving
+    useEffect(() => {
+        return () => {
+            currentStopCallbackFunction.current();
+        }
+    }, []);
 
     return <div className={"dish-list" + (gameState.gameState == "dishList" ? " visible" : "")} ref={dishListRef}>
         <PixelDiv className="options" ref={optionsRef}>

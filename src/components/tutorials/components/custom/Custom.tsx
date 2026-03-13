@@ -12,6 +12,7 @@ export default function Custom(props: CustomProps) {
     const progress = useTutorialProgress();
 
     return <PixelDiv max-pixel-width={40} {...{ ...props, subtitle: undefined, title: undefined, element: undefined, text: undefined, className: (props.className ?? "") + " tutorial-custom" }}>
+        <button className="close" onClick={() => progress.skip()}>x</button>
         <div className="progress">
             {`${progress.currentStep + 1} / ${progress.maxSteps}`}
         </div>

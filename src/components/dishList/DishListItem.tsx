@@ -17,10 +17,15 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
     const urlButtonRef = useRef<HTMLButtonElement>(null);
     const timeoutRef = useRef<number>(-1);
 
+    console.log(dish.uuid, (dish as Dish).share?.aiImage);
+
     const hasShareOptions = dish && (dish as Dish).publishState == "public" && (dish as Dish).share;
+
+    const hasAIImage = (dish as Dish).share && (dish as Dish).share?.aiImage && (dish as Dish).share?.aiImage.length != 0;
+
     const defaultStruct = <>
         <PixelDiv className="ai-image">
-            <img src={((dish as Dish).share && (dish as Dish).share?.aiImage && (dish as Dish).share?.aiImage.length != 0 ? (dish as Dish).share?.aiImage : "./imgs/dishList/no-image-image.png")} alt={dish.name} className="ai-image-image" />
+            <img src={hasAIImage ? (dish as Dish).share?.aiImage : "./imgs/dishList/no-image-image.png"} alt={dish.name} className={"ai-image-image " + (hasAIImage ? " custom-ai-image" : "")} />
             {
                 dish.data.map(e => e.elements).flat().length > 0 &&
                 <button className="image-btn" onClick={() => playDish(dish)}>

@@ -129,7 +129,7 @@ export class FlavorFileMusic {
         // this.files[bpm].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
         this.files[bpm].loop = true;
         this.files[bpm].toDestination();
-        this.files[bpm].sync().start(start, offset).stop(start + duration);
+        this.files[bpm].sync().start(Math.max(start, Tone.getTransport().seconds + .01), offset).stop(start + duration);
         MUSIC_PLAYERS.push(this.files[bpm]);
     }
 
@@ -214,7 +214,7 @@ export class MainFlavorFileMusic {
         }
         this.stop();
         const currPos = Tone.getTransport().seconds;
-        this.player?.sync().start(currPos + start + 0.1, offset);
+        this.player?.sync().start(Math.max(currPos + start, Tone.getTransport().seconds + .01), offset);
     }
 
     // public async clone(loop: boolean = false): Promise<MainFlavorFileMusic> {
