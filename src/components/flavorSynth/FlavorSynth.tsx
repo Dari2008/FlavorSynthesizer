@@ -27,6 +27,7 @@ import Utils from "../../utils/Utils";
 import withTutorialStarter from "../../hooks/TutorialStarter";
 import { useTutorials } from "../tutorials/context/TutorialContext";
 import { useMultiplayer } from "../../contexts/MultiplayerContext";
+import type { UUID } from "../../@types/User";
 
 
 type EventListWithUUID<T> = {
@@ -70,8 +71,12 @@ export default function FlavorSynth() {
     const currentPlayingFlavorCountRef = useRef<HTMLSpanElement>(null)
     const totalAmountOfFlavorsRef = useRef<HTMLSpanElement>(null)
 
-    const currentDragingRef = useRef<string>(null);
-    const originSynthLine = useRef<string>(null);
+    const setVolumeFlavorsRef = useRef<(val: number) => void>(null);
+    const setVolumeMainFlavorsRef = useRef<(val: number) => void>(null);
+    const setVolumeMasterRef = useRef<(val: number) => void>(null);
+
+    const currentDragingRef = useRef<UUID>(null);
+    const originSynthLine = useRef<UUID>(null);
     const originalStartPos = useRef<[number, number]>(null);
     const currentDragingOffsetRef = useRef<number>(0);
     const currentDraggingOnPlacedRef = useRef<() => void>(() => 0);
@@ -89,12 +94,134 @@ export default function FlavorSynth() {
 
     const [synthLines, setSynthLines] = dishActions.synthLines;
     const [volumes, setVolumes] = dishActions.volumes;
+    const otherUserSelectedRef = useRef<{
+        [key: UUID]: UUID[];
+    }>({});
 
     const isTouch = useTouchChecker().isTouch;
 
     const currentDish = useCurrentDish();
 
     const tutorials = useTutorials();
+
+    const server = multiplayer.managerRef.current?.getServerCommunication();
+    if (server) {
+
+        const getTrack = (uuid: UUID) => {
+            return synthLines.find(e => e.uuid == uuid);
+        }
+
+        server.onFlavorAdded = (trackUUID, flavorData) => {
+            const track = getTrack(trackUUID);
+            if (!track) return;
+            track.elements = [...track.elements, flavorData];
+            repaintAllElements();
+        };
+
+        server.onSynthLineAdded = (synthLineUUID) => {
+            addSynth(synthLineUUID);
+        };
+
+        server.onSynthLineRemoved = (synthLineUUID) => {
+            setSynthLines(synthLines => synthLines.filter(e => e.uuid == synthLineUUID));
+        };
+
+        server.onFlavorsRemoved = (flavorUUIDs) => {
+            for (const track of synthLines) {
+                track.elements = track.elements.filter(e => !flavorUUIDs.includes(e.uuid));
+            }
+            repaintAllElements();
+        };
+
+        server.onChangeTrackVolume = (newVolume, trackUUID) => {
+            const track = getTrack(trackUUID);
+            if (!track) return;
+            track.volume = newVolume;
+        };
+
+        server.onVolumeChanged = (newVolume, volumeSlot) => {
+            dishActions.volumes[1](volumes => {
+                const r = {
+                    ...volumes
+                };
+                r[volumeSlot] = newVolume;
+                return r;
+            });
+
+            switch (volumeSlot) {
+                case "master":
+                    setVolumeMasterRef.current?.(newVolume);
+                    break;
+                case "mainFlavor":
+                    setVolumeMainFlavorsRef.current?.(newVolume);
+                    break;
+                case "flavors":
+                    setVolumeFlavorsRef.current?.(newVolume);
+                    break;
+            }
+        }
+
+        server.onFlavorsSelected = (endpointUUID, flavors) => {
+            if (!otherUserSelectedRef.current[endpointUUID]) otherUserSelectedRef.current[endpointUUID] = [];
+            otherUserSelectedRef.current[endpointUUID] = [...(new Set([...otherUserSelectedRef.current[endpointUUID], ...flavors]))];
+            repaintAllElements();
+        };
+
+        server.onSelectOnly = (endpointUUID, flavorUUID) => {
+            otherUserSelectedRef.current[endpointUUID] = [flavorUUID];
+            repaintAllElements();
+        }
+
+        server.onFlavorsDeselected = (endpointUUID, flavors) => {
+            if (!otherUserSelectedRef.current[endpointUUID]) otherUserSelectedRef.current[endpointUUID] = [];
+            otherUserSelectedRef.current[endpointUUID] = otherUserSelectedRef.current[endpointUUID].filter(e => !flavors.includes(e));
+            repaintAllElements();
+        };
+
+        server.onAllFlavorsDeselected = (endpointUUID) => {
+            otherUserSelectedRef.current[endpointUUID] = [];
+            repaintAllElements();
+        };
+
+        server.onUpdatedFlavors = (flavors) => {
+            const keyVal: {
+                [key: UUID]: FlavorElement & {
+                    trackUUID: UUID;
+                };
+            } = {};
+            for (const flavor of flavors) {
+                keyVal[flavor.uuid] = flavor;
+            }
+
+            for (const track of synthLines) {
+                track.elements = track.elements.filter(e => {
+                    if (!keyVal[e.uuid]) return true;
+                    return keyVal[e.uuid].trackUUID == track.uuid;
+                }).map(e => {
+                    if (!keyVal[e.uuid]) return e;
+                    return {
+                        ...e,
+                        from: keyVal[e.uuid].from,
+                        to: keyVal[e.uuid].to,
+                        flavor: keyVal[e.uuid].flavor
+                    }
+                });
+
+                const allFlavorsForTrack = Object.values(keyVal).filter(e => e.trackUUID == track.uuid);
+
+                const uuidsIncluded = track.elements.map(e => e.uuid);
+
+                for (const flavor of allFlavorsForTrack) {
+                    if (uuidsIncluded.includes(flavor.uuid)) continue;
+                    uuidsIncluded.push(flavor.uuid);
+                    track.elements = [...track.elements, flavor];
+                }
+
+            }
+            repaintAllElements();
+        };
+
+    }
 
     withTutorialStarter("editor-opened");
 
@@ -104,12 +231,11 @@ export default function FlavorSynth() {
         stop();
     };
 
-    const addSynth = () => {
+    const addSynth = (uuid: UUID = Utils.uuidv4Exclude(synthLines.map(e => e.uuid))) => {
         if (isReadonly) return;
 
         tutorials.onAction("editor-addedSynthLine");
 
-        const uuid = Utils.uuidv4Exclude(synthLines.map(e => e.uuid));
         const synthLine: FlavorSynthLine = {
             uuid: uuid,
             elements: [],
@@ -126,6 +252,7 @@ export default function FlavorSynth() {
         repaintAllElements();
         repaintAllTimelines();
         // repaintAll();
+        return uuid;
     };
 
     const deleteSynth = (uuid: string) => {
@@ -451,7 +578,6 @@ export default function FlavorSynth() {
         };
     }, [isPlaying]);
 
-
     const mainFlavorVolumeChanged = (volume: number) => {
         if (isReadonly) return;
         setVolumes(volumes => {
@@ -460,6 +586,8 @@ export default function FlavorSynth() {
             return { ...volumes, mainFlavor: volume };
         });
         change.changed();
+
+        server?.changeMainFlavorVolume(volume);
     };
 
 
@@ -471,6 +599,8 @@ export default function FlavorSynth() {
             return { ...volumes, master: volume };
         });
         change.changed();
+
+        server?.changeMasterVolume(volume);
     };
 
 
@@ -482,6 +612,9 @@ export default function FlavorSynth() {
             return { ...volumes, flavors: volume };
         });
         change.changed();
+
+
+        server?.changeFlavorVolume(volume);
     };
 
 
@@ -674,7 +807,7 @@ export default function FlavorSynth() {
             getSynthLineByUUID
         }}>
             <FlavorSynthContextMenu.Provider value={{ openContextMenu }}>
-                <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange }}>
+                <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange, otherUserSelectedRef }}>
                     <CurrentlyPlayingContext.Provider value={{ updateElements: updateCurrentPlayingElements, isSoloPlay, isPlayingRef, currentPositionRef, cusorPos }}>
                         <CurrentInterPlayerDragContext.Provider value={{ originSynthLine, ref: currentDragingRef, originalStartPos, offsetLeft: currentDragingOffsetRef, onPlaced: currentDraggingOnPlacedRef, isEmptyRef: currentDraggingIsEmptyRef }}>
                             <div className="flavor-synth" data-readonly={isReadonly ? true : undefined}>
@@ -684,13 +817,20 @@ export default function FlavorSynth() {
                                     }
                                 </div>
                                 {
-                                    !isReadonly && <button className="addLine" onClick={() => addSynth()}>
+                                    !isReadonly && <button className="addLine" onClick={() => {
+                                        const uuid = addSynth();
+                                        if (!uuid) return;
+                                        server?.addSynthLine(uuid);
+                                    }}>
                                         <img src="./imgs/plus/plus.png" alt="+" className="plus" />
                                     </button>
                                 }
                                 {
                                     isTouch && <PixelDiv className="context-menu-touch" ref={touchContextMenuRef}>
-                                        <button className="delete" onClick={() => clickedTouchContextMenu().delete()}>
+                                        <button className="delete" onClick={() => {
+                                            clickedTouchContextMenu().delete();
+                                            server?.removeFlavors();
+                                        }}>
                                             <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete image" />
                                         </button>
                                     </PixelDiv>
@@ -727,6 +867,7 @@ export default function FlavorSynth() {
                                     {
                                         multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
                                             <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
+                                            <span className="chat-message-count" data-message-count={multiplayer.unreadChatMessageCount}>{multiplayer.unreadChatMessageCount}</span>
                                         </button>
                                     }
                                     {
@@ -764,13 +905,13 @@ export default function FlavorSynth() {
                                 </div>
                                 <PixelDiv className="volumes">
                                     <div className="volume">
-                                        <ControlKnob classNames="flavors" label="Flavors" startVal={currentDish?.volumes.flavors ?? 100} onValueChanged={flavorsVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="flavors" label="Flavors" setVolumeRef={setVolumeFlavorsRef} startVal={currentDish?.volumes.flavors ?? 100} onValueChanged={flavorsVolumeChanged}></ControlKnob>
                                     </div>
                                     <div className="mainFlavorVolume">
-                                        <ControlKnob classNames="main-flavors" label="Main Flavor" startVal={currentDish?.volumes.mainFlavor ?? 100} onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="main-flavors" label="Main Flavor" setVolumeRef={setVolumeMainFlavorsRef} startVal={currentDish?.volumes.mainFlavor ?? 100} onValueChanged={mainFlavorVolumeChanged}></ControlKnob>
                                     </div>
                                     <div className="masterVolume">
-                                        <ControlKnob classNames="master-flavors" label="Master" startVal={currentDish?.volumes.master ?? 100} onValueChanged={masterVolumeChanged}></ControlKnob>
+                                        <ControlKnob classNames="master-flavors" label="Master" setVolumeRef={setVolumeMasterRef} startVal={currentDish?.volumes.master ?? 100} onValueChanged={masterVolumeChanged}></ControlKnob>
                                     </div>
                                 </PixelDiv>
                                 <div className="buttons">
@@ -793,6 +934,7 @@ export default function FlavorSynth() {
                                     {
                                         multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
                                             <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
+                                            <span className="chat-message-count" data-message-count={multiplayer.unreadChatMessageCount}>{multiplayer.unreadChatMessageCount}</span>
                                         </button>
                                     }
                                     {
@@ -813,7 +955,7 @@ export default function FlavorSynth() {
 }
 
 export type FlavorSynthLine = {
-    uuid: string;
+    uuid: UUID;
     elements: FlavorElement[];
     volume: number;
     muted: boolean;

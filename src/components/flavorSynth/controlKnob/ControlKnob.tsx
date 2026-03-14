@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./ControlKnob.scss"
 import Utils from "../../../utils/Utils";
 
-export default function ControlKnob({ classNames, label, onValueChanged, startVal }: { classNames: string; startVal: number; label: string; onValueChanged: (val: number) => void; }) {
+export default function ControlKnob({ classNames, label, onValueChanged, startVal, setVolumeRef }: { classNames: string; startVal: number; label: string; onValueChanged: (val: number) => void; setVolumeRef?: React.RefObject<((val: number) => void) | null> }) {
 
     const ticksContainerRef = useRef<HTMLDivElement>(null);
     // const volumeRangeRef = useRef<HTMLDivElement>(null);
@@ -16,6 +16,8 @@ export default function ControlKnob({ classNames, label, onValueChanged, startVa
     const currentRotation = useRef<number>(0);
     const isMouseDown = useRef<boolean>(false);
     const isMouseWithin = useRef<boolean>(false);
+
+    if (setVolumeRef) setVolumeRef.current = (val) => updateVisuals(val);
 
     const setEditing = (is: boolean) => {
         isEditingRef.current = is;
@@ -31,7 +33,7 @@ export default function ControlKnob({ classNames, label, onValueChanged, startVa
     const majorInterval = 5;// for a clock = 15
 
 
-    const updateVisuals = (volume: number) => {
+    const updateVisuals = (volume: number, fireEvent: boolean = true) => {
         if (!ticksContainerRef.current) return;
         const ticks = [...ticksContainerRef.current?.children];
         const activeTicks = Math.round((volume / 100) * totalTicks);
@@ -61,7 +63,7 @@ export default function ControlKnob({ classNames, label, onValueChanged, startVa
         if (volumeDisplaySpanRef.current) volumeDisplaySpanRef.current.textContent = `${volume}%`;
         if (currentValueRef.current != volume) {
             currentValueRef.current = volume;
-            onValueChanged(volume);
+            if (fireEvent) onValueChanged(volume);
         }
     };
 

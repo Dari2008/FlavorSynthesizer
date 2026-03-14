@@ -10,12 +10,12 @@ import ShareDialog from "../components/shareDialog/ShareDialog";
 import OpenShareDialog, { type OpenData } from "../components/openShareDialog/OpenShareDialog";
 import { ToastContainer } from "react-toastify";
 import { useConfirm } from "../components/dialogs/ConfirmDialogContext";
-import { type ShareDigits, type Digit, type OpenShareResponse } from "../@types/Api";
+import { type ShareDigits, type Digit, type OpenShareResponse, type APIResponse } from "../@types/Api";
 import { BASE_URL, DATE_FORMAT, URL_EXTENSION } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu from "../components/initialMenu/InitialMenu";
-import type { Dish, DishVolumes, LocalDish, User } from "../@types/User";
+import type { Dish, DishVolumes, LocalDish, MultiplayerServerDish, ServerDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 import { UserContext } from "../contexts/UserContext";
@@ -46,7 +46,7 @@ import { MultiplayerServer, type PlayerJoined } from "../serverCommunication/Ser
 import { MultiplayerContext } from "../contexts/MultiplayerContext";
 import MultiplayerSettingsOverlay from "../components/multiplayerSettingsOverlay/MultiplayerSettingsOverlay";
 import { useInput } from "../components/dialogs/InputDialogContext";
-import MultiplayerChatOverlay from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";
+import MultiplayerChatOverlay, { type ChatMessage } from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -66,6 +66,11 @@ export default function App() {
     const [multiplayerCode, setMultiplayerCode] = useState<ShareDigits>([0, 0, 0, 0, 0, 0]);
     const [isMultiplayerOverlayOpen, setMultiplayerOverlayOpen] = useState<boolean>(false);
     const [isMultiplayerChatOpen, setMultiplayerChatOpen] = useState<boolean>(false);
+    const [unreadChatMessageCount, setUnreadChatMessageCount] = useState<number>(1);
+    const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+    const [multiplayerName, setMultiplayerName] = useState<string | null>(null);
+
+    const server = multiplayerManagerRef.current?.getServerCommunication();
 
     const [gameState, _setGameState] = useState<GameState>("mainMenu");
     const [oldGameStates, setOldGameStates] = useState<GameState[]>(["mainMenu"]);
@@ -220,7 +225,7 @@ export default function App() {
             master: 100
         },
         type: "dish"
-    }, setCurrent: boolean = true, indexToInsertAt?: number) {
+    }, setCurrent: boolean = true, indexToInsertAt?: number, uploadToServer: boolean = true) {
         if (indexToInsertAt != undefined) {
             dishes.splice(indexToInsertAt, 0, newDish);
         } else {
@@ -234,8 +239,10 @@ export default function App() {
             currentDishName.current = newDish.name;
             setCurrentDishTitleToElement(newDish.name);
             setSynthLines(newDish.data);
+            setMainFlavor(newDish.mainFlavor);
         }
-        addedNewDish(newDish, index);
+
+        if (uploadToServer) addedNewDish(newDish, index);
     }
 
     async function addedNewDish(dish: Dish | LocalDish, index: number) {
@@ -510,13 +517,14 @@ export default function App() {
         }
         if (!response) return false;
 
-        multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
-            setPlayersJoined(players => [...players, playerJoined]);
-            return true;
+
+        multiplayerManagerRef.current.getServerCommunication().onChatMessageReceive = (message: ChatMessage) => {
+            setUnreadChatMessageCount(count => count + 1);
+            setChatMessages(messages => [...messages, message]);
+            Utils.notification("You have a new Chat message");
         };
 
         const code = multiplayerManagerRef.current.getCode();
-        console.log(code);
         if (!code) {
             Utils.error("Failed to get code to share! Try again later");
             return;
@@ -525,34 +533,103 @@ export default function App() {
         setIsMultiplayer(true);
         setMultiplayerCode(code);
         setMultiplayerOverlayOpen(true);
+        setMultiplayerName(name);
+
+        initDefaultsMultiplayer();
     };
 
     const joinGame = async (digits: ShareDigits) => {
         if (multiplayerManagerRef.current) return;
         multiplayerManagerRef.current = new MultiplayerServer();
-        if (!currentDish) {
-            Utils.error("You dont have a dish open");
-            return;
-        }
         let name: string | undefined | false = userLoggedIn?.displayName
         if (!userLoggedIn || !name) {
             name = await input("Type a name with wich you want to join the meeting:", "cancelOk", "text");
         }
 
-        if (!name) return;
+        if (!name) {
+            multiplayerManagerRef.current?.close();
+            multiplayerManagerRef.current = null;
+            return;
+        }
 
         let response = await multiplayerManagerRef.current.join(digits, name, userLoggedIn?.jwt);
-        if (!response) return false;
+        if (!response) {
+            multiplayerManagerRef.current?.close();
+            multiplayerManagerRef.current = null;
+            return false;
+        }
 
-        multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
-            setPlayersJoined(players => [...players, playerJoined]);
-            return true;
+        const server = multiplayerManagerRef.current.getServerCommunication();
+
+        server.onChatMessageReceive = (message: ChatMessage) => {
+            setUnreadChatMessageCount(count => count + 1);
+            setChatMessages(messages => [...messages, message]);
+            Utils.notification("You have a new Chat message");
         };
+
+        // multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
+        //     setPlayersJoined(players => [...players, playerJoined]);
+        //     return true;
+        // };
 
         setIsMultiplayer(true);
         // setMultiplayerCode(code);
         setMultiplayerOverlayOpen(true);
+        setMultiplayerName(name);
+
+        const dishLoadResponse = await server.send<any, APIResponse<{ dish: MultiplayerServerDish }>>({
+            type: "getDish"
+        });
+
+        if (dishLoadResponse.status == "error") {
+            Utils.error("Failed to load dish from server");
+            return;
+        }
+
+        const dish = dishLoadResponse.dish;
+        console.log(dish);
+
+        createNewActiveDish({
+            createdAt: dayjs().format("DD/MM/YYYY HH:mm:ss"),
+            createdBy: dish.createdBy,
+            data: dish.tracks as FlavorSynthLine[],
+            mainFlavor: dish.mainFlavor,
+            name: dish.name,
+            publishState: dish.publishState,
+            share: dish.share,
+            uuid: dish.uuid,
+            volumes: dish.volumes,
+            type: "dish",
+            temporary: true
+        }, true, 0, false);
         setGameState("createDish-create");
+
+        initDefaultsMultiplayer();
+    }
+
+    async function initDefaultsMultiplayer() {
+        if (!multiplayerManagerRef.current) return;
+        const server = multiplayerManagerRef.current.getServerCommunication();
+
+        server.onRename = (newName) => {
+            setCurrentDishTitleToElement(newName);
+            setCurrentDishName(newName);
+        };
+
+        server.onSave = () => {
+            if (!multiplayerManagerRef.current?.isOwner()) return;
+            saveCurrentDish();
+        };
+
+        // server.onVolumeChanged = (newVolume, volumeSlot) => {
+        //     setVolumes(volumes => {
+        //         const v = {
+        //             ...volumes
+        //         };
+        //         v[volumeSlot] = newVolume;
+        //         return v;
+        //     })
+        // };
     }
 
     return <>
@@ -566,7 +643,13 @@ export default function App() {
             setMultiplayerChatOpen,
             isMultiplayerOverlayOpen,
             isMultiplayerChatOpen,
-            joinGame
+            joinGame,
+            setPlayersJoined,
+            unreadChatMessageCount,
+            setUnreadChatMessageCount,
+            chatMessages,
+            setChatMessages,
+            name: multiplayerName
         }}>
             <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef, setDeselectAllCallback, deselectAll }}>
                 <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>
@@ -618,7 +701,7 @@ export default function App() {
                                                                             if (currentDishTitleRef.current && !isReadonly) {
                                                                                 const newName = currentDishTitleRef.current.value == undefined || currentDishTitleRef.current.value == null ? "Unnamed" : currentDishTitleRef.current.value;
                                                                                 setCurrentDishName(newName);
-                                                                                isMultiplayer && multiplayerManagerRef.current?.getServerCommunication().withDebounce().rename(newName);
+                                                                                server?.rename(newName);
                                                                             }
                                                                         }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
                                                                     </div>

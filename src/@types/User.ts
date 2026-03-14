@@ -49,11 +49,22 @@ export type ServerDish = Omit<Dish, "data" | "createdAt" | "createdBy"> & {
     tracks: ServerFlavorSynthLine[];
 }
 
+export type MultiplayerServerDish = Omit<Dish, "data"> & {
+    tracks: MultiplayerServerFlavorSynthLine[];
+}
+
+export type MultiplayerServerFlavorSynthLine = Omit<FlavorSynthLine, "elements" | "uuid"> & {
+    elements: MultiplayerServerFlavorElement[];
+};
+
+
+export type MultiplayerServerFlavorElement = FlavorElement;
+
 export type ServerFlavorSynthLine = Omit<FlavorSynthLine, "elements" | "uuid"> & {
     elements: ServerFlavorElement[];
 };
 
-export type ServerFlavorElement = Omit<FlavorElement, "flavor" | "uuid"> & {
+export type ServerFlavorElement = Omit<FlavorElement, "uuid"> & {
     flavor: Flavor;
 }
 

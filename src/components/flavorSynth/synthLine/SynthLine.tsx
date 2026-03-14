@@ -9,8 +9,10 @@ import useJsObjectHook from "../../../hooks/JsObjectHook";
 import { useSynthChange } from "../../../contexts/SynthChangeContext";
 import { useConfirm } from "../../dialogs/ConfirmDialogContext";
 import { useCurrentlyPlaying } from "../../../contexts/CurrentlyPlayingContext";
+import type { UUID } from "../../../@types/User";
+import { useMultiplayer } from "../../../contexts/MultiplayerContext";
 
-export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
+export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: UUID }) {
     const synthLines = useSynthLines();
 
     const tooltipRef = useRef<HTMLParagraphElement>(null);
@@ -22,12 +24,23 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
     const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0);
 
     const confirm = useConfirm();
+    const multiplayer = useMultiplayer();
+
+    const server = multiplayer.managerRef.current?.getServerCommunication();
 
     // const [isMuted, setMuted] = dishActions.muted;
     const currentPlaying = useCurrentlyPlaying();
 
-    const [isMuted, setMuted] = useJsObjectHook<FlavorSynthLine, "muted">(flavorSynthLine, "muted", false, (e) => { change.changed(); currentPlaying.updateElements(); return e; });
-    const [isSolo, setSolo] = useJsObjectHook<FlavorSynthLine, "solo">(flavorSynthLine, "solo", false, (e) => { change.changed(); currentPlaying.updateElements(); return e; });
+    const [isMuted, setMuted] = useJsObjectHook<FlavorSynthLine, "muted">(flavorSynthLine, "muted", false, (e) => {
+        change.changed();
+        currentPlaying.updateElements();
+        return e;
+    });
+    const [isSolo, setSolo] = useJsObjectHook<FlavorSynthLine, "solo">(flavorSynthLine, "solo", false, (e) => {
+        change.changed();
+        currentPlaying.updateElements();
+        return e;
+    });
 
     // const setSolo = (s: boolean) => {
     //     if (isSolo != s) setS(s);
@@ -50,7 +63,10 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
             flavorSynthLine.volume = vol;
             change.changed();
         }
+
         currentPlaying.updateElements();
+
+        server?.changeTrackVolume(synthLineUUID, vol);
     }
 
     const deleteSynth = () => {
@@ -60,6 +76,8 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
         synthLines.delete(flavorSynthLine.uuid);
         change.changed();
         currentPlaying.updateElements();
+
+        server?.removeSynthLine(synthLineUUID);
     };
 
     return <TooltipContext.Provider value={tooltipRef}>

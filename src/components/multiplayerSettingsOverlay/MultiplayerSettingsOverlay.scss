@@ -1,4 +1,5 @@
 @use "../../utils/clamp.scss" as *;
+@use "../../utils/Variables.scss" as *;
 
 .multiplayer-settings-overlay {
     position: fixed;
@@ -27,7 +28,7 @@
         width: 100%;
         height: 100%;
         z-index: 100000;
-        backdrop-filter: brightness(60%) contrast(110%) blur(3px) !important;
+        backdrop-filter: brightness(80%) blur(3px) !important;
     }
 
     .dialog {
@@ -40,18 +41,39 @@
         min-width: 400px;
         min-height: 400px;
         z-index: 100001;
-        backdrop-filter: blur(10px) !important;
-        background-color: rgba(255, 255, 255, 0.3);
-        background-image: linear-gradient(to right, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(./bgs/restaurant/repeatable_background.png);
-        background-size: 100% 100%, 50% 50%;
+        backdrop-filter: blur(30px) !important;
         padding: 20px;
+
+        >.bg {
+
+            --border-size: 2px !important;
+            --border-color: #{$themeColor3} !important;
+        }
+
+        .scroll-wrapper {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+
+            &>h2 {
+                width: 100%;
+                font-size: clampDef(4em);
+                line-height: clampDef(1em);
+                text-align: center;
+                margin: 0;
+                margin-block: 20px;
+            }
+        }
 
         p {
             font-size: clampDef(1.5em);
             line-height: clampDef(1em);
-            width: 100%;
+            width: calc(100% - 40px);
             text-align: center;
             color: rgb(139, 139, 139);
+            margin: 20px;
         }
 
         .close {
@@ -74,22 +96,51 @@
         }
 
         .code-preview {
-            width: 100%;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
 
-            .digit {
-                font-size: clampDef(3em);
-                line-height: clampDef(1em);
-                width: 0.5em;
-                padding: 10px;
+            .copy {
+                margin-left: auto;
+                margin-right: auto;
+                margin-top: 20px;
+                border: none !important;
+                --border-color: transparent;
+                --border-size: 1.5px;
+                font-size: clampDef(1.5em);
+
+
+                &:hover {
+                    --border-color: #{$themeColor3};
+                }
+            }
+
+            .digits {
+                width: 100%;
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                background-image: url(./bgs/restaurant/repeatable_background.png);
+                gap: 10px;
+
+                .digit {
+                    font-size: clampDef(3em);
+                    line-height: clampDef(1em);
+                    width: 0.5em;
+                    padding: 10px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    background-image: url(./bgs/restaurant/repeatable_background.png);
+                }
             }
+        }
+
+        h2.cooks {
+            width: 100%;
+            font-size: clampDef(2.5em) !important;
+            line-height: clampDef(1em) !important;
+            text-align: center;
+            margin: 0;
+            margin-block: 20px;
         }
 
         .people-list {
@@ -111,22 +162,155 @@
             }
 
             .player-item {
-                width: 100%;
-                display: flex;
-                flex-direction: row;
-                justify-content: space-evenly;
-                align-items: center;
+                width: calc(100% - 20px);
+                padding: 10px;
+                // display: flex;
+                // flex-direction: row;
+                // justify-content: space-evenly;
+                // align-items: center;
                 background-color: url(./bgs/restaurant/repeatable_background.png);
+
+                display: grid;
+                grid-template-columns: 40% repeat(3, 20%);
+                grid-template-rows: 1fr;
+                grid-column-gap: 0px;
+                grid-row-gap: 0px;
+                justify-items: center;
+                align-items: center;
+                text-align: center;
+
+                .name {
+                    font-size: clampDef(1.7em);
+                    line-height: clampDef(1em);
+                    grid-area: 1 / 1 / 2 / 2;
+                }
+
+                .mute {
+                    font-size: clampDef(1em);
+                    line-height: clampDef(1em);
+                    grid-area: 1 / 2 / 2 / 3;
+                }
+
+                .viewOnly {
+                    font-size: clampDef(1em);
+                    line-height: clampDef(1em);
+                    grid-area: 1 / 3 / 2 / 4;
+                }
+
+                .kick {
+                    font-size: clampDef(1em);
+                    line-height: clampDef(1em);
+                    grid-area: 1 / 4 / 2 / 5;
+                    background-color: #5a0000;
+                    --border-color: transparent;
+
+                    &:hover {
+                        --border-color: #ff0000;
+                    }
+                }
             }
         }
+    }
+}
 
-        h2 {
-            width: 100%;
-            font-size: clampDef(4em);
-            line-height: clampDef(1em);
-            text-align: center;
-            margin: 0;
-            margin-block: 20px;
+.player-join-notification {
+    position: fixed !important;
+    top: 20px;
+    right: 20px;
+    width: 350px;
+    height: 150px;
+    max-width: 100vw;
+    max-height: 50vh;
+    padding: 10px;
+    z-index: 100000000;
+    backdrop-filter: none !important;
+    --border-size: 2px;
+    --border-color: #{$themeColor3};
+    background: url(./bgs/restaurant/repeatable_background.png);
+
+    // background: url(./bgs/restaurant/repeatable_background.png);
+
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: repeat(4, auto);
+    grid-column-gap: 0px;
+    grid-row-gap: 0px;
+
+    animation: slideIn 0.5s cubic-bezier(.42, 0, 0, 1.5) 0ms 1 forwards;
+
+    .title {
+        grid-area: 1 / 1 / 2 / 2;
+        font-size: clampDef(1.2em);
+        line-height: clampDef(0.7em);
+        margin: 0;
+        padding: 0;
+    }
+
+    .name {
+        grid-area: 2 / 1 / 3 / 2;
+        font-size: clampDef(2em);
+        line-height: clampDef(1em);
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .details {
+        grid-area: 3 / 1 / 4 / 2;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .buttons {
+        grid-area: 4 / 1 / 5 / 2;
+        width: calc(100% - 40px);
+        display: flex;
+        flex-direction: row-reverse;
+        gap: 20px;
+        align-items: center;
+        margin-inline: 20px;
+
+        button {
+            height: max-content;
         }
+
+        .allow {
+            --border-color: transparent;
+            --border-size: 2px;
+            --background-color: rgb(22, 59, 0);
+
+            &:hover {
+                --border-color: #00a000;
+            }
+
+        }
+
+
+        .deny {
+            --border-color: transparent;
+            --border-size: 2px;
+            --background-color: rgb(63, 0, 0);
+
+            &:hover {
+                --border-color: #a00000;
+            }
+
+        }
+    }
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(150%);
+    }
+
+    100% {
+        transform: translateX(0%);
     }
 }

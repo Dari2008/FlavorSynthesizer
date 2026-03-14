@@ -1,4 +1,5 @@
 import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../@types/Flavors";
+import type { UUID } from "../@types/User";
 import { FLAVORS } from "../audio/Flavors";
 import { STAR_MASK_IMAGE } from "../Images";
 import Utils from "../utils/Utils";
@@ -155,7 +156,7 @@ export function constrainSpan(s: { from: number; to: number; }): { from: number;
 }
 
 
-export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: string = Utils.uuidv4()): FlavorElement {
+export function createElementForFlavor(flavor: Flavor, from: number, to: number, uuid: UUID = Utils.uuidv4()): FlavorElement {
     const d: FlavorElement = {
         from: from,
         to: to,
@@ -165,7 +166,7 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number,
     return d;
 }
 
-export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false): boolean {
+export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false, isSelectedByOtherUser: boolean = false): boolean {
     const fromPos = element.from * pixelsPerSecond;
     const toPos = element.to * pixelsPerSecond;
     const width = toPos - fromPos;
@@ -184,8 +185,9 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.beginPath();
     ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
     ctx.fillStyle = "rgb(40, 40, 40)";
-    ctx.fill();
     ctx.closePath();
+    ctx.fill();
+
     ctx.drawImage(FLAVOR_RENDERER.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
 
 
@@ -194,8 +196,8 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
         ctx.beginPath();
         ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
         ctx.strokeStyle = "rgb(0, 255, 149)";
-        ctx.stroke();
         ctx.closePath();
+        ctx.stroke();
     }
 
     if (ctx.measureText(FLAVOR_RENDERER.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
@@ -208,6 +210,15 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.font = "500 15px Arial";
     ctx.fillStyle = FLAVOR_RENDERER.contrastColor;
     ctx.fillText(FLAVOR_RENDERER.name.toUpperCase(), textX + 5 - xOffset, y + rectHeight / 2);
+
+    if (isSelectedByOtherUser) {
+        ctx.beginPath();
+        ctx.roundRect(fromPos - xOffset, y, width, rectHeight, 10);
+        ctx.closePath();
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fill();
+    }
+
     return true;
 
     function drawBorder() {

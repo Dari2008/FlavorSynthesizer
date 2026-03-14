@@ -17,7 +17,7 @@
 import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
 import "./PixelInput.scss";
 
-type PixelDivType = DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & { children?: ReactNode; };
+type PixelDivType = DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & { children?: ReactNode; "max-pixel-width"?: number };
 
 export default function PixelInput({ children, ...rest }: PixelDivType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-input";
@@ -32,6 +32,12 @@ export default function PixelInput({ children, ...rest }: PixelDivType) {
             }
         }
         divRef.current = r;
+
+        if (r && rest["max-pixel-width"]) {
+            r.style.setProperty("--max-pixel-width", rest["max-pixel-width"] + "px");
+        } else if (r) {
+            r.style.setProperty("--max-pixel-width", "30px");
+        }
     }
 
     useEffect(() => {

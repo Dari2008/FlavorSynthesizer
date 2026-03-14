@@ -12,6 +12,7 @@ import { useMultiplayer } from "../../contexts/MultiplayerContext";
 import type { ShareDigits } from "../../@types/Api";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
+import Utils from "../../utils/Utils";
 
 const SHARE_FLAVOR_COMBO_LENGTH = 6;
 const AI_IMAGE_SIZE = 64;
@@ -157,7 +158,10 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
             return Math.round(parseInt(element.value ?? "0") % 10) as Digit;
         }).filter(e => (e != null && e != undefined));
 
-        if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) return;
+        if (digits.length != SHARE_FLAVOR_COMBO_LENGTH) {
+            Utils.error("All digits have to be set");
+            return;
+        }
         multiplayer.joinGame(digits as ShareDigits);
     }
 

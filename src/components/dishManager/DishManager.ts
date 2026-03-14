@@ -106,7 +106,7 @@ export default class DishManager {
                     })
                 }
             }),
-            ...dish,
+            ...dish as any,
             temporary: undefined
         } as Dish;
     }

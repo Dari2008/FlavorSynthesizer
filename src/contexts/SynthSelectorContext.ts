@@ -1,10 +1,14 @@
 import { createContext, useContext } from "react";
+import type { UUID } from "../@types/User";
 
 type SynthSelector = {
     setSelectedSynthLine: (uuid: string | null) => void;
     addSynthSelectionChange: (uuid: string, cb: () => void) => void;
     focusedSynthRef: React.RefObject<string | null>;
     selectedElementsRef: React.RefObject<string[]>;
+    otherUserSelectedRef: React.RefObject<{
+        [key: UUID]: UUID[];
+    }>;
 }
 
 export const SynthSelectorContext = createContext<SynthSelector | null>(null);

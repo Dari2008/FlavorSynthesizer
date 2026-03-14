@@ -19,7 +19,7 @@
         background-position: bottom;
         background-repeat: repeat-y;
         image-rendering: pixelated;
-        filter: brightness(60%) contrast(110%);
+        // filter: brightness(60%) contrast(110%);
     }
 
     .foreground {
@@ -35,7 +35,7 @@
         image-rendering: pixelated;
         z-index: 100;
         pointer-events: none;
-        filter: brightness(60%) contrast(110%);
+        // filter: brightness(60%) contrast(110%);
     }
 
     backdrop-filter: none !important;

@@ -18,7 +18,7 @@ import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react
 import "./PixelButton.scss";
 import PixelDiv from "./PixelDiv";
 
-type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode; };
+type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode; "max-pixel-width"?: number; };
 
 export default function PixelButton({ children, ...rest }: PixelButtonType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-button";
@@ -35,6 +35,12 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
             }
         }
         divRef.current = r;
+
+        if (r && rest["max-pixel-width"]) {
+            r.style.setProperty("--max-pixel-width", rest["max-pixel-width"] + "px");
+        } else if (r) {
+            r.style.setProperty("--max-pixel-width", "30px");
+        }
     }
 
     useEffect(() => {

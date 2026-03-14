@@ -22,9 +22,9 @@
     image-rendering: pixelated;
     filter: contrast(110%);
 
-    &>* {
-        backdrop-filter: brightness(60%) contrast(110%);
-    }
+    // &>* {
+    //     backdrop-filter: brightness(60%) contrast(110%);
+    // }
 
     &>.close {
         position: fixed;
@@ -44,12 +44,12 @@
         }
     }
 
-    .current-main-theme-selector {
+    >.current-main-theme-selector {
         grid-area: 1 / 1 / 3 / 2;
         height: min-content;
     }
 
-    .title {
+    >.title {
         grid-area: 1 / 2 / 3 / 3;
         display: flex;
         flex-direction: column;

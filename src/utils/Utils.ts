@@ -54,6 +54,19 @@ export default class Utils {
         })
     }
 
+    static notification(text: string) {
+        toast(text, {
+            data: text,
+            draggable: true,
+            position: "top-right",
+            type: "info",
+            style: {
+                background: "linear-gradient(135deg, #6b2b00, #411a00)",
+                boxShadow: "0 3px 6px -1px rgba(0, 0, 0, 0.12), 0 10px 36px -4px rgba(129, 37, 0, 0.3)"
+            }
+        });
+    }
+
     static error(text: string) {
         toast(text, {
             data: text,

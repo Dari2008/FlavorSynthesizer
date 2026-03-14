@@ -13,7 +13,7 @@
 }
 
 #root:has(.share-dialog-wrapper.visible) .flavor-drag-n-drop-list {
-    backdrop-filter: brightness(30%) contrast(110%);
+    // backdrop-filter: brightness(30%) contrast(110%);
     filter: brightness(75%);
 }
 

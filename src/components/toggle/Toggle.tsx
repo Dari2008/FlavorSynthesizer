@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from "react";
 import "./Toggle.scss";
 
-export default function Toggle({ checked = false, children, onToggleChange, setToggledRef }: { checked?: boolean; children: ReactNode; onToggleChange: (val: boolean) => void; setToggledRef?: React.RefObject<(val: boolean) => void> }) {
+export default function Toggle({ checked = false, children, onToggleChange, setToggledRef, className }: { checked?: boolean; children: ReactNode; onToggleChange: (val: boolean) => void; setToggledRef?: React.RefObject<(val: boolean) => void>; className?: string }) {
 
     const [toggled, setToggled] = useState<boolean>(checked);
 
@@ -12,7 +12,7 @@ export default function Toggle({ checked = false, children, onToggleChange, setT
         onToggleChange(!toggled);
     };
 
-    return <div className="toggle-wrapper">
+    return <div className={"toggle-wrapper " + className}>
         <label htmlFor=".toggle-element">{children}</label>
         <div className={"toggle" + (toggled ? " toggled" : "")} role="checkbox">
             <div className="toggle-head"></div>

@@ -15,6 +15,9 @@ import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElement
 import Utils from "../../utils/Utils";
 import { useFlavorSynthContextMenu } from "../../contexts/FlavorSynthContextMenuContext";
 import { getCurrentDragging } from "./CurrentDraggingReference";
+import type { UUID } from "../../@types/User";
+import { useMultiplayer } from "../../contexts/MultiplayerContext";
+import type { MovedFlavor } from "../../serverCommunication/ServerCommunication";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -27,7 +30,7 @@ setInterval(() => {
     currentAnimationPosition = currentAnimationPosition % 100;
 }, 20);
 
-export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: string }) {
+export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: UUID }) {
     const synthLines = useSynthLines();
     const tooltip = useTooltip();
     const synthSelector = useSynthSelector();
@@ -50,6 +53,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
     const currentPositionCursorCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, TOTAL_SYNTH_HEIGHT));
 
+    const multipler = useMultiplayer();
+    const server = multipler.managerRef.current?.getServerCommunication();
 
     const startDraggedPositionTouch = useRef<Pos>({ x: -1, y: -1 });
     const currentlyResizingElement = useRef<string | null>(null);
@@ -169,8 +174,10 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (element.uuid === interPlayerDrag.ref.current && element.uuid !== currentDraggingElementRef.current?.uuid) continue;
             if (element.from >= span.to && element.to <= span.from) continue;
 
+            const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(element.uuid);
+
             const isSelected = synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == element.uuid) != -1;
-            const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected);
+            const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected, isSelectedByOtherUser);
             if (!drewTitle) {
                 if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
                     tooSmallToDisplayUUIDs.current.push(element.uuid);
@@ -398,11 +405,16 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             for (const element of flavorSynthLine.elements) {
                 const fromPos = element.from * getPixelsPerSecond();
                 const toPos = element.to * getPixelsPerSecond();
+                const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(element.uuid);
 
                 const isAbove = updateCursorForElement();
                 foundOneWhereMouseOver = foundOneWhereMouseOver || isAbove;
 
                 function updateCursorForElement() {
+                    if (isSelectedByOtherUser) {
+                        canvas.style.cursor = "default";
+                        return true;
+                    }
                     if (!(mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(toPos))) return false;
                     const TOLERANCE = 5;
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
@@ -462,10 +474,13 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 const toPos = element.to * getPixelsPerSecond();
 
 
+                const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(element.uuid);
+
                 foundOneWhereMouseOver = foundOneWhereMouseOver || updateCursorForElement();
 
                 function updateCursorForElement() {
                     if (!(mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(toPos))) return false;
+                    if (isSelectedByOtherUser) return false;
                     const TOLERANCE = 5;
                     if (mouse.x >= convertTimelineXToScreen(fromPos) && mouse.x <= convertTimelineXToScreen(fromPos) + TOLERANCE) {
                         action = "resizeL";
@@ -497,6 +512,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
             if (targetElement != null) {
                 interPlayerDrag.originalStartPos.current = [targetElement.from, targetElement.to];
+
+                server?.selectFlavors([targetElement.uuid]);
+
             }
             // repaint();
         };
@@ -667,7 +685,15 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                                 newTo: selectedFlavors[iTracks].flavors[iFlavor].to,
                             }))
                         }))
-                    })
+                    });
+                    server?.updateFlavors([
+                        ...selectedFlavors.map((track, iTracks) => {
+                            return track.flavors.map((flavor, iFlavor) => ({
+                                ...selectedFlavors[iTracks].flavors[iFlavor],
+                                trackUUID: track.trackUUID
+                            } as MovedFlavor))
+                        }).flat()
+                    ]);
                 } else {
                     ActionHistoryManager.didAction({
                         type: "resize",
@@ -694,6 +720,14 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                                 }))
                         )
                     });
+                    server?.updateFlavors([
+                        ...selectedFlavors.map((track) => {
+                            return track.flavors.map((flavor) => ({
+                                ...flavor,
+                                trackUUID: track.trackUUID
+                            } as MovedFlavor))
+                        }).flat()
+                    ]);
                 }
                 startPosses = undefined;
                 currentPlaying.updateElements();
@@ -723,20 +757,33 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     break;
                 }
             }
+
+
             if (e.shiftKey || e.ctrlKey || isTouch) {
                 if (foundElement == null) {
                     synthLines.repaintAllElements();
                     // synthLines.repaintAll();
                     return;
                 }
+
+                const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(foundElement.uuid);
+                console.log("isSelectedByOtherUser", isSelectedByOtherUser);
+                if (isSelectedByOtherUser) return;
+
                 if (synthSelector.selectedElementsRef.current == null) {
                     synthSelector.selectedElementsRef.current = [];
+                    server?.deselectAllFlavors();
                 }
                 if (synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == foundElement!.uuid) == -1) {
-                    synthSelector.selectedElementsRef.current.push(foundElement.uuid!);
+                    synthSelector.selectedElementsRef.current.push(foundElement.uuid);
                 } else if (isTouch) {
-                    synthSelector.selectedElementsRef.current = [foundElement.uuid!];
+                    synthSelector.selectedElementsRef.current = [foundElement.uuid];
+                    server?.selectOnly(foundElement.uuid);
                 }
+
+
+                server?.selectFlavors([foundElement.uuid]);
+
                 // synthLines.repaintAll();
             } else {
                 synthSelector.selectedElementsRef.current = foundElement ? [foundElement.uuid] : [];
@@ -760,12 +807,14 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     //     }
                     // }
                     // synthSelector.selectedElementsRef.current = [];
+                    server?.removeFlavors();
                     synthLines.deleteSelectedElements();
                     change.changed();
                     // synthLines.repaintAll();
                     break;
                 case "Escape":
                     synthSelector.selectedElementsRef.current = [];
+                    server?.deselectAllFlavors();
                     // synthLines.repaintAll();
                     break;
             }
@@ -890,6 +939,14 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     toTrackUUID: synthLineUUID
                 });
 
+
+                server?.updateFlavors([
+                    {
+                        ...element,
+                        trackUUID: synthLineUUID,
+                    }
+                ]);
+
                 // synthLines.deleteElement(element.uuid);
 
 
@@ -967,17 +1024,28 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     }
 
 
+                    let selected = null;
                     if (elementFromResize) {
                         resizeSide.current = "from";
-                        currentlyResizingElement.current = elementFromResize.uuid;
+                        selected = elementFromResize.uuid;
                     } else if (elementToResize) {
                         resizeSide.current = "to";
-                        currentlyResizingElement.current = elementToResize.uuid;
+                        selected = elementToResize.uuid;
                     } else if (elementClicked) {
                         resizeSide.current = "move";
-                        currentlyResizingElement.current = elementClicked.uuid;
+                        selected = elementClicked.uuid;
                         startElementPos.current = elementClicked.from;
                     }
+
+                    if (selected) {
+                        const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(selected);
+                        if (isSelectedByOtherUser) {
+                            startElementPos.current = 0;
+                            return;
+                        }
+                        currentlyResizingElement.current = selected;
+                    }
+
                     return;
                 }
 
@@ -1005,6 +1073,10 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     if (currentDraggingElementRef.current && currentDraggingElementRef.current.from != currentDraggingElementRef.current.to)
                         flavorSynthLine.elements = [...flavorSynthLine.elements, currentDraggingElementRef.current];
 
+                    if (currentDraggingElementRef.current) {
+                        server?.addFlavor(synthLineUUID, currentDraggingElementRef.current);
+                    }
+
                     synthLines.repaintAllElements();
                     currentDraggingElementRef.current = null;
                     // synthLines.repaintAll();
@@ -1023,6 +1095,16 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                             x: originalTouch.pageX,
                             y: touch.y
                         });
+                    }
+                } else if (currentlyResizingElement.current) {
+                    const flavor = flavorSynthLine.elements.find(e => e.uuid == currentlyResizingElement.current);
+                    if (flavor) {
+                        server?.updateFlavors([
+                            {
+                                ...flavor,
+                                trackUUID: synthLineUUID
+                            }
+                        ]);
                     }
                 }
                 currentlyResizingElement.current = null;
@@ -1342,6 +1424,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             flavor: element,
             trackUUID: synthLineUUID
         });
+
+
+        server?.addFlavor(synthLineUUID, element);
     }
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {
@@ -1423,7 +1508,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 export type FlavorElement = {
     from: number;
     to: number;
-    uuid: string;
+    uuid: UUID;
     flavor: Flavor;
 }
 

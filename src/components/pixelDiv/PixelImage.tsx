@@ -17,8 +17,11 @@ export default function PixelImage({ ...rest }: PixelImageProps) {
             }
         }
         divRef.current = r;
+
         if (r && rest["max-pixel-width"]) {
             r.style.setProperty("--max-pixel-width", rest["max-pixel-width"] + "px");
+        } else if (r) {
+            r.style.setProperty("--max-pixel-width", "30px");
         }
     }
 

@@ -1,40 +1,23 @@
 @use "../../utils/Variables.scss" as *;
 
-@property --border-size {
-    syntax: "<length> | <percentage>";
-    inherits: true;
-    initial-value: 0px;
-}
 
-@property --background-color {
-    syntax: "<color>";
-    inherits: true;
-    initial-value: #{$gray-800};
-}
+// .pixel-button {
+//     position: relative;
+//     // --background-color: #{$gray-800};
+//     // --border-color: #{$themeColor3};
 
-@property --border-color {
-    syntax: "<color>";
-    inherits: true;
-    initial-value: #{$themeColor3};
-}
+//     background-color: var(--border-color) !important;
+//     border: none !important;
 
-.pixel-button {
-    position: relative;
-    // --background-color: #{$gray-800};
-    // --border-color: #{$themeColor3};
-
-    background-color: var(--border-color) !important;
-    border: none !important;
-
-    .bg {
-        @extend .pixeled-div;
-        position: absolute;
-        // top: var(--border-size);
-        // left: var(--border-size);
-        // width: calc(100% - var(--border-size) * 2);
-        // height: calc(100% - var(--border-size) * 2);
-        inset: var(--border-size);
-        background-color: var(--background-color);
-        z-index: -1 !important;
-    }
-}
+//     .bg {
+//         @extend .pixeled-div;
+//         position: absolute;
+//         top: var(--border-size);
+//         left: var(--border-size);
+//         width: calc(100% - var(--border-size) * 2);
+//         height: calc(100% - var(--border-size) * 2);
+//         // inset: var(--border-size);
+//         background-color: var(--background-color);
+//         z-index: -1 !important;
+//     }
+// }
