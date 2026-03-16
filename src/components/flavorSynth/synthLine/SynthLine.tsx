@@ -11,6 +11,7 @@ import { useConfirm } from "../../dialogs/ConfirmDialogContext";
 import { useCurrentlyPlaying } from "../../../contexts/CurrentlyPlayingContext";
 import type { UUID } from "../../../@types/User";
 import { useMultiplayer } from "../../../contexts/MultiplayerContext";
+import { useGameState } from "../../../contexts/GameStateContext";
 
 export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React.RefObject<number>, synthLineUUID: UUID }) {
     const synthLines = useSynthLines();
@@ -25,8 +26,19 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
 
     const confirm = useConfirm();
     const multiplayer = useMultiplayer();
+    const gameState = useGameState();
 
     const server = multiplayer.managerRef.current?.getServerCommunication();
+
+    const isReadonly = gameState.gameState == "createDish-create-viewonly";
+
+
+    server?.onChangeTrackVolume.add(synthLineUUID, (newVolume, trackUUID) => {
+        if (trackUUID != synthLineUUID) return;
+        if (!flavorSynthLine) return;
+        flavorSynthLine.volume = newVolume;
+        if (volumeRef.current) volumeRef.current.value = newVolume + "";
+    });
 
     // const [isMuted, setMuted] = dishActions.muted;
     const currentPlaying = useCurrentlyPlaying();
@@ -54,6 +66,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
     // };
 
     const volumeChanged = () => {
+        if (isReadonly) return;
         if (!flavorSynthLine) return;
         const vol = parseFloat(volumeRef.current?.value || "0");
         if (vol <= 0) {
@@ -69,9 +82,10 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
         server?.changeTrackVolume(synthLineUUID, vol);
     }
 
-    const deleteSynth = () => {
+    const deleteSynth = async () => {
+        if (isReadonly) return;
         if (!flavorSynthLine) return;
-        const deleteS = confirm.confirm("Do you want to delete this Synth Line?", "noYes");
+        const deleteS = await confirm.confirm("Do you want to delete this Synth Line?", "noYes");
         if (!deleteS) return;
         synthLines.delete(flavorSynthLine.uuid);
         change.changed();

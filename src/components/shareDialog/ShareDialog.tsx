@@ -312,7 +312,7 @@ export default function ShareDialog() {
     return <div className={"share-dialog-wrapper" + (gameState.gameState == "createDish-share" ? " visible" : "") + (!user.user && !accepedUnchangable ? " login" : "")}>
         <PixelDivWBorder max-pixel-width={40} role="dialog" className="share-dialog" >
             {/* <img src={} className="background-image" /> */}
-            <PixelDiv className="image-bg" style={{ "--bg-image": `url(${BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : ""})` } as any}></PixelDiv>
+            <PixelDiv max-pixel-width={40} className="image-bg" style={{ "--bg-image": `url(${BG_IMAGES.length > 0 ? ROOT_PATH + BG_IMAGES[imageIdRef.current] : ""})` } as any}></PixelDiv>
 
             <div className="content-wrapper">
                 <h1>Share your dish</h1>
@@ -354,43 +354,41 @@ export default function ShareDialog() {
                 }
 
                 {((user.user || accepedUnchangable) && !isLoading && !isPublished) &&
-                    <>
-                        <div className="share-flavors share-default-layout step">
-                            <h2>Set Flavor For Sharing</h2>
-                            <span>Set a matching Flavor combo for your dish. Drag and Drop Flavors from the list into the fields. Then publish it. </span>
+                    <PixelDivWBorder max-pixel-width={30} className="share-flavors share-default-layout step">
+                        <h2>Set Flavor For Sharing</h2>
+                        <span>Set a matching Flavor combo for your dish. Drag and Drop Flavors from the list into the fields. Then publish it. </span>
 
-                            <div className="combo content" ref={comboBoxRef}>
-                                {
-                                    Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
-                                        const name = getFlavorIndex(i);
-                                        if (!name) {
-                                            return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
-                                                <div className="bgImage main-color"></div>
-                                                <div className="bgImage main-color-2"></div>
-                                                <div className="text">Drag a flavor here</div>
-                                            </div>;
-                                        }
-
-                                        return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor">
-                                            <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
-                                            <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
-                                            <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
-                                            <div className="text">Drag a flavor here</div>
-                                        </div>
-                                    })
-                                }
-                            </div>
+                        <div className="combo content" ref={comboBoxRef}>
                             {
-                                !isPublished && <PixelButton className="publish" onClick={publish}>Publish</PixelButton>
+                                Array.from({ length: SHARE_FLAVOR_COMBO_LENGTH }).map((_, i) => {
+                                    const name = getFlavorIndex(i);
+                                    if (!name) {
+                                        return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor-no-selected" style={{ "--main-color": "#707070", "--vine-color": "#3d3d3d" } as any}>
+                                            <div className="bgImage main-color"></div>
+                                            <div className="bgImage main-color-2"></div>
+                                            <div className="text">Drag a flavor here</div>
+                                        </div>;
+                                    }
+
+                                    return <div key={i} onDragOver={onDragOver} onDrop={(e) => onDropFlavor(e, i)} className="share-flavors-flavor">
+                                        <div className="bgImage main-color" style={{ "--main-color": FLAVOR_COLOR[name.flavor][0] } as any}></div>
+                                        <div className="bgImage main-color-2" style={{ "--vine-color": FLAVOR_COLOR[name.flavor].at(-1) } as any}></div>
+                                        <img src={FLAVOR_IMAGES[name.flavor]} alt={name.flavor} className="flavor-image" />
+                                        <div className="text">Drag a flavor here</div>
+                                    </div>
+                                })
                             }
                         </div>
-                    </>
+                        {
+                            !isPublished && <PixelButton className="publish" onClick={publish}>Publish</PixelButton>
+                        }
+                    </PixelDivWBorder>
                 }
 
                 {
                     ((user.user || accepedUnchangable) && !isLoading && isPublished) && <>
 
-                        <div className="share-flavors share-default-layout">
+                        <PixelDivWBorder max-pixel-width={30} className="share-flavors share-default-layout">
 
                             <h2>Set Flavor For Sharing</h2>
                             <span>Share your dish with a flavor combo to match. Drag and drop flavors from the list to the side.</span>
@@ -417,7 +415,7 @@ export default function ShareDialog() {
                                 }
                             </div>
 
-                            <div className="buttons">
+                            <PixelDivWBorder max-pixel-width={30} className="buttons">
                                 <PixelButton className="copy-as-text" onClick={(e) => {
                                     copyTextOfFlavors(currentFlavorsSelected);
                                     if (e.target instanceof HTMLButtonElement) {
@@ -436,13 +434,13 @@ export default function ShareDialog() {
                                         }, 2000);
                                     }
                                 }}>Copy as image</PixelButton>
-                            </div>
+                            </PixelDivWBorder>
 
-                        </div>
+                        </PixelDivWBorder>
 
 
                         {
-                            AIGeneratedImageBase64 && <div className="share-image share-default-layout">
+                            AIGeneratedImageBase64 && <PixelDivWBorder max-pixel-width={30} className="share-image share-default-layout">
                                 <h2>Share Image</h2>
                                 <span>Share your dish with a unique AI-generated image inspired by your flavor combo.</span>
                                 {
@@ -475,10 +473,10 @@ export default function ShareDialog() {
                                         </div>
                                     </>
                                 }
-                            </div>
+                            </PixelDivWBorder>
                         }
 
-                        <div className="share-code share-default-layout">
+                        <PixelDivWBorder max-pixel-width={30} className="share-code share-default-layout">
                             <h2>Share Code</h2>
                             <span>Share your dish with a code.</span>
 
@@ -507,8 +505,8 @@ export default function ShareDialog() {
                                 </>
                             }
 
-                        </div>
-                        <div className="share-url share-default-layout">
+                        </PixelDivWBorder>
+                        <PixelDivWBorder max-pixel-width={30} className="share-url share-default-layout">
                             <h2>Share URL</h2>
                             <span>Share your dish with a url.</span>
                             <div className="content">
@@ -523,7 +521,7 @@ export default function ShareDialog() {
                                     }
                                 }}>Copy</PixelButton>
                             </div>
-                        </div>
+                        </PixelDivWBorder>
 
                     </>
                 }
@@ -531,8 +529,8 @@ export default function ShareDialog() {
             <div className="action-buttons">
                 <button className="close" onClick={() => gameState.goBack()}>X</button>
             </div>
-        </PixelDivWBorder>
-    </div>;
+        </PixelDivWBorder >
+    </div >;
 }
 
 function generateRandomBackgroundImage() {

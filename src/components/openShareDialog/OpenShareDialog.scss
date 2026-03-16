@@ -269,10 +269,10 @@ $gap: clampDef(4em);
         }
 
         .buttons {
-            position: absolute;
+            position: absolute !important;
             bottom: 10px;
             right: 10px;
-            // grid-area: 4 / 1 / 5 / 2;
+            grid-area: 4 / 1 / 5 / 2;
             width: max-content;
             justify-self: end;
             align-self: end;

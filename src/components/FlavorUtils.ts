@@ -191,7 +191,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.drawImage(FLAVOR_RENDERER.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
 
 
-    if (isSelected) {
+    if (isSelected && !isSelectedByOtherUser) {
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.roundRect(fromPos + imageMargin / 2 - xOffset, y + imageMargin / 2, imageSize + imageMargin, imageSize + imageMargin, 10);
@@ -201,6 +201,13 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     }
 
     if (ctx.measureText(FLAVOR_RENDERER.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
+        if (isSelectedByOtherUser) {
+            ctx.beginPath();
+            ctx.roundRect(fromPos - xOffset, y, width, rectHeight, 10);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fill();
+        }
         return false;
     }
 

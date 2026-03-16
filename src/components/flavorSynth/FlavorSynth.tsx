@@ -111,35 +111,29 @@ export default function FlavorSynth() {
             return synthLines.find(e => e.uuid == uuid);
         }
 
-        server.onFlavorAdded = (trackUUID, flavorData) => {
+        server.onFlavorAdded.add("FlavorSynth", (trackUUID, flavorData) => {
             const track = getTrack(trackUUID);
             if (!track) return;
             track.elements = [...track.elements, flavorData];
             repaintAllElements();
-        };
+        });
 
-        server.onSynthLineAdded = (synthLineUUID) => {
-            addSynth(synthLineUUID);
-        };
+        server.onSynthLineAdded.add("FlavorSynth", (synthLineUUID) => {
+            addSynth(synthLineUUID, true);
+        });
 
-        server.onSynthLineRemoved = (synthLineUUID) => {
-            setSynthLines(synthLines => synthLines.filter(e => e.uuid == synthLineUUID));
-        };
+        server.onSynthLineRemoved.add("FlavorSynth", (synthLineUUID) => {
+            setSynthLines(synthLines => synthLines.filter(e => e.uuid != synthLineUUID));
+        });
 
-        server.onFlavorsRemoved = (flavorUUIDs) => {
+        server.onFlavorsRemoved.add("FlavorSynth", (flavorUUIDs) => {
             for (const track of synthLines) {
                 track.elements = track.elements.filter(e => !flavorUUIDs.includes(e.uuid));
             }
             repaintAllElements();
-        };
+        });
 
-        server.onChangeTrackVolume = (newVolume, trackUUID) => {
-            const track = getTrack(trackUUID);
-            if (!track) return;
-            track.volume = newVolume;
-        };
-
-        server.onVolumeChanged = (newVolume, volumeSlot) => {
+        server.onVolumeChanged.add("FlavorSynth", (newVolume, volumeSlot) => {
             dishActions.volumes[1](volumes => {
                 const r = {
                     ...volumes
@@ -159,67 +153,64 @@ export default function FlavorSynth() {
                     setVolumeFlavorsRef.current?.(newVolume);
                     break;
             }
-        }
+        });
 
-        server.onFlavorsSelected = (endpointUUID, flavors) => {
+        server.onFlavorsSelected.add("FlavorSynth", (endpointUUID, flavors) => {
             if (!otherUserSelectedRef.current[endpointUUID]) otherUserSelectedRef.current[endpointUUID] = [];
             otherUserSelectedRef.current[endpointUUID] = [...(new Set([...otherUserSelectedRef.current[endpointUUID], ...flavors]))];
             repaintAllElements();
-        };
+        });
 
-        server.onSelectOnly = (endpointUUID, flavorUUID) => {
+        server.onSelectOnly.add("FlavorSynth", (endpointUUID, flavorUUID) => {
             otherUserSelectedRef.current[endpointUUID] = [flavorUUID];
             repaintAllElements();
-        }
+        });
 
-        server.onFlavorsDeselected = (endpointUUID, flavors) => {
+        server.onFlavorsDeselected.add("FlavorSynth", (endpointUUID, flavors) => {
             if (!otherUserSelectedRef.current[endpointUUID]) otherUserSelectedRef.current[endpointUUID] = [];
             otherUserSelectedRef.current[endpointUUID] = otherUserSelectedRef.current[endpointUUID].filter(e => !flavors.includes(e));
             repaintAllElements();
-        };
+        });
 
-        server.onAllFlavorsDeselected = (endpointUUID) => {
+        server.onAllFlavorsDeselected.add("FlavorSynth", (endpointUUID) => {
             otherUserSelectedRef.current[endpointUUID] = [];
             repaintAllElements();
-        };
+        });
 
-        server.onUpdatedFlavors = (flavors) => {
-            const keyVal: {
-                [key: UUID]: FlavorElement & {
-                    trackUUID: UUID;
-                };
-            } = {};
+        server.onUpdatedFlavors.add("FlavorSynth", (flavors) => {
+            const keyVal: { [key: UUID]: FlavorElement & { trackUUID: UUID } } = {};
+
             for (const flavor of flavors) {
                 keyVal[flavor.uuid] = flavor;
             }
 
             for (const track of synthLines) {
-                track.elements = track.elements.filter(e => {
-                    if (!keyVal[e.uuid]) return true;
-                    return keyVal[e.uuid].trackUUID == track.uuid;
-                }).map(e => {
-                    if (!keyVal[e.uuid]) return e;
-                    return {
+                track.elements = track.elements
+                    .filter(e => !keyVal[e.uuid] || keyVal[e.uuid].trackUUID === track.uuid)
+                    .map(e => keyVal[e.uuid] ? {
                         ...e,
                         from: keyVal[e.uuid].from,
                         to: keyVal[e.uuid].to,
                         flavor: keyVal[e.uuid].flavor
-                    }
-                });
+                    } : e);
 
-                const allFlavorsForTrack = Object.values(keyVal).filter(e => e.trackUUID == track.uuid);
-
-                const uuidsIncluded = track.elements.map(e => e.uuid);
+                const allFlavorsForTrack = Object.values(keyVal).filter(e => e.trackUUID === track.uuid);
+                const uuidsIncluded = new Set(track.elements.map(e => e.uuid));
 
                 for (const flavor of allFlavorsForTrack) {
-                    if (uuidsIncluded.includes(flavor.uuid)) continue;
-                    uuidsIncluded.push(flavor.uuid);
-                    track.elements = [...track.elements, flavor];
+                    if (!uuidsIncluded.has(flavor.uuid)) {
+                        track.elements.push({
+                            uuid: flavor.uuid,
+                            from: flavor.from,
+                            to: flavor.to,
+                            flavor: flavor.flavor
+                        });
+                        uuidsIncluded.add(flavor.uuid);
+                    }
                 }
-
             }
             repaintAllElements();
-        };
+        });
 
     }
 
@@ -231,8 +222,8 @@ export default function FlavorSynth() {
         stop();
     };
 
-    const addSynth = (uuid: UUID = Utils.uuidv4Exclude(synthLines.map(e => e.uuid))) => {
-        if (isReadonly) return;
+    const addSynth = (uuid: UUID = Utils.uuidv4Exclude(synthLines.map(e => e.uuid)), overwrite: boolean = false) => {
+        if (isReadonly && !overwrite) return;
 
         tutorials.onAction("editor-addedSynthLine");
 
@@ -255,8 +246,8 @@ export default function FlavorSynth() {
         return uuid;
     };
 
-    const deleteSynth = (uuid: string) => {
-        if (isReadonly) return;
+    const deleteSynth = (uuid: string, overwrite: boolean = false) => {
+        if (isReadonly && !overwrite) return;
         // if (!currentDish) return;
         // currentDish.data = currentDish.data.filter(e => e.uuid !== uuid);
         const track = synthLines.find(e => e.uuid === uuid);
@@ -268,8 +259,8 @@ export default function FlavorSynth() {
         setSynthLines(synthLines => synthLines.filter(e => e.uuid !== uuid));
     }
 
-    const deleteElement = (uuid: string) => {
-        if (isReadonly) return;
+    const deleteElement = (uuid: string, overwrite: boolean = false) => {
+        if (isReadonly && !overwrite) return;
         // if (!currentDish) return;
         // currentDish.data = currentDish.data.map(e => {
         //     e.elements = e.elements.filter(e => e.uuid !== uuid);
@@ -861,7 +852,13 @@ export default function FlavorSynth() {
                                             <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
                                         </button>
                                     }
-                                    <button className="save" title="Save Dish" onClick={dishes.saveCurrentDish}>
+                                    <button className="save" title="Save Dish" onClick={() => {
+                                        server?.save();
+                                        if (!multiplayer.managerRef.current?.isOwner()) {
+                                            return;
+                                        }
+                                        dishes.saveCurrentDish();
+                                    }}>
                                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                     {

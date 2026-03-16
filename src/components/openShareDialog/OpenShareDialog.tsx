@@ -179,7 +179,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
             {shareJoin == "share" && <div className="content-wrapper share">
                 <h1>Open Shared Dish</h1>
-                <div className="open-share-flavors open-share-default-layout">
+                <PixelDivWBorder max-pixel-width={30} className="open-share-flavors open-share-default-layout">
                     <h2>Open Shared Flavors</h2>
                     <span>Open a shared dish with a flavor combo.</span>
 
@@ -207,9 +207,9 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     <div className="buttons">
                         <button className="ok" disabled={isOkButtonFlavorsIsDisabled} onClick={() => openFlavors()}>Open</button>
                     </div>
-                </div>
+                </PixelDivWBorder>
 
-                <div className="open-share-image open-share-default-layout">
+                <PixelDivWBorder max-pixel-width={30} className="open-share-image open-share-default-layout">
                     <h2>Open Shared Image</h2>
                     <span>Open a shared dish with an AI generated Image.</span>
                     <div className="content">
@@ -255,8 +255,8 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     <div className="buttons">
                         <button className="ok" disabled={isOkButtonUploadedIsDisabled} onClick={() => openImage()} >Open</button>
                     </div>
-                </div>
-                <div className="open-share-code open-share-default-layout">
+                </PixelDivWBorder>
+                <PixelDivWBorder max-pixel-width={30} className="open-share-code open-share-default-layout">
                     <h2>Open Shared Code</h2>
                     <span>Open a shared dish with a code.</span>
 
@@ -272,13 +272,13 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                         <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => openCode()}>Open</button>
                     </div>
 
-                </div>
+                </PixelDivWBorder>
             </div>}
 
             {
                 shareJoin == "join" && <div className="content-wrapper join">
                     <h1>Join a Multiplayer dish</h1>
-                    <div className="open-share-code open-share-default-layout">
+                    <PixelDivWBorder max-pixel-width={30} className="open-share-code open-share-default-layout">
                         <h2>Join a dish</h2>
                         <div className="content" ref={digitsRef}>
                             {
@@ -292,7 +292,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                             <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => joinCode()}>Open</button>
                         </div>
 
-                    </div>
+                    </PixelDivWBorder>
                 </div>
             }
 

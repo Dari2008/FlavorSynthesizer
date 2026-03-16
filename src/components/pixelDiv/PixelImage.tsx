@@ -31,8 +31,8 @@ export default function PixelImage({ ...rest }: PixelImageProps) {
 
         const setSize = () => {
             const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", box.width + "px");
-            div.style.setProperty("--height", box.height + "px");
+            div.style.setProperty("--width", (box.width) + "px");
+            div.style.setProperty("--height", (box.height) + "px");
         }
 
         const resizeListener = new ResizeObserver(() => {

@@ -177,13 +177,18 @@
             padding: 10px;
             transform: translateX(-50%);
 
+            &[data-is-muted] {
+                opacity: 0.4 !important;
+                pointer-events: none !important;
+            }
+
 
             .input {
                 width: calc(60% - 40px);
                 height: calc(90% - 40px);
                 margin-left: auto;
                 margin-right: 20px;
-                font-size: clampDef(1.5em);
+                font-size: clampDef(1.7em);
                 border: none !important;
                 outline: none !important;
                 background-color: rgba(0, 0, 0, 0.3);

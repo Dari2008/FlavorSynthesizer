@@ -16,7 +16,7 @@
 
 import { useEffect, useRef, type DetailedHTMLProps, type HTMLAttributes, type ReactNode } from "react";
 
-type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
+type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number; };
 
 export default function PixelDiv({ children, ...rest }: PixelDivType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div";
@@ -45,8 +45,8 @@ export default function PixelDiv({ children, ...rest }: PixelDivType) {
 
         const setSize = () => {
             const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", box.width + "px");
-            div.style.setProperty("--height", box.height + "px");
+            div.style.setProperty("--width", (box.width) + 1 + "px");
+            div.style.setProperty("--height", (box.height) + 1 + "px");
         }
 
         const resizeListener = new ResizeObserver(() => {

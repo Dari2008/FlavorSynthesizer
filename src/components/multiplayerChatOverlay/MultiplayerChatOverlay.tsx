@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useMultiplayer } from "../../contexts/MultiplayerContext";
 import PixelButton from "../pixelDiv/PixelButton";
 import PixelDiv from "../pixelDiv/PixelDiv";
-import PixelInput from "../pixelDiv/PixelInput";
 import "./MultiplayerChatOverlay.scss";
 import Utils from "../../utils/Utils";
 import PixelTextArea from "../pixelDiv/PixelTextArea";
@@ -19,7 +18,7 @@ export default function MultiplayerChatOverlay() {
 
     useEffect(() => {
         multiplayer.setUnreadChatMessageCount(0);
-    }, []);
+    }, [multiplayer.isMultiplayerChatOpen]);
 
     const checkCanSend = () => {
         const val = inputRef.current?.value;
@@ -31,6 +30,7 @@ export default function MultiplayerChatOverlay() {
     }
 
     const sendMessage = async () => {
+        if (multiplayer.isMultiplayerMuted) return;
         const messageContent = inputRef.current?.value;
         if (!messageContent) return;
         if (messageContent.trim().length == 0) return;
@@ -75,7 +75,7 @@ export default function MultiplayerChatOverlay() {
                 }
             </div>
             <div className="message-bg"></div>
-            <PixelDiv max-pixel-width={40} className="sendMessage">
+            <PixelDiv max-pixel-width={40} className="sendMessage" data-is-muted={multiplayer.isMultiplayerMuted ? true : undefined}>
                 <PixelTextArea ref={inputRef} placeholder="Write a message..." onInput={checkCanSend} onChange={checkCanSend} className="input"></PixelTextArea>
                 <PixelButton onClick={sendMessage} disabled={!canSend}>Send</PixelButton>
             </PixelDiv>

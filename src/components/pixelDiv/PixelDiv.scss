@@ -129,17 +129,17 @@
         0px 0px,
 
         var(--border-size) var(--border-size),
-        calc(var(--width) - var(--masks-size) - var(--border-size)) var(--border-size),
+        calc(100% - var(--border-size)*2) var(--border-size),
         var(--border-size) calc(100% - var(--border-size)),
-        calc(100% - var(--border-size)) calc(100% - var(--border-size)),
+        calc(100% - var(--border-size)*2) calc(100% - var(--border-size)),
 
         var(--border-size) calc(var(--masks-size) + var(--border-size)),
-        calc(100% - var(--border-size)) calc(var(--masks-size) + var(--border-size)),
+        calc(100% - var(--border-size)*2) calc(var(--masks-size) + var(--border-size)),
         calc(var(--masks-size) + var(--border-size)) var(--border-size),
 
 
         0px 0px,
-        calc(var(--width) - var(--masks-size)) 0px,
+        100% 0px,
         0px 100%,
         100% 100%,
 
@@ -157,7 +157,7 @@
 
         calc(var(--masks-size)) calc(100% - (var(--masks-size)*2) - (var(--border-size)*2)),
         calc(var(--masks-size)) calc(100% - (var(--masks-size)*2) - (var(--border-size)*2)),
-        calc(100% - (var(--masks-size)*2) - (var(--border-size)*2)) calc(100% - (var(--border-size)*2)),
+        calc(100% - (var(--masks-size)*2) - (var(--border-size)*3)) calc(100% - (var(--border-size)*2)),
 
 
         var(--masks-size) var(--masks-size),

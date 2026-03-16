@@ -1,7 +1,7 @@
 import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
 import "./PixelInput.scss";
 
-type PixelTextAreaType = DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement> & { children?: ReactNode; "max-pixel-width"?: number; };
+type PixelTextAreaType = DetailedHTMLProps<React.TextareaHTMLAttributes<HTMLTextAreaElement>, HTMLTextAreaElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number; };
 
 export default function PixelTextArea({ children, ...rest }: PixelTextAreaType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-input";
@@ -30,8 +30,8 @@ export default function PixelTextArea({ children, ...rest }: PixelTextAreaType) 
 
         const setSize = () => {
             const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", box.width + "px");
-            div.style.setProperty("--height", box.height + "px");
+            div.style.setProperty("--width", (box.width) + "px");
+            div.style.setProperty("--height", (box.height) + "px");
         }
 
         const resizeListener = new ResizeObserver(() => {

@@ -42,7 +42,7 @@ import DeviceNotSupported from "../components/errorInfoComponents/notSupported/N
 import Restaurant from "../components/restaurant/Restaurant";
 import dayjs from "dayjs";
 import Tutorials, { type TutorialAction } from "../components/tutorials/Tutorials";
-import { MultiplayerServer, type PlayerJoined } from "../serverCommunication/ServerCommunication";
+import { MultiplayerServer, ServerCommunication, type PlayerJoined } from "../serverCommunication/ServerCommunication";
 import { MultiplayerContext } from "../contexts/MultiplayerContext";
 import MultiplayerSettingsOverlay from "../components/multiplayerSettingsOverlay/MultiplayerSettingsOverlay";
 import { useInput } from "../components/dialogs/InputDialogContext";
@@ -69,6 +69,7 @@ export default function App() {
     const [unreadChatMessageCount, setUnreadChatMessageCount] = useState<number>(1);
     const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
     const [multiplayerName, setMultiplayerName] = useState<string | null>(null);
+    const [isMultiplayerMuted, setMultiplayerMuted] = useState<boolean>(false);
 
     const server = multiplayerManagerRef.current?.getServerCommunication();
 
@@ -179,7 +180,7 @@ export default function App() {
         if (userLoggedIn) {
             if (!currentDish) {
                 Utils.error("Can't save this dish");
-                return;
+                return false;
             }
             await DishManager.updateEntireDish(userLoggedIn, currentDish as Dish);
         } else {
@@ -195,6 +196,7 @@ export default function App() {
                 savedMessageRef.current?.removeAttribute("data-open");
             }, 2000);
         }
+        return true;
     }
 
     function generateNewDishTitle() {
@@ -500,21 +502,23 @@ export default function App() {
 
         if (!name) return;
 
-        let response = null;
-        if (currentDish.type == "localDish") {
-            response = await multiplayerManagerRef.current.create({
-                mainFlavor: currentDish.mainFlavor,
-                name: currentDish.name,
-                publishState: "private",
-                share: undefined,
-                tracks: currentDish.data,
-                type: "dish",
-                uuid: currentDish.uuid,
-                volumes: currentDish.volumes
-            }, name, userLoggedIn?.jwt);
-        } else {
-            response = await multiplayerManagerRef.current.create(currentDish.uuid, name, userLoggedIn?.jwt);
+        const saveResponse = await saveCurrentDish();
+        if (!saveResponse) {
+            Utils.error("Failed to save the dish");
+            return;
         }
+
+        let response = await multiplayerManagerRef.current.create({
+            mainFlavor: currentDish.mainFlavor,
+            name: currentDish.name,
+            publishState: "private",
+            share: undefined,
+            tracks: currentDish.data,
+            type: "dish",
+            uuid: currentDish.uuid,
+            volumes: currentDish.volumes
+        }, name, userLoggedIn?.jwt);
+
         if (!response) return false;
 
 
@@ -572,11 +576,19 @@ export default function App() {
         //     return true;
         // };
 
+        await reloadMultiplayerDish(server);
+
         setIsMultiplayer(true);
         // setMultiplayerCode(code);
         setMultiplayerOverlayOpen(true);
         setMultiplayerName(name);
 
+        setGameState("createDish-create");
+
+        initDefaultsMultiplayer();
+    }
+
+    async function reloadMultiplayerDish(server: ServerCommunication) {
         const dishLoadResponse = await server.send<any, APIResponse<{ dish: MultiplayerServerDish }>>({
             type: "getDish"
         });
@@ -602,24 +614,54 @@ export default function App() {
             type: "dish",
             temporary: true
         }, true, 0, false);
-        setGameState("createDish-create");
-
-        initDefaultsMultiplayer();
     }
 
     async function initDefaultsMultiplayer() {
         if (!multiplayerManagerRef.current) return;
         const server = multiplayerManagerRef.current.getServerCommunication();
 
-        server.onRename = (newName) => {
+        server.onRename.add("main", (newName) => {
             setCurrentDishTitleToElement(newName);
             setCurrentDishName(newName);
-        };
+        });
 
-        server.onSave = () => {
+        server.onSave.add("main", () => {
             if (!multiplayerManagerRef.current?.isOwner()) return;
             saveCurrentDish();
+        });
+
+        server.onClose = () => {
+            multiplayerManagerRef.current?.close();
+            multiplayerManagerRef.current = null;
+            setGameState("mainMenu");
         };
+
+        server.onKick.add("main", () => {
+            multiplayerManagerRef.current?.close();
+            multiplayerManagerRef.current = null;
+            setGameState("mainMenu");
+            Utils.error("You got kicked!");
+        });
+
+        server.onMute.add("main", (is) => {
+            setMultiplayerMuted(is);
+            if (is) {
+                Utils.error("You got muted");
+            } else {
+                Utils.success("You got unmuted");
+            }
+        });
+
+        server.onViewOnly.add("main", async (is) => {
+            if (is) {
+                setGameState("createDish-create-viewonly");
+                Utils.error("You can now only view");
+            } else {
+                await reloadMultiplayerDish(server);
+                setGameState("createDish-create");
+                Utils.success("You can edit again");
+            }
+        });
 
         // server.onVolumeChanged = (newVolume, volumeSlot) => {
         //     setVolumes(volumes => {
@@ -649,7 +691,8 @@ export default function App() {
             setUnreadChatMessageCount,
             chatMessages,
             setChatMessages,
-            name: multiplayerName
+            name: multiplayerName,
+            isMultiplayerMuted
         }}>
             <CurrentDraggingElementTouch.Provider value={{ currentDraggingElement: currentDraggingElementRef, setDeselectAllCallback, deselectAll }}>
                 <TouchCheckerContext.Provider value={{ isTouch: "ontouchstart" in window }}>

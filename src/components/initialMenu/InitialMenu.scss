@@ -182,7 +182,7 @@
             // transform: scale(0, 0) translateY(100%);
             animation: fadeOut 0.3s ease-in-out 0ms 1 forwards;
             transform-origin: 100% 100%;
-            position: absolute;
+            position: absolute !important;
             bottom: 0;
             right: 0;
             padding: 20px;
@@ -193,6 +193,14 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 20px;
+
+            .user-name {
+                width: 100%;
+                font-size: clampDef(2.5em);
+                line-height: clampDef(1.2em);
+                text-align: center;
+            }
 
             button {
                 width: 100%;
@@ -205,6 +213,11 @@
                 background-color: $gray-700;
                 --background-color: $gray-700;
                 gap: 10px;
+                padding: 10px;
+                width: 100%;
+                font-size: clampDef(2em);
+                line-height: clampDef(1.2em);
+                text-align: center;
 
                 img {
                     width: 35px;

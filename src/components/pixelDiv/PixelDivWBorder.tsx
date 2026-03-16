@@ -16,8 +16,9 @@
 
 import { useEffect, useRef, type DetailedHTMLProps, type HTMLAttributes, type ReactNode } from "react";
 import PixelDiv from "./PixelDiv";
+import BGBorderDiv from "./BGBorderDivType";
 
-type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
+type PixelDivType = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number; };
 
 export default function PixelDivWBorder({ children, ...rest }: PixelDivType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div";
@@ -59,56 +60,7 @@ export default function PixelDivWBorder({ children, ...rest }: PixelDivType) {
     }, [divRef.current]);
 
     return <div {...rest} >
-        <BGDiv className="bg"></BGDiv>
-        {/* <div className="left"></div>
-        <div className="center"></div>
-        <div className="right"></div> */}
-        {children}
-    </div>
-}
-
-
-type BGDiv = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & { children?: ReactNode; "max-pixel-width"?: number; };
-
-function BGDiv({ children, ...rest }: BGDiv) {
-    rest.className = (rest.className ? rest.className : "") + " pixel-div";
-    const originalFunction = rest.ref;
-    const divRef = useRef<HTMLDivElement>(null);
-
-    rest.ref = (r) => {
-        if (originalFunction !== undefined) {
-            if (typeof originalFunction == "function") {
-                originalFunction?.(r);
-            } else {
-                if (originalFunction) originalFunction.current = r;
-            }
-        }
-        divRef.current = r;
-        // if (r && rest["max-pixel-width"]) {
-        //     r.style.setProperty("--max-pixel-width", rest["max-pixel-width"] + "px");
-        // } else if (r) {
-        //     r.style.setProperty("--max-pixel-width", "30px");
-        // }
-    }
-
-    // useEffect(() => {
-    //     const div = divRef.current;
-    //     if (!div) return;
-
-    //     const setSize = () => {
-    //         const box = div.getBoundingClientRect();
-    //         div.style.setProperty("--width", box.width + "px");
-    //         div.style.setProperty("--height", box.height + "px");
-    //     }
-
-    //     const resizeListener = new ResizeObserver(() => {
-    //         setSize();
-    //     });
-    //     resizeListener.observe(div);
-    //     setSize();
-    // }, [divRef.current]);
-
-    return <div {...rest} >
+        <BGBorderDiv max-pixel-width={rest["max-pixel-width"]} className="bg"></BGBorderDiv>
         {/* <div className="left"></div>
         <div className="center"></div>
         <div className="right"></div> */}

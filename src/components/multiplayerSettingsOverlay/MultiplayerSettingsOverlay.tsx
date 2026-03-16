@@ -58,8 +58,8 @@ export default function MultiplayerSettingsOverlay() {
                                     })
                                 };
 
-                                const mute = () => {
-                                    multiplayer.managerRef.current?.getServerCommunication().mute(player.endpointUUID);
+                                const mute = (is: boolean) => {
+                                    multiplayer.managerRef.current?.getServerCommunication().mute(player.endpointUUID, is);
                                     multiplayer.setPlayersJoined(playerJoined => {
                                         return playerJoined.map(lPlayer => {
                                             if (lPlayer.endpointUUID !== player.endpointUUID) return lPlayer;
@@ -71,8 +71,8 @@ export default function MultiplayerSettingsOverlay() {
                                     })
                                 }
 
-                                const viewOnly = () => {
-                                    multiplayer.managerRef.current?.getServerCommunication().viewOnly(player.endpointUUID);
+                                const viewOnly = (is: boolean) => {
+                                    multiplayer.managerRef.current?.getServerCommunication().viewOnly(player.endpointUUID, is);
                                     multiplayer.setPlayersJoined(playerJoined => {
                                         return playerJoined.map(lPlayer => {
                                             if (lPlayer.endpointUUID !== player.endpointUUID) return lPlayer;

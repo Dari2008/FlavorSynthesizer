@@ -32,6 +32,7 @@ export class MultiplayerServer {
 
     public close() {
         this.serverCommunication?.close();
+        this.serverCommunication = undefined;
     }
 
     private async joinLiveServer() {
@@ -119,9 +120,10 @@ export class BasicServerCommunication {
     private currentReqId: number = 0;
     private gameUUID: UUID;
     private endpointUUID: UUID;
+    public onClose: ((ev: CloseEvent | null) => void) | undefined;
     protected onUnprocessedMessage: ((data: any) => void) | undefined;
-    protected onClose: ((ev: CloseEvent) => void) | undefined;
     protected isOwner: boolean = false;
+    protected onInitialSetting: ((isMuted: boolean, isViewOnly: boolean) => void) | undefined;
 
     constructor(gameUUID: UUID, endpointUUID: UUID, isOwner: boolean) {
         this.gameUUID = gameUUID;
@@ -149,7 +151,7 @@ export class BasicServerCommunication {
     }
 
     private async onOpen() {
-        const response = await this.send({
+        const response = await this.send<any, { isMuted: boolean; isViewOnly: boolean; }>({
             type: "initial",
             gameUUID: this.gameUUID,
             endpointUUID: this.endpointUUID
@@ -157,7 +159,11 @@ export class BasicServerCommunication {
 
         if (response.status == "error") {
             console.log(response.message, response);
+            return;
         }
+
+        this.onInitialSetting?.(response.isMuted, response.isViewOnly)
+
     }
 
     private onError(ev: Event) {
@@ -209,23 +215,31 @@ export class ServerCommunication extends BasicServerCommunication {
     public onChatMessageReceive: ((message: ChatMessage) => void) | undefined;
     public onReceivedCompleteDish: ((dish: Dish) => void) | undefined;
 
-    public onFlavorAdded: ((trackUUID: UUID, flavorData: FlavorElement) => void) | undefined;
-    public onSynthLineAdded: ((synthLineUUID: UUID) => void) | undefined;
-    public onSynthLineRemoved: ((synthLineUUID: UUID) => void) | undefined;
-    public onFlavorsRemoved: ((selectedFlavors: UUID[]) => void) | undefined;
-    public onVolumeChanged: ((newVolume: number, volumeSlot: keyof DishVolumes) => void) | undefined;
-    public onChangeTrackVolume: ((newVolume: number, trackUUID: UUID) => void) | undefined;
-    public onFlavorsSelected: ((endpointUUID: UUID, flavorUUIDs: UUID[]) => void) | undefined;
-    public onSelectOnly: ((endpointUUID: UUID, flavorUUID: UUID) => void) | undefined;
-    public onFlavorsDeselected: ((endpointUUID: UUID, flavorUUIDs: UUID[]) => void) | undefined;
-    public onAllFlavorsDeselected: ((endpointUUID: UUID) => void) | undefined;
-    public onUpdatedFlavors: ((flavors: (FlavorElement & { trackUUID: UUID })[]) => void) | undefined;
-    public onRename: ((newName: string) => void) | undefined;
-    public onSave: (() => void) | undefined;
+    public onFlavorAdded = withEventList<((trackUUID: UUID, flavorData: FlavorElement) => void), [UUID, FlavorElement]>();
+    public onSynthLineAdded = withEventList<((synthLineUUID: UUID) => void), [UUID]>();
+    public onSynthLineRemoved = withEventList<((synthLineUUID: UUID) => void), [UUID]>();
+    public onFlavorsRemoved = withEventList<((selectedFlavors: UUID[]) => void), [UUID[]]>();
+    public onVolumeChanged = withEventList<((newVolume: number, volumeSlot: keyof DishVolumes) => void), [number, keyof DishVolumes]>();
+    public onChangeTrackVolume = withEventList<((newVolume: number, trackUUID: UUID) => void), [number, UUID]>();
+    public onFlavorsSelected = withEventList<((endpointUUID: UUID, flavorUUIDs: UUID[]) => void), [UUID, UUID[]]>();
+    public onSelectOnly = withEventList<((endpointUUID: UUID, flavorUUID: UUID) => void), [UUID, UUID]>();
+    public onFlavorsDeselected = withEventList<((endpointUUID: UUID, flavorUUIDs: UUID[]) => void), [UUID, UUID[]]>();
+    public onAllFlavorsDeselected = withEventList<((endpointUUID: UUID) => void), [UUID]>();
+    public onUpdatedFlavors = withEventList<((flavors: (FlavorElement & { trackUUID: UUID })[]) => void), [(FlavorElement & { trackUUID: UUID })[]]>();
+    public onRename = withEventList<((newName: string) => void), [string]>();
+    public onSave = withEventList<(() => void), []>();
+    public onMute = withEventList<((is: boolean) => void), [boolean]>();
+    public onViewOnly = withEventList<((is: boolean) => void), [boolean]>();
+    public onKick = withEventList<(() => void), []>();
+    private onInitalSettingsSet(isMuted: boolean, isViewOnly: boolean) {
+        if (isMuted) this.onMute.call(isMuted);
+        if (isViewOnly) this.onViewOnly.call(isViewOnly);
+    }
 
     constructor(gameUUID: UUID, endpointUUID: UUID, isOwner: boolean) {
         super(gameUUID, endpointUUID, isOwner);
         this.onUnprocessedMessage = this.processMessage;
+        this.onInitialSetting = this.onInitalSettingsSet;
     }
 
     private async processMessage(data: any) {
@@ -250,43 +264,55 @@ export class ServerCommunication extends BasicServerCommunication {
                 break;
 
             case "addFlavor":
-                this.onFlavorAdded?.(data.trackUUID, data.flavorData);
+                this.onFlavorAdded.call(data.trackUUID, data.flavorData);
                 break;
             case "addSynthLine":
-                this.onSynthLineAdded?.(data.synthLineUUID);
+                this.onSynthLineAdded.call(data.synthLineUUID);
                 break;
             case "removeSynthLine":
-                this.onSynthLineRemoved?.(data.synthLineUUID);
+                this.onSynthLineRemoved.call(data.synthLineUUID);
                 break;
             case "removeFlavors":
-                this.onFlavorsRemoved?.(data.selectedFlavors);
+                this.onFlavorsRemoved.call(data.selectedFlavors);
                 break;
             case "changeVolume":
-                this.onVolumeChanged?.(data.newVolume, data.volumeSlot);
+                this.onVolumeChanged.call(data.newVolume, data.volumeSlot);
                 break;
             case "changeTrackVolume":
-                this.onChangeTrackVolume?.(data.newVolume, data.trackUUID);
+                this.onChangeTrackVolume.call(data.newVolume, data.trackUUID);
                 break;
             case "selectFlavors":
-                this.onFlavorsSelected?.(data.endpointUUID, data.flavorUUIDs);
+                this.onFlavorsSelected.call(data.endpointUUID, data.flavorUUIDs);
                 break;
             case "selectOnly":
-                this.onSelectOnly?.(data.endpointUUID, data.flavorUUID);
+                this.onSelectOnly.call(data.endpointUUID, data.flavorUUID);
                 break;
             case "deselectFlavors":
-                this.onFlavorsDeselected?.(data.endpointUUID, data.flavorUUIDs);
+                this.onFlavorsDeselected.call(data.endpointUUID, data.flavorUUIDs);
                 break;
             case "deselectAllFlavors":
-                this.onAllFlavorsDeselected?.(data.endpointUUID);
+                this.onAllFlavorsDeselected.call(data.endpointUUID);
                 break;
             case "updateFlavors":
-                this.onUpdatedFlavors?.(data.flavors);
+                this.onUpdatedFlavors.call(data.flavors);
                 break;
             case "rename":
-                this.onRename?.(data.newName);
+                this.onRename.call(data.newName);
                 break;
             case "save":
-                this.onSave?.();
+                this.onSave.call();
+                break;
+            case "close":
+                this.onClose?.(null);
+                break;
+            case "kick":
+                this.onKick.call();
+                break;
+            case "mute":
+                this.onMute.call(data.is);
+                break;
+            case "viewOnly":
+                this.onViewOnly.call(data.is);
                 break;
 
             default:
@@ -463,7 +489,7 @@ export class ServerCommunication extends BasicServerCommunication {
     }
 
     public async kick(playerEndpointUUID: UUID) {
-        if (this.isOwner) {
+        if (!this.isOwner) {
             return;
         }
         const response = await this.send({
@@ -477,13 +503,14 @@ export class ServerCommunication extends BasicServerCommunication {
         return true;
     }
 
-    public async mute(playerEndpointUUID: UUID) {
-        if (this.isOwner) {
+    public async mute(playerEndpointUUID: UUID, is: boolean) {
+        if (!this.isOwner) {
             return;
         }
         const response = await this.send({
             type: "mute",
-            playerEndpointUUID
+            playerEndpointUUID,
+            is
         });
         if (response.status == "error") {
             Utils.error(response.message);
@@ -492,13 +519,14 @@ export class ServerCommunication extends BasicServerCommunication {
         return true;
     }
 
-    public async viewOnly(playerEndpointUUID: UUID) {
-        if (this.isOwner) {
+    public async viewOnly(playerEndpointUUID: UUID, is: boolean) {
+        if (!this.isOwner) {
             return;
         }
         const response = await this.send({
             type: "viewOnly",
-            playerEndpointUUID
+            playerEndpointUUID,
+            is
         });
         if (response.status == "error") {
             Utils.error(response.message);
@@ -579,4 +607,22 @@ export type PlayJoinScope = {
 export type ServerFlavorSelected = {
     flavorUUID: UUID;
     trackUUID: UUID;
+}
+
+
+function withEventList<E extends (...a: T) => void, T extends any[]>() {
+    let list: {
+        [key: string]: E;
+    } = {}
+    return {
+        call: (...data: T) => {
+            Object.values(list).forEach(e => e(...data));
+        },
+        add: (key: string, f: E) => {
+            list[key] = f;
+        },
+        remove: (key: string) => {
+            delete list[key];
+        },
+    }
 }

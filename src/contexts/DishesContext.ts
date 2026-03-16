@@ -4,7 +4,7 @@ import type { Dish, LocalDish } from "../@types/User"
 type DishesContextType = {
     dishes: (Dish | LocalDish)[];
     setDishes: React.Dispatch<React.SetStateAction<(Dish | LocalDish)[]>>;
-    saveCurrentDish: () => Promise<void> | null;
+    saveCurrentDish: () => (Promise<boolean> | null);
     deleteDisheWithUUID: (uuid: string) => void;
     forkCurrentDish: () => void;
 }

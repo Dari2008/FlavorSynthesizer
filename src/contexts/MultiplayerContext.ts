@@ -20,6 +20,7 @@ type MultiplayerContextType = {
     setChatMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
     chatMessages: ChatMessage[];
     name: string | null;
+    isMultiplayerMuted: boolean;
 };
 
 export const MultiplayerContext = createContext<MultiplayerContextType | null>(null);

@@ -39,11 +39,14 @@
         border-radius: 20px;
         justify-self: center;
         align-self: center;
-        background-color: rgba(0, 0, 0, 0.9);
+        // background-color: rgba(0, 0, 0, 0.9);
         height: calc(100% - 120px);
-        border: 1px solid var(--secondary-color);
+        // border: 1px solid var(--secondary-color);
         box-shadow: 0 0 30px 1px rgba(var(--main-color-rgb), 0.4);
         scrollbar-color: $gray-400 $gray-800;
+
+        --border-color: var(--secondary-color);
+        --border-size: 1px;
 
         // display: grid;
         // grid-template-columns: calc(50% - #{calc($gap/4)}) calc(50% - #{calc($gap/4)});
@@ -64,9 +67,9 @@
         // grid-column-gap: 20px;
         // grid-row-gap: 20px;  
 
-        >.bg {
-            background-color: rgba(0, 0, 0, 0.5) !important;
-        }
+        // >.bg {
+        //     background-color: rgba(0, 0, 0, 0.5) !important;
+        // }
 
         >.image-bg {
             position: absolute;

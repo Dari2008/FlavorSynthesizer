@@ -513,7 +513,10 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (targetElement != null) {
                 interPlayerDrag.originalStartPos.current = [targetElement.from, targetElement.to];
 
-                server?.selectFlavors([targetElement.uuid]);
+                (async () => {
+                    // await server?.deselectAllFlavors();
+                    server?.selectFlavors([targetElement.uuid]);
+                })();
 
             }
             // repaint();
@@ -659,6 +662,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (isReadonly) return;
 
             if (!didDrag) return;
+            const clickSelectedFlavors = synthLines.synthLines.map(e => e.elements.filter(e => synthSelector.selectedElementsRef.current.includes(e.uuid))).flatMap(e => e.map(s => s.uuid));
             let selectedFlavors = synthLines.synthLines.map(e => {
                 const flavors = e.elements.filter(e => synthSelector.selectedElementsRef.current.includes(e.uuid) || currentDraggingElementRef.current?.uuid == e.uuid || targetElement?.uuid == e.uuid);
                 if (flavors.length == 0) return undefined;
@@ -667,6 +671,13 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     trackUUID: e.uuid
                 };
             }).filter(e => !!e).flat();
+
+            if (targetElement) {
+                console.log(targetElement.uuid, clickSelectedFlavors);
+                if (!clickSelectedFlavors.includes(targetElement.uuid)) {
+                    server?.deselectFlavors([targetElement.uuid]);
+                }
+            }
 
             if (startPosses !== undefined && startPosses[0] != undefined && selectedFlavors[0] != undefined) {
                 const offset = selectedFlavors[0].flavors[0].from - startPosses[0].flavors[0].from;
@@ -781,8 +792,10 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     server?.selectOnly(foundElement.uuid);
                 }
 
-
-                server?.selectFlavors([foundElement.uuid]);
+                (async () => {
+                    await server?.deselectAllFlavors();
+                    server?.selectFlavors([foundElement.uuid]);
+                })();
 
                 // synthLines.repaintAll();
             } else {
@@ -810,11 +823,13 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     server?.removeFlavors();
                     synthLines.deleteSelectedElements();
                     change.changed();
+                    renderElementsWDebounce();
                     // synthLines.repaintAll();
                     break;
                 case "Escape":
                     synthSelector.selectedElementsRef.current = [];
                     server?.deselectAllFlavors();
+                    renderElementsWDebounce();
                     // synthLines.repaintAll();
                     break;
             }
@@ -893,7 +908,12 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         const onReleaseExternalElement = (xOrg: number, _yOrg: number) => {
             if (isReadonly) return;
             if (!interPlayerDrag.originSynthLine.current) return;
+            const clickSelectedFlavors = synthLines.synthLines.map(e => e.elements.filter(e => synthSelector.selectedElementsRef.current.includes(e.uuid))).flatMap(e => e.map(s => s.uuid));
+
             if (interPlayerDrag.ref.current != null) {
+                if (!clickSelectedFlavors.includes(interPlayerDrag.ref.current)) {
+                    server?.deselectFlavors([interPlayerDrag.ref.current]);
+                }
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
                 const x = xOrg - canvasBox.left;
@@ -994,6 +1014,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
 
         const onTouchStartWrapper = (e: TouchEvent) => {
+            if (isReadonly) return;
             const touches = Utils.getTouches(e);
             if (touches.length == 1) {
                 startTime.current = Date.now();
@@ -1062,6 +1083,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         };
 
         const onTouchEndWrapper = (e: TouchEvent) => {
+            if (isReadonly) return;
             const touches = Utils.getTouches(e);
             if (touches.length == 1) {
                 const originalTouch = touches[0];
@@ -1118,6 +1140,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         let lastDeltaZoom = -1;
 
         const onTouchMoveWrapper = (e: TouchEvent) => {
+            if (isReadonly) return;
             const touches = Utils.getTouches(e);
             if (touches.length == 1) {
                 const touch = getTouch(touches, 0);

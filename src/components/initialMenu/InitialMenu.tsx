@@ -6,6 +6,8 @@ import { useGameState } from "../../contexts/GameStateContext";
 import { useUser } from "../../contexts/UserContext";
 import { useLoadingAnimation } from "../../contexts/LoadingAnimationContext";
 import PixelInput from "../pixelDiv/PixelInput";
+import PixelDiv from "../pixelDiv/PixelDiv";
+import PixelButton from "../pixelDiv/PixelButton";
 
 export default function InitialMenu() {
 
@@ -87,6 +89,12 @@ export default function InitialMenu() {
         }
     };
 
+    const logout = () => {
+        localStorage.removeItem("user");
+        location.reload();
+    };
+
+
 
     return <div className="main-menu">
         <h1>Flavor Synthesizer</h1>
@@ -95,23 +103,24 @@ export default function InitialMenu() {
             <img src="./mainMenu/user-profile.png" onClick={() => setDropDownOpen(!isDropDownOpen)} className="user-icon" alt="Image of chefs hat" />
             {
                 user.user != null && <>
-                    <div className="dropdown">
-                        <span className="label user-name">{ }</span>
-                        <button className="settings" onClick={() => 0}>
+                    <PixelDiv className="dropdown">
+                        <span className="label user-name">{user.user.displayName}</span>
+                        {/* <button className="settings" onClick={() => 0}>
                             <img src="./mainMenu/user-dropdown/settings.png" alt="Settings Icon" />
                             <span className="label">Setting</span>
-                        </button>
-                    </div>
+                        </button> */}
+                        <PixelButton className="logout" onClick={logout}>Logout</PixelButton>
+                    </PixelDiv>
                 </>
                 ||
                 <>
-                    <div className="dropdown login-dropdown">
+                    <PixelDiv className="dropdown login-dropdown">
                         <img src="./mainMenu/user-dropdown/login.png" alt="" className="login-icon" />
                         <h3>{isLoginOrRegister == "login" ? "Login" : "Register"}</h3>
                         <PixelInput type="text" placeholder={isLoginOrRegister == "login" ? "Username / E-Mail" : "Username"} className="username" ref={usernameRef} />
                         <PixelInput type="password" placeholder="Password" className="password" ref={passwordRef} />
                         {isLoginOrRegister == "register" && <PixelInput type="email" placeholder="E-Mail" className="email" ref={emailRef} />}
-                        <button className="action" onClick={() => (isLoginOrRegister == "login" ? login : register)()}>{isLoginOrRegister == "login" ? "Login" : "Register"}</button>
+                        <PixelButton className="action" onClick={() => (isLoginOrRegister == "login" ? login : register)()}>{isLoginOrRegister == "login" ? "Login" : "Register"}</PixelButton>
                         {
                             isLoginOrRegister == "login" && <>
                                 <span className="below">
@@ -127,7 +136,7 @@ export default function InitialMenu() {
                                 </span>
                             </>
                         }
-                    </div>
+                    </PixelDiv>
 
                 </>
             }

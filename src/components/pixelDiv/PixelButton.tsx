@@ -17,8 +17,9 @@
 import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
 import "./PixelButton.scss";
 import PixelDiv from "./PixelDiv";
+import BGBorderDiv from "./BGBorderDivType";
 
-type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode; "max-pixel-width"?: number; };
+type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number; };
 
 export default function PixelButton({ children, ...rest }: PixelButtonType) {
     rest.className = (rest.className ? rest.className : "") + " pixel-div pixel-button";
@@ -49,8 +50,8 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
 
         const setSize = () => {
             const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", box.width + "px");
-            div.style.setProperty("--height", box.height + "px");
+            div.style.setProperty("--width", (box.width) + "px");
+            div.style.setProperty("--height", (box.height) + "px");
         }
 
         const resizeListener = new ResizeObserver(() => {
@@ -62,7 +63,7 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
     }, [divRef.current]);
 
     return <button {...rest} >
-        <PixelDiv className="bg"></PixelDiv>
+        <BGBorderDiv className="bg"></BGBorderDiv>
         {/* <div className="left"></div>
         <div className="center"></div>
         <div className="right"></div> */}
