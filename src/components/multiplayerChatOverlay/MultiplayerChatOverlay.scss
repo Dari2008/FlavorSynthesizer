@@ -13,6 +13,7 @@
     z-index: -1;
     transition: opacity 0.3s ease-in-out;
 
+
     &[data-visible] {
         opacity: 1;
         z-index: 100000;
@@ -48,6 +49,7 @@
         background-size: 100% 100%, 50% 50%;
         padding: 20px;
 
+        --max-pixel-width: 40px;
         --border-size: 2px;
         --border-color: #{$themeColor3};
 
@@ -176,6 +178,7 @@
             display: flex;
             padding: 10px;
             transform: translateX(-50%);
+            --max-pixel-width: 20px;
 
             &[data-is-muted] {
                 opacity: 0.4 !important;
@@ -210,6 +213,7 @@
                 margin-block: auto;
                 margin-right: auto;
                 transition: opacity 0.2s ease-in-out;
+                --max-pixel-width: 10px;
 
                 &[disabled] {
                     opacity: 0.6;

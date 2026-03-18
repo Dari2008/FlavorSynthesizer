@@ -123,12 +123,12 @@ export default function Restaurant() {
             <>
 
                 <h2>Menu</h2>
-                <PixelDiv className="filters">
+                <PixelDiv max-pixel-width={20} className="filters">
                     <div className="background"></div>
-                    <PixelButton className="toggle-button" onClick={() => onClick("newest")} ref={newestButtonRef}>Newest</PixelButton>
-                    <PixelButton className="toggle-button" onClick={() => onClick("oldest")} ref={oldestButtonRef}>Oldest</PixelButton>
-                    <PixelButton className="toggle-button" onClick={() => onClick("flavorCount")} ref={flavorCountButtonRef}>Flavor Count</PixelButton>
-                    <PixelButton className="clear" onClick={clearAllSelected} ref={clearButtonRef}>x</PixelButton>
+                    <PixelButton max-pixel-width={15} className="toggle-button" onClick={() => onClick("newest")} ref={newestButtonRef}>Newest</PixelButton>
+                    <PixelButton max-pixel-width={15} className="toggle-button" onClick={() => onClick("oldest")} ref={oldestButtonRef}>Oldest</PixelButton>
+                    <PixelButton max-pixel-width={15} className="toggle-button" onClick={() => onClick("flavorCount")} ref={flavorCountButtonRef}>Flavor Count</PixelButton>
+                    <PixelButton max-pixel-width={15} className="clear" onClick={clearAllSelected} ref={clearButtonRef}>x</PixelButton>
                 </PixelDiv>
             </>
 
@@ -147,26 +147,26 @@ export default function Restaurant() {
                         dishes.map(dish => <RestaurantDish key={dish.uuid} dish={dish} startedPlayback={startedPlayback} stopPlaybackRef={addStopRef} />)
                     }
                 </div>
-                <PixelDiv className="pages">
+                <PixelDiv max-pixel-width={15} className="pages">
                     <div className="bg"></div>
                     {
-                        currentPage > 0 && <PixelButton onClick={() => loadPage(0)}>{1}</PixelButton>
+                        currentPage > 0 && <PixelButton max-pixel-width={7} onClick={() => loadPage(0)}>{1}</PixelButton>
                     }
                     {
                         currentPage - 1 > 0 && <>
                             <div className="gap"></div>
-                            <PixelButton onClick={() => loadPage(currentPage - 1)}>{currentPage - 1 + 1}</PixelButton>
+                            <PixelButton max-pixel-width={7} onClick={() => loadPage(currentPage - 1)}>{currentPage - 1 + 1}</PixelButton>
                         </>
                     }
-                    <PixelButton className="currentPage">{currentPage + 1}</PixelButton>
+                    <PixelButton max-pixel-width={7} className="currentPage">{currentPage + 1}</PixelButton>
                     {
                         currentPage + 1 < pageCount - 1 && <>
-                            <PixelButton onClick={() => loadPage(currentPage + 1)}>{currentPage + 1 + 1}</PixelButton>
+                            <PixelButton max-pixel-width={7} onClick={() => loadPage(currentPage + 1)}>{currentPage + 1 + 1}</PixelButton>
                             <div className="gap"></div>
                         </>
                     }
                     {
-                        pageCount > 1 && currentPage < pageCount - 1 && <PixelButton onClick={() => loadPage(pageCount - 1)}>{pageCount}</PixelButton>
+                        pageCount > 1 && currentPage < pageCount - 1 && <PixelButton max-pixel-width={7} onClick={() => loadPage(pageCount - 1)}>{pageCount}</PixelButton>
                     }
                 </PixelDiv>
             </div>

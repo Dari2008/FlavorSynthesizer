@@ -31,13 +31,16 @@ export default function Loading() {
 
             if (LOADING_ANIMATION_IMAGES[index]) {
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(
-                    LOADING_ANIMATION_IMAGES[index],
-                    0,
-                    0,
-                    canvas.width,
-                    canvas.height
-                );
+                try {
+                    ctx.drawImage(
+                        LOADING_ANIMATION_IMAGES[index],
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
+                } catch (ex) {
+                }
             }
 
 

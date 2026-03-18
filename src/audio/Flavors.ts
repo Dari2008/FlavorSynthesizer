@@ -48,12 +48,12 @@ const MAIN_FLAVORS: MainFlavorFileMusic[] = [
     // new Sour(),
     // new Spicy(),
     // new Sweet()
-    new MainFlavorFileMusic("mainFlavors/finished/bitter_finished.mp3", "Bitter"),
-    new MainFlavorFileMusic("mainFlavors/finished/salty_finished.mp3", "Salty"),
-    new MainFlavorFileMusic("mainFlavors/finished/savory_finished.mp3", "Savory"),
-    new MainFlavorFileMusic("mainFlavors/finished/sour_finished.mp3", "Sour"),
-    new MainFlavorFileMusic("mainFlavors/finished/spicy_finished.mp3", "Spicy"),
-    new MainFlavorFileMusic("mainFlavors/finished/sweet_finished.mp3", "Sweet"),
+    new MainFlavorFileMusic("bitter_finished.mp3", "Bitter"), // mainFlavors/finished/
+    new MainFlavorFileMusic("salty_finished.mp3", "Salty"), // mainFlavors/finished/
+    new MainFlavorFileMusic("savory_finished.mp3", "Savory"), // mainFlavors/finished/
+    new MainFlavorFileMusic("sour_finished.mp3", "Sour"), // mainFlavors/finished/
+    new MainFlavorFileMusic("spicy_finished.mp3", "Spicy"), // mainFlavors/finished/
+    new MainFlavorFileMusic("sweet_finished.mp3", "Sweet"), // mainFlavors/finished/
 ];
 
 export function getFlavorByName(name: string) {

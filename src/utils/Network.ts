@@ -26,7 +26,7 @@ export class Network {
         }
     }
 
-    public static async loadZip(url: RequestInfo | URL, props: RequestInit, onProgress: (progress: number, total: number) => void, onFileLoaded: (relativePath: string, file: JSZip.JSZipObject) => void): Promise<null | true> {
+    public static async loadZip(url: RequestInfo | URL, props: RequestInit, onProgress: (progress: number, total: number) => void, onFileLoaded: (relativePath: string, file: JSZip.JSZipObject) => Promise<void>): Promise<null | true> {
 
         const response = await fetch(url, props);
         if (!response.body) return null;
@@ -58,9 +58,13 @@ export class Network {
         }
 
         const zipFile = await JSZip.loadAsync(chunksAll);
+        const promises: Promise<void>[] = [];
         zipFile.forEach((relativePath, file) => {
-            onFileLoaded(relativePath, file);
+            promises.push(onFileLoaded(relativePath, file));
         });
+
+        await Promise.allSettled(promises);
+
         return true;
     }
 

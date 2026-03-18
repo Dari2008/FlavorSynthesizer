@@ -1,7 +1,7 @@
 import * as Tone from "tone";
 import type { FlavorElement } from "./PlayerTrack";
 import { getFlavorByName } from "../../audio/Flavors";
-import type { FlavorFileMusic } from "../../audio/FlavorMusic";
+import type { CustomFlavorMusic, FlavorFileMusic } from "../../audio/FlavorMusic";
 import type { DishVolumes } from "../../@types/User";
 
 export class ElementPlayer {
@@ -26,7 +26,7 @@ export class ElementPlayer {
     public setVolumes(volumes: DishVolumes) {
         this.volumes = volumes;
         this.players.forEach(({ player }) => {
-            player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
+            player.getPlayer().volume.value = this.getVolumeFor("flavors");
         });
     }
 
@@ -80,13 +80,13 @@ export class ElementPlayer {
         const startTime = Tone.getTransport().seconds;
         this.players.forEach(({ element, player, playAt }) => {
             if (element.to <= start) return;
-            player.getPlayers().forEach(e => e.volume.value = this.getVolumeFor("flavors"));
+            player.getPlayer().volume.value = this.getVolumeFor("flavors");
             // const startPos = Math.max(start + element.from, start);
             playAt(element.from + startTime, Math.max((offset - element.from), 0), element.to - element.from);
         });
         const lastElement = this.findLastPlayer();
         if (lastElement) {
-            lastElement.player.getPlayer(110).onstop = () => {
+            lastElement.player.getPlayer().onstop = () => {
                 this.onStop();
             };
             if ((lastElement.element.to + Tone.now()) <= start) {
@@ -118,7 +118,7 @@ export class ElementPlayer {
 }
 
 type ElementPlayerPlayer = {
-    player: FlavorFileMusic;
+    player: FlavorFileMusic | CustomFlavorMusic;
     element: FlavorElement & { lineUuid: string };
     playAt: (startPos: number, offset: number, duration: number) => void;
 }

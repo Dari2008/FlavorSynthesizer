@@ -15,7 +15,7 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
     const flavorsButtonRef = useRef<HTMLButtonElement>(null);
     const codeButtonRef = useRef<HTMLButtonElement>(null);
     const urlButtonRef = useRef<HTMLButtonElement>(null);
-    const timeoutRef = useRef<number>(-1);
+    const timeoutRef = useRef<NodeJS.Timeout>(null);
 
     const hasShareOptions = dish && (dish as Dish).publishState == "public" && (dish as Dish).share;
 
@@ -75,12 +75,12 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
 
         const showCopiedText = (el: HTMLButtonElement | null) => {
             if (el) {
-                if (timeoutRef.current != -1) {
+                if (timeoutRef.current != null) {
                     if (flavorsButtonRef.current) flavorsButtonRef.current.textContent = "Copy"
                     if (codeButtonRef.current) codeButtonRef.current.textContent = "Copy"
                     if (urlButtonRef.current) urlButtonRef.current.textContent = "Copy"
                     clearTimeout(timeoutRef.current);
-                    timeoutRef.current = -1;
+                    timeoutRef.current = null;
                 }
 
                 el.textContent = "Copyied!"
@@ -105,12 +105,13 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
             navigator.clipboard.writeText(str);
         }
 
-        return <PixelLI className="dish-list-item-wrapper" max-pixel-width={40} data-list-entry-uuid={dish.uuid} onClick={clickedOpen} ref={shareOptionsLiRef}>
-            <PixelDiv max-pixel-width={40} className={"dish-list-item" + (((dish as any).publishState ?? "private") == "private" ? "" : " public")} data-list-entry-uuid={dish.uuid}>
+        return <PixelLI className="dish-list-item-wrapper" max-pixel-width={30} data-list-entry-uuid={dish.uuid} onClick={clickedOpen} ref={shareOptionsLiRef}>
+            <PixelDiv max-pixel-width={30} className={"dish-list-item" + (((dish as any).publishState ?? "private") == "private" ? "" : " public")} data-list-entry-uuid={dish.uuid}>
                 {defaultStruct}
+                <span className="foldout-info">Share Info</span>
             </PixelDiv>
-            <PixelDiv max-pixel-width={40} className="foldout" ref={shareOptionsFoldout}>
-                <PixelDiv max-pixel-width={40} className="info flavors">
+            <PixelDiv max-pixel-width={30} className="foldout" ref={shareOptionsFoldout}>
+                <PixelDiv max-pixel-width={15} className="info flavors">
                     <div className="content">
                         {
                             ((dish as any).share.flavors as Flavor[]).map((flavor, i) => {
@@ -119,10 +120,10 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
                         }
                     </div>
                     <div className="buttons">
-                        <PixelButton onClick={copyFlavors} ref={flavorsButtonRef}>Copy</PixelButton>
+                        <PixelButton max-pixel-width={10} onClick={copyFlavors} ref={flavorsButtonRef}>Copy</PixelButton>
                     </div>
                 </PixelDiv>
-                <PixelDiv max-pixel-width={40} className="info code">
+                <PixelDiv max-pixel-width={15} className="info code">
                     <div className="content">
                         {
                             ((dish as any).share.code as Digit[]).map((digit, i) => {
@@ -131,17 +132,17 @@ export default function DishListItem({ dish, currentPlayingUUID, playDish, progr
                         }
                     </div>
                     <div className="buttons">
-                        <PixelButton onClick={copyCode} ref={codeButtonRef}>Copy</PixelButton>
+                        <PixelButton max-pixel-width={10} onClick={copyCode} ref={codeButtonRef}>Copy</PixelButton>
                     </div>
                 </PixelDiv>
-                <PixelDiv max-pixel-width={40} className="info url">
+                <PixelDiv max-pixel-width={15} className="info url">
                     <div className="content">
                         {
                             "https://" + location.hostname + "/?code=" + ((dish as any).share.code as Digit[]).join("")
                         }
                     </div>
                     <div className="buttons">
-                        <PixelButton onClick={copyUrl} ref={urlButtonRef}>Copy</PixelButton>
+                        <PixelButton max-pixel-width={10} onClick={copyUrl} ref={urlButtonRef}>Copy</PixelButton>
                     </div>
                 </PixelDiv>
             </PixelDiv>

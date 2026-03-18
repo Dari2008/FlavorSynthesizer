@@ -14,9 +14,8 @@
 //     </div>
 // }
 
-import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
+import { useRef, type DetailedHTMLProps, type ReactNode } from "react";
 import "./PixelButton.scss";
-import PixelDiv from "./PixelDiv";
 import BGBorderDiv from "./BGBorderDivType";
 
 type PixelButtonType = DetailedHTMLProps<React.ButtonHTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number; };
@@ -43,24 +42,6 @@ export default function PixelButton({ children, ...rest }: PixelButtonType) {
             r.style.setProperty("--max-pixel-width", "30px");
         }
     }
-
-    useEffect(() => {
-        const div = divRef.current;
-        if (!div) return;
-
-        const setSize = () => {
-            const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", (box.width) + "px");
-            div.style.setProperty("--height", (box.height) + "px");
-        }
-
-        const resizeListener = new ResizeObserver(() => {
-            setSize();
-        });
-        resizeListener.observe(div);
-        setSize();
-
-    }, [divRef.current]);
 
     return <button {...rest} >
         <BGBorderDiv className="bg"></BGBorderDiv>

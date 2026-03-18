@@ -110,9 +110,40 @@ $maxContentWidth: 90vw;
 //     mask-repeat: no-repeat;
 // }
 
+// Last
+// .pixeled-div {
+//     --masks-size: min(calc(var(--height) * 3 / 13), var(--max-pixel-width, 100%));
+
+//     mask-image:
+//         $MASK_TOP_LEFT_PIXELATED,
+//         $MASK_TOP_RIGHT_PIXELATED,
+//         $MASK_BOTTOM_LEFT_PIXELATED,
+//         $MASK_BOTTOM_RIGHT_PIXELATED,
+//         linear-gradient(to right, black 0%, black 100%),
+//         linear-gradient(to right, black 0px, black 100%); //calc(var(--width) - (var(--masks-size) * 2))
+
+//     mask-position: 0px 0px,
+//         100% 0px,
+//         0px 100%,
+//         100% 100%,
+//         0px var(--masks-size),
+//         var(--masks-size) 0px;
+
+//     mask-size:
+//         var(--masks-size) var(--masks-size),
+//         var(--masks-size) var(--masks-size),
+//         var(--masks-size) var(--masks-size),
+//         var(--masks-size) var(--masks-size),
+//         100% calc(var(--height) - (var(--masks-size) * 2)),
+//         calc(var(--width) - (var(--masks-size) * 2)) 100%;
+
+//     mask-mode: alpha;
+//     mask-repeat: no-repeat;
+// }
+
 
 .pixeled-div {
-    --masks-size: min(calc(var(--height) * 3 / 13), var(--max-pixel-width, 100%));
+    --masks-size: max(5px, var(--max-pixel-width, 15px));
 
     mask-image:
         $MASK_TOP_LEFT_PIXELATED,
@@ -134,12 +165,15 @@ $maxContentWidth: 90vw;
         var(--masks-size) var(--masks-size),
         var(--masks-size) var(--masks-size),
         var(--masks-size) var(--masks-size),
-        100% calc(var(--height) - (var(--masks-size) * 2)),
-        calc(var(--width) - (var(--masks-size) * 2)) 100%;
+        100% calc(100% - (var(--masks-size) * 2)),
+        calc(100% - (var(--masks-size) * 2)) 100%;
 
     mask-mode: alpha;
     mask-repeat: no-repeat;
 }
+
+
+
 
 // .pixeled-div {
 //     --masks-width: min(calc(var(--height) * 3 / 13), var(--max-pixel-width, 100%));

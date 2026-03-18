@@ -1,7 +1,7 @@
 import { Player, } from "tone";
 import * as Tone from "tone";
-import { FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
-import { loadAndSaveResource } from "../components/ResourceSaver";
+import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type FlavorColors, type MainFlavor } from "../@types/Flavors";
+import { getResourceByName } from "../components/ResourceSaver";
 import type { DishVolumes } from "../@types/User";
 
 const ROOT_FILE_DIR = "./flavors/audio/"
@@ -9,9 +9,7 @@ const ROOT_FILE_DIR = "./flavors/audio/"
 const FADE_TIME = 0.1;
 
 var FILES_CACHE: {
-    [key: string]: {
-        [key in BPM]: Promise<string>;
-    };
+    [key: string]: Promise<string>;
 } = (window as any).FILES_CACHE ?? {};
 (window as any).FILES_CACHE = FILES_CACHE;
 
@@ -27,11 +25,10 @@ var MUSIC_PLAYERS: Player[] = [];
 
 export class FlavorFileMusic {
     public index: number | string;
-    private files: {
-        [key in BPM]: Player;
-    };
+    private file: Player;
     public NAME: Flavor;
     public imageSrc: string;
+    public colors: string[];
 
     private loadedAllPromise: Promise<Player[]> | null = null;
     private promises: Promise<Player>[] = [];
@@ -39,8 +36,9 @@ export class FlavorFileMusic {
     constructor(index: number | string, name: Flavor, load: boolean = false) {
         this.index = index;
         this.NAME = name;
+        this.colors = FLAVOR_COLOR[name];
 
-        this.files = {} as any;
+        this.file = {} as any;
         this.imageSrc = FLAVOR_IMAGES[name];
 
         if (load) {
@@ -49,70 +47,54 @@ export class FlavorFileMusic {
     }
 
     public connect(recorder: Tone.Recorder) {
-        Object.values(this.files).forEach(e => e.connect(recorder));
+        this.file.connect(recorder);
     }
 
-    public async downloadSingle(bpm: BPM): Promise<void> {
-        if (!FILES_CACHE[this.NAME]) FILES_CACHE[this.NAME] = {} as any;
-        if (FILES_CACHE[this.NAME][bpm] !== undefined) return;
+    public async download(): Promise<void> {
+        if (FILES_CACHE[this.NAME] !== undefined) return;
 
-        // Only create a new promise if it doesn't exist yet
-        if (!FILES_CACHE[this.NAME][bpm as BPM]) {
-            const file = ROOT_FILE_DIR + "new110BPM/out/" + this.index + ".wav";
-            const dbPath = "bpm_" + bpm + "_index_" + this.index;
-            FILES_CACHE[this.NAME][bpm as BPM] = loadAndSaveResource("audio", dbPath, file);
+        if (!FILES_CACHE[this.NAME]) {
+            // const file = ROOT_FILE_DIR + "new110BPM/out/" + this.index + ".wav";
+            const dbPath = this.index + ".wav";
+            FILES_CACHE[this.NAME] = getResourceByName("flavors", dbPath);
         }
 
-        const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
-        this.files[bpm as BPM] = new Player();
+        const base64 = await FILES_CACHE[this.NAME];
+        this.file = new Player();
         this.promises.push(new Promise<any>(async (res) => {
-            this.files[bpm as BPM].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
-            await new Promise<void>(res => (this.files[bpm as BPM] && (this.files[bpm as BPM].buffer.onload = () => res()) && (this.files[bpm as BPM].buffer.loaded && res())));
-            res(this.files[bpm as BPM]);
+            this.file.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+            await new Promise<void>(res => (this.file && (this.file.buffer.onload = () => res()) && (this.file.buffer.loaded && res())));
+            res(this.file);
         }));
-        this.files[bpm as BPM].fadeIn = FADE_TIME;
-        this.files[bpm as BPM].fadeOut = FADE_TIME;
-        this.files[bpm as BPM].autostart = false;
-        this.files[bpm as BPM].toDestination();
+        this.file.fadeIn = FADE_TIME;
+        this.file.fadeOut = FADE_TIME;
+        this.file.autostart = false;
+        this.file.toDestination();
         this.loadedAllPromise = Promise.all(this.promises);
     }
 
-    public async download() {
-        let all = [];
-        for (const bpm of BPM_VALS as BPM[]) {
-            all.push(this.downloadSingle(bpm));
-        }
-        await Promise.allSettled(all);
-    }
 
-    public play(bpm: BPM) {
-        // Tone.Transport.stop();
-        // Tone.Transport.bpm.value = bpm;
+    public play() {
         this.stopAllBpms();
-
-        // Tone.Transport.start();
-        // this.files[bpm].toDestination();
-        this.files[bpm].unsync().start(Tone.now());
-        MUSIC_PLAYERS.push(this.files[bpm]);
+        this.file.unsync().start(Tone.now());
+        MUSIC_PLAYERS.push(this.file);
 
     }
 
     public async clone(loop: boolean = false): Promise<FlavorFileMusic> {
         const clone = new FlavorFileMusic(this.index, this.NAME, false);
-        clone.files = {} as any;
+        clone.file = {} as any;
 
-        for (const bpm of [110]) {
-            const base64 = await FILES_CACHE[clone.NAME][bpm as BPM];
-            const player = new Player();
-            player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
-            await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
-            player.fadeIn = FADE_TIME;
-            player.fadeOut = FADE_TIME;
-            player.toDestination();
-            player.autostart = false;
-            player.loop = loop;
-            clone.files[bpm as BPM] = player;
-        }
+        const base64 = await FILES_CACHE[clone.NAME];
+        const player = new Player();
+        player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+        await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
+        player.fadeIn = FADE_TIME;
+        player.fadeOut = FADE_TIME;
+        player.toDestination();
+        player.autostart = false;
+        player.loop = loop;
+        clone.file = player;
 
         if (clone.loadedAllPromise)
             await clone.loadedAllPromise;
@@ -127,30 +109,141 @@ export class FlavorFileMusic {
 
         // const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
         // this.files[bpm].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
-        this.files[bpm].loop = true;
-        this.files[bpm].toDestination();
-        this.files[bpm].sync().start(Math.max(start, Tone.getTransport().seconds + .01), offset).stop(start + duration);
-        MUSIC_PLAYERS.push(this.files[bpm]);
+        this.file.loop = true;
+        this.file.toDestination();
+        this.file.sync().start(Math.max(start, Tone.getTransport().seconds + .01), offset).stop(start + duration);
+        MUSIC_PLAYERS.push(this.file);
+    }
+
+
+    public getPlayer(): Player {
+        return this.file;
+    }
+
+    public stopAllBpms() {
+        if (this.file.state == "started") this.file.stop();
+    }
+
+    public dispose() {
+        if (this.file.state == "started") this.file.stop();
+        if (!this.file.disposed) this.file.dispose();
+    }
+
+    public static stopAll() {
+        MUSIC_PLAYERS.forEach(e => e.stop());
+    }
+
+}
+
+
+export class CustomFlavorMusic {
+    public audio: string;
+    private file: Player;
+    public NAME: Flavor;
+    public imageSrc: string;
+    public colors: string[];
+
+    private loadedAllPromise: Promise<Player[]> | null = null;
+    private promise: Promise<Player> | undefined;
+
+
+    constructor(audio: string, name: Flavor, colors: string[], imageSrc: string) {
+        this.audio = audio;
+        this.NAME = name;
+        this.colors = colors;
+
+        this.file = {} as any;
+        this.imageSrc = imageSrc;
+        this.download();
+    }
+
+    public connect(recorder: Tone.Recorder) {
+        this.file.connect(recorder);
+    }
+
+    public async downloadSingle(): Promise<void> {
+        if (!FILES_CACHE[this.NAME]) FILES_CACHE[this.NAME] = {} as any;
+
+        const base64 = this.audio;
+        this.file = new Player();
+        this.promise = new Promise<Player>(async (res) => {
+            this.file.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+            await new Promise<void>(res => (this.file && (this.file.buffer.onload = () => res()) && (this.file.buffer.loaded && res())));
+            res(this.file);
+        })
+
+        this.file.fadeIn = FADE_TIME;
+        this.file.fadeOut = FADE_TIME;
+        this.file.autostart = false;
+        this.file.toDestination();
+        this.loadedAllPromise = Promise.all([this.promise]);
+    }
+
+    public async download() {
+        return await this.downloadSingle();
+    }
+
+    public play() {
+        // Tone.Transport.stop();
+        // Tone.Transport.bpm.value = bpm;
+        this.stopAllBpms();
+
+        // Tone.Transport.start();
+        // this.files[bpm].toDestination();
+        this.file.unsync().start(Tone.now());
+        MUSIC_PLAYERS.push(this.file);
+
+    }
+
+    public async clone(loop: boolean = false): Promise<CustomFlavorMusic> {
+        const clone = new CustomFlavorMusic(this.audio, this.NAME, this.colors, this.imageSrc);
+
+        const base64 = this.audio;
+        const player = new Player();
+        player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+        await new Promise<void>(res => (player && (player.buffer.onload = () => res()) && (player.buffer.loaded && res())));
+        player.fadeIn = FADE_TIME;
+        player.fadeOut = FADE_TIME;
+        player.toDestination();
+        player.autostart = false;
+        player.loop = loop;
+        clone.file = player;
+
+        if (clone.loadedAllPromise)
+            await clone.loadedAllPromise;
+
+        return clone;
+    }
+
+    public async playSegment(start: number, offset: number, duration: number, bpm: BPM) {
+        this.stopAllBpms();
+        if (this.loadedAllPromise)
+            await this.loadedAllPromise;
+
+        // const base64 = await FILES_CACHE[this.NAME][bpm as BPM];
+        // this.files[bpm].buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
+        this.file.loop = true;
+        this.file.toDestination();
+        this.file.sync().start(Math.max(start, Tone.getTransport().seconds + .01), offset).stop(start + duration);
+        MUSIC_PLAYERS.push(this.file);
     }
 
 
     public getPlayers(): Player[] {
-        return Object.values(this.files);
+        return Object.values(this.file);
     }
 
-    public getPlayer(bpm: BPM): Player {
-        return this.files[bpm];
+    public getPlayer(): Player {
+        return this.file;
     }
 
     public stopAllBpms() {
-        if (this.files[110].state == "started") this.files[110].stop();
+        if (this.file.state == "started") this.file.stop();
     }
 
     public dispose() {
-        for (const file of Object.values(this.files)) {
-            if (file.state == "started") file.stop();
-            if (!file.disposed) file.dispose();
-        }
+        if (this.file.state == "started") this.file.stop();
+        if (!this.file.disposed) this.file.dispose();
     }
 
     public static stopAll() {
@@ -189,9 +282,9 @@ export class MainFlavorFileMusic {
     public async download(): Promise<void> {
         if (this.player) return;
 
-        const file = ROOT_FILE_DIR + this.index;
-        const dbPath = this.index.replace(".wav", "");
-        const base64 = await loadAndSaveResource("audio", dbPath, file);
+        // const file = ROOT_FILE_DIR + this.index;
+        const dbPath = this.index;
+        const base64 = await getResourceByName("mainFlavors", dbPath);
         this.player = new Player();
         this.player.buffer = new Tone.ToneAudioBuffer(await base64ToArrayBuffer(base64.split(";base64,")[1]));
         await new Promise<void>(res => (this.player && (this.player.buffer.onload = () => res()) && (this.player.buffer.loaded && res())));

@@ -43,6 +43,7 @@
         z-index: 100001;
         backdrop-filter: blur(30px) !important;
         padding: 20px;
+        --max-pixel-width: 40px;
 
         >.bg {
 
@@ -106,6 +107,7 @@
                 border: none !important;
                 --border-color: transparent;
                 --border-size: 1.5px;
+                --max-pixel-width: 20px;
                 font-size: clampDef(1.5em);
 
 
@@ -120,6 +122,7 @@
                 justify-content: center;
                 align-items: center;
                 gap: 10px;
+                --max-pixel-width: 15px;
 
                 .digit {
                     font-size: clampDef(3em);
@@ -206,6 +209,7 @@
                     // grid-area: 1 / 4 / 2 / 5;
                     background-color: #5a0000;
                     --border-color: transparent;
+                    --max-pixel-width: 10px;
 
                     &:hover {
                         --border-color: #ff0000;

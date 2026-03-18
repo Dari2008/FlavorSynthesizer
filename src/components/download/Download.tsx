@@ -36,7 +36,19 @@ export default function Download({ hasDownloadedAssets, downloadFinished, hasLoa
                 }, 1000);
             }
             if (progressLabelRef.current) {
-                progressLabelRef.current.textContent = `${(size / 1000 / 1000).toFixed(1)} MB / ${(maxSize / 1000 / 1000).toFixed(1)} MB (${(mbSec / 1000 / 1000).toFixed(1)} MB/s)`;
+
+                let downloadASecUnit = "MB/s";
+                let mbDownloadVal = mbSec / 1024 / 1024;
+
+                if (mbSec / 1024 < 1) {
+                    downloadASecUnit = "B/s";
+                    mbDownloadVal = mbSec;
+                } else if (mbSec / 1024 / 1024 < 1) {
+                    downloadASecUnit = "KB/s";
+                    mbDownloadVal = mbSec / 1024;
+                }
+
+                progressLabelRef.current.textContent = `${(size / 1024 / 1024).toFixed(1)} MB / ${(maxSize / 1024 / 1024).toFixed(1)} MB (${(mbDownloadVal).toFixed(1)} ${downloadASecUnit})`;
             }
             if (currentDownloadingProgressRef.current) {
                 currentDownloadingProgressRef.current.style.setProperty("--progress-percentage", (size / maxSize) * 100 + "%");

@@ -1,4 +1,4 @@
-import { loadAndSaveResource } from "../ResourceSaver";
+import { getResourceByName } from "../ResourceSaver";
 
 var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
 
@@ -14,7 +14,8 @@ export async function initCurrentPosImages() {
         await (async () => {
             for (let i = 0; i < imageCount; i++) {
                 const img = new Image();
-                img.src = await loadAndSaveResource("currentCursorPositionAnimation", "image_" + i, ROOT_PATH + i.toString().padStart(4, "0") + ".png");
+                // , ROOT_PATH + i.toString().padStart(4, "0") + ".png"
+                img.src = await getResourceByName("currentCursorPositionAnimation", "image_" + i + ".png");
                 await new Promise(res => img.onload = res);
                 currentPosAnimationImages[i] = img;
             }

@@ -1,0 +1,310 @@
+@use "../../utils/Variables.scss" as *;
+@use "../../utils/clamp.scss" as *;
+
+.add-custom-flavor-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+
+    .blur-bg {
+        backdrop-filter: blur(10px) brightness(80%) !important;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+    }
+
+    .close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: transparent;
+        border: none;
+        font-size: clampDef(4em);
+        line-height: 0;
+        width: 1em;
+        aspect-ratio: 1 / 1;
+        transition: scale 0.3s ease-in-out;
+
+        &:hover {
+            scale: 1.1;
+        }
+    }
+
+    .add-custom-flavor-dialog {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 70%;
+        height: 80%;
+        padding: 20px;
+        transform: translate(-50%, -50%);
+        --border-size: 2px;
+        --border-color: #{$themeColor3};
+        --max-pixel-width: 40px;
+        background-color: rgba($themeColor3, 0.2);
+        backdrop-filter: blur(20px) brightness(70%);
+
+        .overflow {
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            --max-pixel-width: 15px;
+        }
+
+        .create {
+            width: 30%;
+            font-size: clampDef(3em);
+            line-height: clampDef(1em);
+            padding: 10px 20px;
+            border: none !important;
+            border-radius: 0px;
+            background-color: rgba($themeColor3, 0.4);
+            margin-inline: auto;
+        }
+
+        h1 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clampDef(3em);
+            line-height: clampDef(1em);
+            margin: 5px;
+        }
+
+        h2 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clampDef(2.4em);
+            line-height: clampDef(1em);
+            margin: 5px;
+        }
+
+        h3 {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clampDef(2em);
+            line-height: clampDef(1em);
+            margin: 5px;
+        }
+
+        .name {
+            margin-top: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+
+            input {
+                max-width: 400px;
+                min-width: 100px;
+                width: 50%;
+                height: 100%;
+                border: none;
+                padding: 5px;
+                font-size: clampDef(2em);
+                line-height: clampDef(1em);
+                background-color: rgba($themeColor3, 0.5);
+            }
+
+            margin-bottom: 30px;
+        }
+
+        .tabs {
+            width: 70%;
+            max-width: 800px;
+            margin-inline: auto;
+            margin-block: 5px;
+            padding: 10px;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            background-color: rgba($themeColor3, 0.2);
+            --border-size: 1px;
+            --border-color: #{$themeColor4};
+            --max-pixel-width: 15px;
+
+
+            button {
+                width: calc(50% - 10px);
+
+                font-size: clampDef(1.5em);
+                line-height: clampDef(1em);
+                padding: 10px 0px;
+
+                &[data-selected] {
+                    background-color: rgba($themeColor4, 0.8);
+                }
+            }
+        }
+
+        .input-wrapper-div {
+            margin-bottom: 30px;
+        }
+
+        .upload-image,
+        .upload-flavor {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 200px;
+
+            .upload-label {
+                font-size: clampDef(1.5em);
+            }
+
+            .currently-uploaded {
+                opacity: 0.6;
+                color: white;
+                margin-inline: auto;
+                font-size: clampDef(1.2em);
+            }
+        }
+
+        .draw-image .content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            .image-canvas {
+                aspect-ratio: 1 / 1;
+                width: 50%;
+                border: 1px solid $themeColor3;
+                margin-left: auto;
+            }
+
+            .tools {
+                margin-right: auto;
+                padding: 10px;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                justify-content: center;
+                align-items: center;
+
+                .brushes {
+                    display: flex;
+                    flex-direction: row;
+                    gap: 10px;
+
+                    button {
+                        aspect-ratio: 1 / 1;
+                        padding: 0;
+                        position: relative;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        --max-pixel-width: 5px;
+                        filter: grayscale(100%);
+                        transition: scale 0.3s ease-in-out, filter 0.3s ease-in-out;
+
+                        &[data-selected] {
+                            scale: 1.1;
+                            filter: none;
+                        }
+
+                        --image-size: 40px;
+
+                        img {
+                            width: var(--image-size);
+                            aspect-ratio: 1 / 1;
+                            object-fit: contain;
+                        }
+
+                        .mask-paint-layer {
+                            position: absolute;
+                            background-color: var(--current-color);
+                            width: var(--image-size);
+                            height: var(--image-size);
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            z-index: 100;
+                            mask-image: var(--paint-color-mask);
+                            mask-position: 0 0;
+                            mask-size: 100% 100%;
+                            mask-mode: alpha;
+                            mask-repeat: no-repeat;
+                        }
+                    }
+                }
+
+                .color-chooser {
+                    display: flex;
+                    gap: 10px;
+                    flex-direction: column;
+                    padding: 20px;
+                    --border-color: #{$themeColor4};
+                    --max-pixel-width: 15px;
+                    background-color: rgba($themeColor3, 0.4);
+
+                    .colors {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 5px;
+                        max-height: 300px;
+                        max-width: 300px;
+                        overflow-y: auto;
+
+                        .color {
+                            padding: 0;
+                            margin: 0;
+                            border-radius: 0;
+                            width: 20px;
+                            aspect-ratio: 1 / 1;
+                            background-color: var(--button-color);
+                            --border-size: 1px;
+                            --border-color: transparent;
+                            --max-pixel-width: 5px;
+
+                            &[data-selected] {
+                                scale: 1.1;
+                            }
+
+                            &:hover {
+                                --border-color: #{$themeColor3};
+                            }
+                        }
+                    }
+
+                    .color-picker {
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: center;
+                        align-items: center;
+                        gap: 10px;
+
+                        .react-colorful__saturation,
+                        .react-colorful__hue,
+                        .react-colorful__alpha {
+                            @extend .pixeled-div;
+                            --max-pixel-width: 10px;
+                        }
+
+
+                    }
+
+                }
+            }
+        }
+
+    }
+
+}

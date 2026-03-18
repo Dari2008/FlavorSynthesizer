@@ -14,7 +14,7 @@
 //     </div>
 // }
 
-import { useEffect, useRef, type DetailedHTMLProps, type ReactNode } from "react";
+import { useRef, type DetailedHTMLProps, type ReactNode } from "react";
 import "./PixelInput.scss";
 
 type PixelDivType = DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement> & { children?: ReactNode[] | ReactNode; "max-pixel-width"?: number };
@@ -39,24 +39,6 @@ export default function PixelInput({ children, ...rest }: PixelDivType) {
             r.style.setProperty("--max-pixel-width", "30px");
         }
     }
-
-    useEffect(() => {
-        const div = divRef.current;
-        if (!div) return;
-
-        const setSize = () => {
-            const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", (box.width) + "px");
-            div.style.setProperty("--height", (box.height) + "px");
-        }
-
-        const resizeListener = new ResizeObserver(() => {
-            setSize();
-        });
-        resizeListener.observe(div);
-        setSize();
-
-    }, [divRef.current]);
 
     return <input {...rest}></input>
 }

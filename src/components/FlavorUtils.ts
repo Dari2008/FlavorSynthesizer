@@ -3,6 +3,7 @@ import type { UUID } from "../@types/User";
 import { FLAVORS } from "../audio/Flavors";
 import { STAR_MASK_IMAGE } from "../Images";
 import Utils from "../utils/Utils";
+import { CUSTOM_FLAVORS_RENDERERS } from "./addCustomFlavor/CustomFlavorManager";
 import type { FlavorElement } from "./flavorSynth/PlayerTrack";
 
 export const STROKES_COLORS = "white";
@@ -25,10 +26,10 @@ var span = {
 };
 var offsetX = 0;
 
-const starMask = new Image();
+export const starMask = new Image();
 starMask.src = STAR_MASK_IMAGE;
 
-var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
+var FLAVOR_RENDERS: FlavorRenderer[] = FLAVORS.map(e => e.NAME).map(flavor => {
     return {
         colors: FLAVOR_COLOR[flavor],
         imageObj: loadImage(FLAVOR_IMAGES[flavor]),
@@ -70,7 +71,7 @@ var FLAVOR_RENDERS = FLAVORS.map(e => e.NAME).map(flavor => {
 
         }
     }
-})
+});
 
 export function getFlavorHeight() {
     return FLAVOR_HEIGHT;
@@ -175,7 +176,8 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     const y = offsetY;
     const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
 
-    const FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
+    let FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
+    if (!FLAVOR_RENDERER) FLAVOR_RENDERER = CUSTOM_FLAVORS_RENDERERS.find(e => e.name == element.flavor);
     if (!FLAVOR_RENDERER) return false;
 
     drawBackgroundImage();
@@ -426,4 +428,15 @@ function darkenIfBright(hex: string, amount: number = 0.6): string {
     const toHex = (v: number) => v.toString(16).padStart(2, "0");
 
     return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
+}
+
+
+export type FlavorRenderer = {
+    colors: string[];
+    imageObj: HTMLImageElement;
+    image: string;
+    name: string;
+    contrastColor: string;
+    bgColor: string;
+    renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
 }

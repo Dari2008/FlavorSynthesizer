@@ -84,7 +84,7 @@ export default function FlavorSynth() {
 
     const touchContextMenuRef = useRef<HTMLDivElement>(null);
 
-    const statisticLoopInterval = useRef<number>(-1);
+    const statisticLoopInterval = useRef<NodeJS.Timeout>(null);
 
     const dishes = useDishes();
     const dishActions = useCurrentDishActions();
@@ -684,9 +684,9 @@ export default function FlavorSynth() {
     };
 
     const stopStatisticLoop = () => {
-        if (statisticLoopInterval.current != -1) {
+        if (statisticLoopInterval.current != null) {
             clearInterval(statisticLoopInterval.current);
-            statisticLoopInterval.current = -1;
+            statisticLoopInterval.current = null;
         }
     };
 

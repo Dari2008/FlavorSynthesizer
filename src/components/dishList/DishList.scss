@@ -446,7 +446,7 @@ $listBG: $gray-400;
         grid-column-gap: 20px;
         grid-row-gap: 0px;
 
-        &::after {
+        .foldout-info {
             content: "Share Info >";
             grid-area: 2/1/3/4;
             text-align: center;
@@ -457,6 +457,13 @@ $listBG: $gray-400;
             transform: translateY(15px);
             font-size: clampDef(1.3em);
             cursor: pointer;
+
+            &::after {
+                content: ">";
+                margin-left: 5px;
+                transition: transform 0.4s ease-in-out;
+                transform-origin: center;
+            }
         }
 
     }
@@ -470,8 +477,11 @@ $listBG: $gray-400;
         }
 
         .dish-list-item {
-            &::after {
-                content: "Share Info >";
+            .foldout-info {
+
+                &::after {
+                    transform: rotate(90deg);
+                }
             }
         }
 

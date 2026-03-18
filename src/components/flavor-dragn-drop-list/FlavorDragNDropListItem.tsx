@@ -1,12 +1,12 @@
 import { useRef, useState } from "react";
-import { FlavorFileMusic } from "../../audio/FlavorMusic"
-import { FLAVOR_COLOR, type Flavor } from "../../@types/Flavors";
+import { CustomFlavorMusic, FlavorFileMusic } from "../../audio/FlavorMusic"
+import { type Flavor } from "../../@types/Flavors";
 import { createElementForFlavor, drawElement, FLAVOR_HEIGHT, getFlavorHeight, getPixelsPerSecond } from "../FlavorUtils";
 import { useCurrentDraggingElement } from "../../contexts/CurrentDraggingElementTouch";
 import setCurrentDragging from "../flavorSynth/CurrentDraggingReference";
 
 type Props = {
-    player: FlavorFileMusic;
+    player: FlavorFileMusic | CustomFlavorMusic;
     hasDownloaded: boolean;
 }
 
@@ -14,8 +14,8 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
 
     const [isPlaying, setPl] = useState<boolean>(false);
     const [isCurrentlySelectedElement, setIsCurrentlySelectedElement] = useState<boolean>(false);
-    const playerRef = useRef<FlavorFileMusic>(null);
-    const responseWaitRef = useRef<Promise<void | FlavorFileMusic>>(null);
+    const playerRef = useRef<FlavorFileMusic | CustomFlavorMusic>(null);
+    const responseWaitRef = useRef<Promise<void | FlavorFileMusic | CustomFlavorMusic>>(null);
     const itemRef = useRef<HTMLLIElement>(null);
     const flavorImage = useRef<HTMLImageElement>(null);
 
@@ -31,17 +31,15 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
 
     if (playerRef.current == null && responseWaitRef.current == null && hasDownloaded) responseWaitRef.current = player.clone().then(c => {
         playerRef.current = c;
-        playerRef.current.getPlayers().forEach(pl => {
-            pl.onstop = (() => {
-                setPlaying(false);
-            }).bind(playerRef.current);
-        });
+        playerRef.current.getPlayer().onstop = (() => {
+            setPlaying(false);
+        }).bind(playerRef.current);
     });
 
     const setPlaying = (playing: boolean) => {
         setPl(playing);
         if (playing) {
-            playerRef.current?.play(110);
+            playerRef.current?.play();
         } else {
             playerRef.current?.stopAllBpms();
         }
@@ -90,8 +88,8 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
     // };
 
     return <li draggable onDragStart={onDragStart} key={player.NAME} ref={itemRef} className={`flavor-drag-n-drop-list-item ${isCurrentlySelectedElement ? "selected" : ""}`} style={{
-        "--border-color-1": (FLAVOR_COLOR[player.NAME][0]),
-        "--border-color-2": (FLAVOR_COLOR[player.NAME][1])
+        "--border-color-1": (player.colors[0]),
+        "--border-color-2": (player.colors[1])
     } as any}>
         <button className="play" onClick={() => setPlaying(!isPlaying)} data-content={isPlaying ? "\uf04c" : "\uf04b"}>{isPlaying ? <>&#61516;</> : <>&#61515;</>}</button>
         <div className="wrapper">

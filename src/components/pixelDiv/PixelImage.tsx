@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, type DetailedHTMLProps, type ImgHTMLAttributes } from "react";
+import { useRef, type DetailedHTMLProps, type ImgHTMLAttributes } from "react";
 
 type PixelImageProps = DetailedHTMLProps<ImgHTMLAttributes<HTMLImageElement>, HTMLImageElement> & { "max-pixel-width"?: number; };
 
@@ -24,23 +24,6 @@ export default function PixelImage({ ...rest }: PixelImageProps) {
             r.style.setProperty("--max-pixel-width", "30px");
         }
     }
-
-    useEffect(() => {
-        const div = divRef.current;
-        if (!div) return;
-
-        const setSize = () => {
-            const box = div.getBoundingClientRect();
-            div.style.setProperty("--width", (box.width) + "px");
-            div.style.setProperty("--height", (box.height) + "px");
-        }
-
-        const resizeListener = new ResizeObserver(() => {
-            setSize();
-        });
-        resizeListener.observe(div);
-        setSize();
-    }, [divRef.current]);
 
     return <img {...rest} />
 }

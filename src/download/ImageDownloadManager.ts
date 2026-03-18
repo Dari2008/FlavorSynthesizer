@@ -1,4 +1,4 @@
-import { loadAndSaveResource } from "../components/ResourceSaver";
+import { getResourceByName, loadAndSaveResource } from "../components/ResourceSaver";
 
 export const IMAGES_TO_LOAD: {
     [key in ImageName]: {
@@ -122,7 +122,8 @@ function areAllFinished(images: ImageName[]): boolean {
 }
 
 export async function loadImage(image: ImageName): Promise<string | undefined> {
-    const base64 = await loadAndSaveResource("images", image, IMAGES_TO_LOAD[image].url);
+    // IMAGES_TO_LOAD[image].url
+    const base64 = await getResourceByName("images", image);
     IMAGES_TO_LOAD[image].base64 = base64;
     checkAll();
     return base64;

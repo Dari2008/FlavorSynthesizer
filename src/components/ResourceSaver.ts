@@ -35,6 +35,27 @@ export async function saveResourceWithName(
     });
 }
 
+export async function getAllResources(
+    dbName: string
+): Promise<any[]> {
+    const db = await openDB(dbName);
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+
+        const request = store.getAll();
+
+        request.onsuccess = () => {
+            resolve(
+                request.result.map((entry: any) => entry.data)
+            );
+        };
+
+        request.onerror = () => reject(request.error);
+    });
+}
+
 export async function getResourceByName(
     dbName: string,
     name: string
