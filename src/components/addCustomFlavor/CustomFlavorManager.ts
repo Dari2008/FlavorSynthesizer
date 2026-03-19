@@ -1,6 +1,6 @@
 import type { CustomFlavorsType } from "../../contexts/CustomFlavors";
 import { starMask, type FlavorRenderer } from "../FlavorUtils";
-import { getAllResources, saveResourceWithName } from "../ResourceSaver";
+import { deleteResourceWithName, getAllResources, saveResourceWithName } from "../ResourceSaver";
 
 export async function loadAllCustomFlavorsAsMusicPlayer(setCustomFlavors: (v: CustomFlavor[] | ((s: CustomFlavor[]) => CustomFlavor[])) => void) {
     const allFlavors = await getAllResources("customFlavors") as CustomFlavor[];
@@ -102,6 +102,65 @@ export async function addCustomFlavor(flavor: CustomFlavor, customFlavors: Custo
 
 }
 
+export async function deleteCustomFlavor(flavor: CustomFlavor, customFlavors: CustomFlavorsType) {
+    CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS.filter(e => e.name !== flavor.flavorName);
+    customFlavors.setCustomFlavors(flavors => flavors.filter(e => e.flavorName !== flavor.flavorName));
+    await deleteResourceWithName("customFlavors", flavor.flavorName);
+}
+
+export async function updateCustomFlavor(flavorNameOriginal: string, newCustomFlavor: CustomFlavor, customFlavors: CustomFlavorsType) {
+    CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS.map(e => {
+        if (e.name !== flavorNameOriginal) return e;
+        return {
+            colors: newCustomFlavor.colors,
+            imageObj: loadImage(newCustomFlavor.image),
+            image: newCustomFlavor.image,
+            name: newCustomFlavor.flavorName,
+            contrastColor: contrastColor(darkenIfBright(newCustomFlavor.colors[0])),
+            bgColor: darkenIfBright(newCustomFlavor.colors[0]),
+            renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+                if (!starMask.complete) return;
+
+                if (!isFinite(w) || !isFinite(h)) return;
+
+                const off = new OffscreenCanvas(w, h);
+
+                const octx = off.getContext("2d");
+                if (!octx || w == 0) return;
+                octx.save();
+
+
+                // 1) Draw solid background color
+                octx.fillStyle = newCustomFlavor.colors[0];
+                octx.fillRect(0, 0, w, h);
+
+                // 2) Apply star mask
+                octx.globalCompositeOperation = "destination-in";
+
+                const pattern = octx.createPattern(starMask, "repeat");
+                if (pattern) {
+                    octx.fillStyle = pattern;
+                    ctx.beginPath();
+                    octx.roundRect(0, 0, w, h, 10);
+                    octx.fill();
+                    ctx.closePath();
+                }
+
+                octx.restore();
+
+                ctx.drawImage(off, x, y);
+
+            }
+        };
+    });
+    await saveResourceWithName("customFlavors", newCustomFlavor.flavorName, newCustomFlavor);
+
+    customFlavors.setCustomFlavors(flavors => flavors.map(e => {
+        if (e.flavorName !== flavorNameOriginal) return e;
+        return newCustomFlavor;
+    }));
+}
+
 export type CustomFlavor = {
     flavorName: string;
     audio: string;
@@ -109,7 +168,7 @@ export type CustomFlavor = {
     colors: [string, string, string];
 }
 
-export const CUSTOM_FLAVORS_RENDERERS: FlavorRenderer[] = [];
+export let CUSTOM_FLAVORS_RENDERERS: FlavorRenderer[] = [];
 
 function loadImage(src: string): HTMLImageElement {
     const img = new Image();

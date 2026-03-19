@@ -4,7 +4,11 @@
 ![Tone.js](https://img.shields.io/badge/Tone.js-Audio-orange)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+### General
 ![Creating of a Dish](./readmeImgs/showCreationOfDish.gif)
+
+### Multiplayer
+![Multiplayer](./readmeImgs/multiplayer.gif)
 
 
 🌐 **Live Demo:** https://flavorsynth.frobeen.com/
@@ -50,6 +54,8 @@ It’s a machine where glass tubes at the top filled with flavors are placed the
 - Fork and remix other users' dishes
 - Local and server-side dish storage
 - User accounts
+- Multiplayer
+- Custom Flavors
 
 ## Requirements
 - Modern browser (Chrome, Edge, Firefox)

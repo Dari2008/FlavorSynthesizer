@@ -83,6 +83,9 @@ export default function InitialMenu() {
             case "restaurant":
                 gameState.setGameState("restaurant");
                 break;
+            case "customFlavors":
+                gameState.setGameState("customFlavors");
+                break;
             case "none":
                 gameState.setGameState("mainMenu");
                 break;
@@ -162,7 +165,7 @@ export default function InitialMenu() {
     </div>;
 }
 
-export type SelectableElement = "add" | "open" | "list" | "restaurant" | "none";
+export type SelectableElement = "add" | "open" | "list" | "restaurant" | "customFlavors" | "none";
 export type DownloadProgress = {
     max: number;
     val: number;

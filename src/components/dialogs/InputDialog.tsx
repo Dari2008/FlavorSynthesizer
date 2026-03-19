@@ -73,13 +73,13 @@ export default function InputDialog({ children }: { children: ReactNode }) {
         <dialog className="input-dialog" ref={dialogRef}>
             <span className="question" ref={questionRef}></span>
             <div className="input">
-                <PixelInput ref={inputRef} />
+                <PixelInput max-pixel-width={10} ref={inputRef} />
             </div>
             <div className="buttons">
-                <PixelButton className="cancel" onClick={() => response(false)} ref={buttonCancelRef}>Cancel</PixelButton>
-                <PixelButton className="no" onClick={() => response(false)} ref={buttonNoRef}>No</PixelButton>
-                <PixelButton className="yes" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonYesRef}>Yes</PixelButton>
-                <PixelButton className="ok" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonOkRef}>Ok</PixelButton>
+                <PixelButton max-pixel-width={10} className="cancel" onClick={() => response(false)} ref={buttonCancelRef}>Cancel</PixelButton>
+                <PixelButton max-pixel-width={10} className="no" onClick={() => response(false)} ref={buttonNoRef}>No</PixelButton>
+                <PixelButton max-pixel-width={10} className="yes" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonYesRef}>Yes</PixelButton>
+                <PixelButton max-pixel-width={10} className="ok" onClick={() => response(inputRef.current?.value ?? false)} ref={buttonOkRef}>Ok</PixelButton>
             </div>
         </dialog>
         {children}

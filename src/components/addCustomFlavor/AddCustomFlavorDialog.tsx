@@ -4,11 +4,11 @@ import PixelInput from "../pixelDiv/PixelInput";
 import "./AddCustomFlavorDialog.scss";
 import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
 import Utils from "../../utils/Utils";
-import { RgbaColorPicker, type RgbaColor } from "react-colorful";
+import { RgbaColorPicker, RgbStringColorPicker, type RgbaColor } from "react-colorful";
 import { addCustomFlavor, type CustomFlavor } from "./CustomFlavorManager";
 import { useCustomFlavors } from "../../contexts/CustomFlavors";
 
-export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void }) {
+export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { onClose: () => void; flavor?: CustomFlavor | undefined | null; onUpdate?: (audio: string, image: string, colors: [string, string, string], flavorName: string) => void; }) {
     const imageSize = 64;
 
     const [audioCreationState, setAudioCreationState] = useState<"upload" | "synthesize">("synthesize");
@@ -21,6 +21,7 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
     const [colors, setColors] = useState<string[]>(["rgb(255, 255, 0)", "rgb(0, 255, 0)"]);
     const [currentUploadFileNameAudio, setCurrentUploadFileNameAudio] = useState<string>("");
     const [currentUploadFileNameImage, setCurrentUploadFileNameImage] = useState<string>("");
+    const [flavorColors, setFlavorColors] = useState<[string, string, string]>(["#FFF", "#FFF", "#FFF"]);
 
     const [currentToolSelected, setToolSelected] = useState<"brush" | "eraser" | "fill">("brush");
 
@@ -30,6 +31,45 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
 
     const customFlavors = useCustomFlavors();
     document.body.appendChild(openFileRef.current);
+
+    useEffect(() => {
+
+        (async () => {
+            if (!flavor) return;
+            const getFlavorImage = await getImage(flavor.image);
+            if (!getFlavorImage) return;
+
+            const allColors: string[] = [];
+
+            for (let x = 0; x < getFlavorImage.width; x++) {
+                for (let y = 0; y < getFlavorImage.height; y++) {
+                    const i = y * getFlavorImage.height + x;
+                    const color = getFlavorImage.get(i);
+                    const strColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+                    drewnImageRef.current[i] = strColor;
+                    if (!allColors.includes(strColor)) {
+                        allColors.push(strColor);
+                    }
+                }
+            }
+
+            setColors(allColors);
+
+            uploadedAudioRef.current = flavor.audio;
+            setCurrentUploadFileNameAudio("Stored audio");
+            setFlavorColors(flavor.colors);
+            setCurrentColorIndex(0);
+            setAudioCreationState("upload");
+            setImageCreationState("draw");
+
+            if (nameInputRef.current) nameInputRef.current.value = flavor.flavorName;
+
+            render();
+
+
+        })();
+
+    }, [flavor]);
 
 
     const uploadImage = () => {
@@ -188,11 +228,6 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
         const mouseReleased = () => { mouseDown = false; lastPos = [-1, -1]; };
         const mousePressed = () => { mouseDown = true; lastPos = [-1, -1]; };
 
-        const width = canvas.width;
-        const height = canvas.height;
-
-        const pixelToCanvasRatio = width / imageSize;
-
         canvas.addEventListener("mousemove", mouseMove);
         canvas.addEventListener("click", clicked);
         canvas.addEventListener("mousedown", mousePressed);
@@ -284,10 +319,17 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
         return base64;
     }
 
+    const setColorAt = (index: number, color: string) => {
+        setFlavorColors(colors => {
+            colors[index] = color;
+            return colors;
+        });
+    };
+
     const createFlavor = async () => {
         const image = imageCreationState == "draw" ? await getDrawnAsBase64() : uplaodedImageRef.current;
         const audio = audioCreationState == "synthesize" ? undefined : uploadedAudioRef.current;
-        const colors: [string, string, string] = ["#FFF", "#FFF", "#FFF"];
+        const colors: [string, string, string] = flavorColors;
         const flavorName = nameInputRef.current?.value;
 
         if (!image) {
@@ -305,6 +347,17 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
             return;
         }
 
+        if (customFlavors.customFlavors.map(e => e.flavorName).includes(flavorName) && !onUpdate) {
+            Utils.error("Name already used");
+            return;
+        }
+
+        if (flavor && onUpdate) {
+            onUpdate(audio, image, colors, flavorName);
+            onClose();
+            return;
+        }
+
         const newFlavor: CustomFlavor = {
             audio: audio,
             flavorName: flavorName,
@@ -313,6 +366,7 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
         };
 
         addCustomFlavor(newFlavor, customFlavors);
+        onClose();
     }
 
     return <div className="add-custom-flavor-bg">
@@ -417,7 +471,17 @@ export default function AddCustomFlavorDialog({ onClose }: { onClose: () => void
 
                 </div>
 
-                <PixelButton max-pixel-width={20} className="create" onClick={createFlavor}>Create</PixelButton>
+                <div className="colors input-wrapper-div">
+                    <h2>Image / Colors</h2>
+                    <span className="subtitle">Choose 3 colors that are used the most in your flavor (if you only have 2 choose one multiple times)</span>
+                    <div className="colors">
+                        <RgbStringColorPicker onChange={(e) => setColorAt(0, e)}></RgbStringColorPicker>
+                        <RgbStringColorPicker onChange={(e) => setColorAt(1, e)}></RgbStringColorPicker>
+                        <RgbStringColorPicker onChange={(e) => setColorAt(2, e)}></RgbStringColorPicker>
+                    </div>
+                </div>
+
+                <PixelButton max-pixel-width={20} className="create" onClick={createFlavor}>{!!onUpdate ? "Update" : "Create"}</PixelButton>
             </div>
         </PixelDivWBorder>
     </div>;
@@ -481,18 +545,44 @@ const fileToBase64 = async (file: File | Blob) =>
         reader.onerror = (e) => reject(e);
     });
 
-function toColor(num: number) {
-    var b = num & 0xFF,
-        g = (num & 0xFF00) >>> 8,
-        r = (num & 0xFF0000) >>> 16,
-        a = ((num & 0xFF000000) >>> 24) / 255;
-    return "rgba(" + [r, g, b, a].join(",") + ")";
+function getImage(image: string): Promise<ImageDataGetter | null> {
+    return new Promise<ImageDataGetter | null>((res) => {
+        const htmlImage = new Image();
+        htmlImage.src = image;
+        htmlImage.onload = () => {
+            const canvas = new OffscreenCanvas(htmlImage.width, htmlImage.height);
+            const ctx = canvas.getContext("2d");
+            ctx?.drawImage(htmlImage, 0, 0);
+
+            const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height);
+
+            if (!imageData) {
+                res(null);
+                return;
+            }
+            console.log(imageData.data.BYTES_PER_ELEMENT);
+
+            res({
+                get: (i) => {
+                    const mult = 4;
+
+                    const r = imageData.data[i * mult];
+                    const g = imageData.data[i * mult + 1];
+                    const b = imageData.data[i * mult + 2];
+                    const a = imageData.data[i * mult + 3];
+                    return {
+                        r, g, b, a
+                    };
+                },
+                width: imageData.width,
+                height: imageData.height
+            })
+        }
+    })
 }
 
-function fromColor(color: string) {
-    const [r, g, b, a] = color.match(/[\d.]+/g)!.map(Number);
-    return ((Math.round(a * 255) & 0xFF) << 24) |
-        ((r & 0xFF) << 16) |
-        ((g & 0xFF) << 8) |
-        (b & 0xFF);
-}
+type ImageDataGetter = {
+    get: (i: number) => { r: number, g: number, b: number; a: number; };
+    width: number;
+    height: number;
+};

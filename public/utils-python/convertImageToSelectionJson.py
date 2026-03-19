@@ -2,18 +2,23 @@ from PIL import Image
 import json
 
 # Load the image
-# image_path = "../mainMenu/bg/open_shared_dish.png"  # Replace with your image path
+# image_path = "../bgs/mainMenu/open_shared_dish.png"
 # output = "../../src/components/imageMenu/selections/openShartedDish.json"
 
-# image_path = "../mainMenu/bg/list_dishes.png"  # Replace with your image path
+# image_path = "../bgs/mainMenu/list_dishes.png"
 # output = "../../src/components/imageMenu/selections/listDishes.json"
 
-# image_path = "../mainMenu/bg/create_new_dish.png"  # Replace with your image path
+# image_path = "../bgs/mainMenu/create_new_dish.png"
 # output = "../../src/components/imageMenu/selections/createNewDish.json"
 
-image_path = "../mainMenu/bg/box_restaurant.png"  # Replace with your image path
-output = "../../src/components/imageMenu/selections/boxRestaurant.json"
-img = Image.open(image_path).convert("RGBA")  # Ensure image has alpha channel
+image_path = "../bgs/mainMenu/restaurant.png"
+output = "../../src/components/imageMenu/selections/restaurant.json"
+
+# image_path = "../bgs/mainMenu/customFlavors.png"
+# output = "../../src/components/imageMenu/selections/customFlavors.json"
+
+
+img = Image.open(image_path).convert("RGBA")
 
 width, height = img.size
 pixels = img.load()

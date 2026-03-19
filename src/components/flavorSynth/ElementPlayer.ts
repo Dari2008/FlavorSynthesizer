@@ -3,6 +3,7 @@ import type { FlavorElement } from "./PlayerTrack";
 import { getFlavorByName } from "../../audio/Flavors";
 import type { CustomFlavorMusic, FlavorFileMusic } from "../../audio/FlavorMusic";
 import type { DishVolumes } from "../../@types/User";
+import type { CustomFlavorsType } from "../../contexts/CustomFlavors";
 
 export class ElementPlayer {
     private elements: (FlavorElement & { lineUuid: string })[] = [];
@@ -30,12 +31,13 @@ export class ElementPlayer {
         });
     }
 
-    public loadElements(elements: (FlavorElement & { lineUuid: string })[]) {
+    public loadElements(elements: (FlavorElement & { lineUuid: string })[], customFlavors: CustomFlavorsType) {
         this.stop();
         this.players = [];
         this.elements = elements;
         this.cloningPromise = Promise.all(this.elements.map(async el => {
-            const flavor = getFlavorByName(el.flavor);
+            let flavor: CustomFlavorMusic | FlavorFileMusic | undefined = getFlavorByName(el.flavor);
+            if (!flavor) flavor = customFlavors.musicPlayers.find(e => e.NAME == el.flavor);
             if (!flavor) return;
             const clonedPlayer = await flavor.clone();
             this.players.push({

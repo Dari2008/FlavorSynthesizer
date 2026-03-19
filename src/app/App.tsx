@@ -50,6 +50,7 @@ import MultiplayerChatOverlay, { type ChatMessage } from "../components/multipla
 import { loadAllCustomFlavorsAsMusicPlayer, type CustomFlavor } from "../components/addCustomFlavor/CustomFlavorManager";
 import { CustomFlavors } from "../contexts/CustomFlavors";
 import { CustomFlavorMusic } from "../audio/FlavorMusic";
+import CustomFlavorMenu from "../components/customFlavorMenu/CustomFlavorMenu";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -757,6 +758,10 @@ export default function App() {
                                                             {
                                                                 !isDeviceSupported && <DeviceNotSupported />
                                                             }
+
+                                                            <Activity mode={gameState == "customFlavors" ? "visible" : "hidden"}>
+                                                                <CustomFlavorMenu />
+                                                            </Activity>
 
                                                             <Activity mode={gameState == "mainMenu" ? "visible" : "hidden"}>
                                                                 <InitialMenu />

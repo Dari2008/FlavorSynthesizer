@@ -28,6 +28,7 @@ import withTutorialStarter from "../../hooks/TutorialStarter";
 import { useTutorials } from "../tutorials/context/TutorialContext";
 import { useMultiplayer } from "../../contexts/MultiplayerContext";
 import type { UUID } from "../../@types/User";
+import { useCustomFlavors } from "../../contexts/CustomFlavors";
 
 
 type EventListWithUUID<T> = {
@@ -101,6 +102,7 @@ export default function FlavorSynth() {
     const isTouch = useTouchChecker().isTouch;
 
     const currentDish = useCurrentDish();
+    const customFlavors = useCustomFlavors();
 
     const tutorials = useTutorials();
 
@@ -506,7 +508,7 @@ export default function FlavorSynth() {
         playerRef.current.stop();
         playerRef.current.disposeAll();
         playerRef.current.setVolumes(volumes.current);
-        playerRef.current.loadElements(elements);
+        playerRef.current.loadElements(elements, customFlavors);
 
         if (!containsSolo) {
             mainFlavorsPlayer?.stop();
@@ -634,12 +636,12 @@ export default function FlavorSynth() {
                 if (node.nodeName.toLowerCase() == "input") return;
             }
             if (e.code == "Space") {
-                setPlaying(playing => {
-                    playing ? stop() : (async () => {
+                setPlaying(() => {
+                    isPlaying ? stop() : (async () => {
                         if (currentlyStartingRef.current) await currentlyStartingRef.current;
                         currentlyStartingRef.current = play();
                     })();
-                    return !playing;
+                    return !isPlaying;
                 })
                 e.preventDefault();
             } else if (e.key == "z" && e.ctrlKey) {
@@ -669,12 +671,13 @@ export default function FlavorSynth() {
         window.addEventListener("keydown", keydown);
         window.addEventListener("mouseup", mouseRelease);
         window.addEventListener("resize", resized);
+
         return () => {
             window.removeEventListener("keydown", keydown);
             window.removeEventListener("mouseup", mouseRelease);
             window.removeEventListener("resize", resized);
         };
-    }, [synthLines, isReadonly]);
+    }, [synthLines, isReadonly, isPlaying]);
 
 
     const startStatisticLoop = () => {

@@ -2,6 +2,7 @@ import CREATE_NEW_DISH_SELECTION from "./selections/createNewDish.json";
 import OPEN_SHARED_DISH_SELECTION from "./selections/openShartedDish.json";
 import LIST_DISHES_SELECTION from "./selections/listDishes.json";
 import RESTAURANT_SELECTION from "./selections/restaurant.json";
+import CUSTOM_FLAVORS_SELECTION from "./selections/customFlavors.json";
 import { useEffect, useRef, useState } from "react";
 import type { SelectableElement } from "../initialMenu/InitialMenu";
 import withDebounce from "../../hooks/Debounce";
@@ -23,6 +24,10 @@ const SELECTION_FILES: SelectionFiles = {
     "restaurant": {
         data: RESTAURANT_SELECTION as any as SelectionFile,
         ...getBounds(RESTAURANT_SELECTION as any as SelectionFile),
+    },
+    "customFlavors": {
+        data: CUSTOM_FLAVORS_SELECTION as any as SelectionFile,
+        ...getBounds(CUSTOM_FLAVORS_SELECTION as any as SelectionFile),
     }
 };
 
@@ -66,6 +71,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     const openSharedDishRef = useRef<HTMLImageElement>(null);
     const listDishesRef = useRef<HTMLImageElement>(null);
     const restaurantRef = useRef<HTMLImageElement>(null);
+    const customFlavorsRef = useRef<HTMLImageElement>(null);
 
     const [chosenOne, setChosenOne] = useState<keyof SelectionFiles | "none">("none");
 
@@ -73,12 +79,14 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
     const openSharedDishLabelRef = useRef<HTMLSpanElement>(null);
     const listDishesLabelRef = useRef<HTMLSpanElement>(null);
     const restaurantLabelRef = useRef<HTMLSpanElement>(null);
+    const customFlavorsLabelRef = useRef<HTMLSpanElement>(null);
 
     function deselectAll() {
         createNewDishRef.current?.classList.remove("selected");
         openSharedDishRef.current?.classList.remove("selected");
         listDishesRef.current?.classList.remove("selected");
         restaurantRef.current?.classList.remove("selected");
+        customFlavorsRef.current?.classList.remove("selected");
     }
 
 
@@ -96,6 +104,9 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
                 break;
             case "restaurant":
                 restaurantRef.current?.classList.add("selected");
+                break;
+            case "customFlavors":
+                customFlavorsRef.current?.classList.add("selected");
                 break;
         }
     };
@@ -228,6 +239,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
         set(openSharedDishRef.current, openSharedDishLabelRef.current, "open-shared-dish");
         set(listDishesRef.current, listDishesLabelRef.current, "list-dishes");
         set(restaurantRef.current, restaurantLabelRef.current, "restaurant");
+        set(customFlavorsRef.current, customFlavorsLabelRef.current, "customFlavors");
 
 
         const onMouseMove = (e: MouseEvent) => {
@@ -257,6 +269,9 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
                 case "restaurant":
                     setChosenOne("restaurant");
                     break;
+                case "customFlavors":
+                    setChosenOne("customFlavors");
+                    break;
             }
 
             setTimeout(() => {
@@ -273,6 +288,9 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
                     case "restaurant":
                         clickedWrapped("restaurant");
                         break;
+                    case "customFlavors":
+                        clickedWrapped("customFlavors");
+                        break;
                 }
                 setChosenOne("none");
             }, 300);
@@ -283,6 +301,7 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
             set(openSharedDishRef.current, openSharedDishLabelRef.current, "open-shared-dish");
             set(listDishesRef.current, listDishesLabelRef.current, "list-dishes");
             set(restaurantRef.current, restaurantLabelRef.current, "restaurant");
+            set(customFlavorsRef.current, customFlavorsLabelRef.current, "customFlavors");
         };
 
 
@@ -313,6 +332,9 @@ export default function ImageMenu({ clicked }: { clicked: (element: SelectableEl
         <img src="./bgs/mainMenu/restaurant.png" alt="restaurant image" className={"restaurant" + (chosenOne == "restaurant" ? " chosen" : "")} ref={restaurantRef} />
         <span className="label-for-image above label-for-restaurant" ref={restaurantLabelRef}>Restaurant</span>
 
+        <img src="./bgs/mainMenu/customFlavors.png" alt="custom flavor image" className={"customFlavors" + (chosenOne == "customFlavors" ? " chosen" : "")} ref={customFlavorsRef} />
+        <span className="label-for-image above label-for-customFlavors" ref={customFlavorsLabelRef}>Custom Flavors</span>
+
     </div>;
 }
 
@@ -332,6 +354,7 @@ type SelectionFiles = {
     "list-dishes": SelectionFileCompiled;
     "open-shared-dish": SelectionFileCompiled;
     "restaurant": SelectionFileCompiled;
+    "customFlavors": SelectionFileCompiled;
 }
 
 type Pos = [number, number];

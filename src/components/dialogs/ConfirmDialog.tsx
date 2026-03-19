@@ -65,10 +65,10 @@ export default function ConfirmDialog({ children }: { children: ReactNode }) {
         <dialog className="confirm-dialog" ref={dialogRef}>
             <span className="question" ref={questionRef}></span>
             <div className="buttons">
-                <PixelButton className="cancel" onClick={() => response(false)} ref={buttonCancelRef}>Cancel</PixelButton>
-                <PixelButton className="no" onClick={() => response(false)} ref={buttonNoRef}>No</PixelButton>
-                <PixelButton className="yes" onClick={() => response(true)} ref={buttonYesRef}>Yes</PixelButton>
-                <PixelButton className="ok" onClick={() => response(true)} ref={buttonOkRef}>Ok</PixelButton>
+                <PixelButton max-pixel-width={10} className="cancel" onClick={() => response(false)} ref={buttonCancelRef}>Cancel</PixelButton>
+                <PixelButton max-pixel-width={10} className="no" onClick={() => response(false)} ref={buttonNoRef}>No</PixelButton>
+                <PixelButton max-pixel-width={10} className="yes" onClick={() => response(true)} ref={buttonYesRef}>Yes</PixelButton>
+                <PixelButton max-pixel-width={10} className="ok" onClick={() => response(true)} ref={buttonOkRef}>Ok</PixelButton>
             </div>
         </dialog>
         {children}

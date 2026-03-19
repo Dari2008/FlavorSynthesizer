@@ -291,13 +291,6 @@
                         align-items: center;
                         gap: 10px;
 
-                        .react-colorful__saturation,
-                        .react-colorful__hue,
-                        .react-colorful__alpha {
-                            @extend .pixeled-div;
-                            --max-pixel-width: 10px;
-                        }
-
 
                     }
 
@@ -305,6 +298,32 @@
             }
         }
 
+        .colors {
+            .colors {
+                display: flex;
+                flex-direction: row;
+                gap: 20px;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .subtitle {
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                opacity: 0.5;
+                margin-bottom: 10px
+            }
+        }
+
     }
 
+}
+
+.react-colorful__saturation,
+.react-colorful__hue,
+.react-colorful__alpha {
+    @extend .pixeled-div;
+    --max-pixel-width: 10px;
 }
