@@ -1,0 +1,148 @@
+Date : 2026-03-19 22:17:29
+Directory : c:\Users\dariu\Desktop\programming\flavorSynthesizer
+Total : 75 files,  2810 codes, 401 comments, 629 blanks, all 3840 lines
+
+Languages
++----------------+------------+------------+------------+------------+------------+
+| language       | files      | code       | comment    | blank      | total      |
++----------------+------------+------------+------------+------------+------------+
+| TypeScript JSX |         26 |      1,096 |         56 |        262 |      1,414 |
+| SCSS           |         19 |        727 |        201 |        182 |      1,110 |
+| TypeScript     |         19 |        466 |        142 |        156 |        764 |
+| Markdown       |          5 |        434 |          0 |         27 |        461 |
+| JSON           |          4 |        126 |          0 |          0 |        126 |
+| Python         |          1 |          0 |          2 |          3 |          5 |
+| HTML           |          1 |        -39 |          0 |         -1 |        -40 |
++----------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                               | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                  |         75 |      2,810 |        401 |        629 |      3,840 |
+| . (Files)                                                                                                                          |          4 |         91 |          0 |          0 |         91 |
+| .VSCodeCounter                                                                                                                     |          5 |        429 |          0 |         26 |        455 |
+| .VSCodeCounter\2026-03-14_00-03-56                                                                                                 |          5 |        429 |          0 |         26 |        455 |
+| public                                                                                                                             |          1 |          0 |          2 |          3 |          5 |
+| public\utils-python                                                                                                                |          1 |          0 |          2 |          3 |          5 |
+| src                                                                                                                                |         65 |      2,290 |        399 |        600 |      3,289 |
+| src\@types                                                                                                                         |          1 |          7 |          0 |          4 |         11 |
+| src\app                                                                                                                            |          2 |        123 |         16 |         36 |        175 |
+| src\audio                                                                                                                          |          1 |         65 |          3 |         25 |         93 |
+| src\components                                                                                                                     |         49 |      1,911 |        229 |        472 |      2,612 |
+| src\components (Files)                                                                                                             |          2 |         55 |          0 |         13 |         68 |
+| src\components\addCustomFlavor                                                                                                     |          3 |        918 |         11 |        221 |      1,150 |
+| src\components\customFlavorMenu                                                                                                    |          3 |        207 |          0 |         48 |        255 |
+| src\components\dishList                                                                                                            |          2 |          9 |          0 |          2 |         11 |
+| src\components\download                                                                                                            |          1 |          9 |          0 |          3 |         12 |
+| src\components\errorInfoComponents                                                                                                 |          1 |          0 |          1 |          0 |          1 |
+| src\components\errorInfoComponents\rotateDevice                                                                                    |          1 |          0 |          1 |          0 |          1 |
+| src\components\flavor-dragn-drop-list                                                                                              |          3 |         31 |          0 |          6 |         37 |
+| src\components\flavorSynth                                                                                                         |          7 |        255 |          2 |         54 |        311 |
+| src\components\flavorSynth (Files)                                                                                                 |          5 |        229 |          2 |         46 |        277 |
+| src\components\flavorSynth\controlKnob                                                                                             |          1 |          1 |          0 |          1 |          2 |
+| src\components\flavorSynth\synthLine                                                                                               |          1 |         25 |          0 |          7 |         32 |
+| src\components\imageMenu                                                                                                           |          2 |         23 |          0 |          1 |         24 |
+| src\components\imageMenu (Files)                                                                                                   |          1 |         22 |          0 |          1 |         23 |
+| src\components\imageMenu\selections                                                                                                |          1 |          1 |          0 |          0 |          1 |
+| src\components\initialMenu                                                                                                         |          2 |         21 |          5 |          4 |         30 |
+| src\components\loading                                                                                                             |          2 |          3 |          1 |          0 |          4 |
+| src\components\multiplayerChatOverlay                                                                                              |          2 |         16 |          2 |          5 |         23 |
+| src\components\multiplayerSettingsOverlay                                                                                          |          2 |        275 |          9 |         57 |        341 |
+| src\components\openShareDialog                                                                                                     |          2 |         18 |          7 |          2 |         27 |
+| src\components\pixelDiv                                                                                                            |         10 |         63 |        169 |         51 |        283 |
+| src\components\restaurant                                                                                                          |          1 |         -2 |          2 |          0 |          0 |
+| src\components\shareDialog                                                                                                         |          1 |         10 |         17 |          5 |         32 |
+| src\components\tutorials                                                                                                           |          3 |          0 |          3 |          0 |          3 |
+| src\components\tutorials\components                                                                                                |          3 |          0 |          3 |          0 |          3 |
+| src\components\tutorials\components\custom                                                                                         |          1 |          0 |          1 |          0 |          1 |
+| src\components\tutorials\components\image                                                                                          |          1 |          0 |          1 |          0 |          1 |
+| src\components\tutorials\components\text                                                                                           |          1 |          0 |          1 |          0 |          1 |
+| src\contexts                                                                                                                       |          4 |         29 |          0 |          3 |         32 |
+| src\download                                                                                                                       |          2 |        -33 |         94 |         18 |         79 |
+| src\hooks                                                                                                                          |          1 |          9 |          0 |          1 |         10 |
+| src\serverCommunication                                                                                                            |          1 |        118 |         31 |         19 |        168 |
+| src\utils                                                                                                                          |          4 |         61 |         26 |         22 |        109 |
++------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| filename                                                                                                                           | language       | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-14_00-03-56\details.md                                 | Markdown       |        237 |          0 |          6 |        243 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-14_00-03-56\diff-details.md                            | Markdown       |         37 |          0 |          6 |         43 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-14_00-03-56\diff.md                                    | Markdown       |         35 |          0 |          7 |         42 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-14_00-03-56\results.json                               | JSON           |          1 |          0 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\.VSCodeCounter\2026-03-14_00-03-56\results.md                                 | Markdown       |        119 |          0 |          7 |        126 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\README.md                                                                     | Markdown       |          6 |          0 |          1 |          7 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\package-lock.json                                                             | JSON           |        121 |          0 |          0 |        121 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\package.json                                                                  | JSON           |          3 |          0 |          0 |          3 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\public\utils-python\convertImageToSelectionJson.py                            | Python         |          0 |          2 |          3 |          5 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\@types\User.ts                                                            | TypeScript     |          7 |          0 |          4 |         11 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.scss                                                              | SCSS           |         -3 |          3 |          0 |          0 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\app\App.tsx                                                               | TypeScript JSX |        126 |         13 |         36 |        175 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\audio\FlavorMusic.ts                                                      | TypeScript     |         65 |          3 |         25 |         93 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\FlavorUtils.ts                                                 | TypeScript     |         26 |          0 |          4 |         30 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\ResourceSaver.ts                                               | TypeScript     |         29 |          0 |          9 |         38 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\addCustomFlavor\AddCustomFlavorDialog.scss                     | SCSS           |        284 |          0 |         45 |        329 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\addCustomFlavor\AddCustomFlavorDialog.tsx                      | TypeScript JSX |        473 |          0 |        115 |        588 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\addCustomFlavor\CustomFlavorManager.ts                         | TypeScript     |        161 |         11 |         61 |        233 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\customFlavorMenu\CustomFlavorItem.tsx                          | TypeScript JSX |         45 |          0 |         16 |         61 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\customFlavorMenu\CustomFlavorMenu.scss                         | SCSS           |        120 |          0 |         21 |        141 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\customFlavorMenu\CustomFlavorMenu.tsx                          | TypeScript JSX |         42 |          0 |         11 |         53 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishList.scss                                         | SCSS           |          8 |          0 |          2 |         10 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\dishList\DishListItem.tsx                                      | TypeScript JSX |          1 |          0 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\download\Download.tsx                                          | TypeScript JSX |          9 |          0 |          3 |         12 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\errorInfoComponents\rotateDevice\RotateDeviceNoticeDownload.ts | TypeScript     |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropList.scss                | SCSS           |         15 |          0 |          2 |         17 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropList.tsx                 | TypeScript JSX |         18 |          0 |          4 |         22 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavor-dragn-drop-list\FlavorDragNDropListItem.tsx             | TypeScript JSX |         -2 |          0 |          0 |         -2 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\CurrentPosimageInit.ts                             | TypeScript     |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\ElementPlayer.ts                                   | TypeScript     |          2 |          0 |          0 |          2 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynth.tsx                                    | TypeScript JSX |        119 |          0 |         23 |        142 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\FlavorSynthControls.scss                           | SCSS           |         20 |          0 |          4 |         24 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\PlayerTrack.tsx                                    | TypeScript JSX |         88 |          1 |         19 |        108 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\controlKnob\ControlKnob.tsx                        | TypeScript JSX |          1 |          0 |          1 |          2 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\flavorSynth\synthLine\SynthLine.tsx                            | TypeScript JSX |         25 |          0 |          7 |         32 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\ImageMenu.tsx                                        | TypeScript JSX |         22 |          0 |          1 |         23 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\imageMenu\selections\customFlavors.json                        | JSON           |          1 |          0 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\initialMenu\InitialMenu.scss                                   | SCSS           |         15 |          1 |          2 |         18 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\initialMenu\InitialMenu.tsx                                    | TypeScript JSX |          6 |          4 |          2 |         12 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\loading\Loading.tsx                                            | TypeScript JSX |          3 |          0 |          0 |          3 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\loading\LoadingAnimationDownloads.ts                           | TypeScript     |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerChatOverlay\MultiplayerChatOverlay.scss             | SCSS           |         13 |          2 |          4 |         19 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerChatOverlay\MultiplayerChatOverlay.tsx              | TypeScript JSX |          3 |          0 |          1 |          4 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.scss     | SCSS           |        149 |          9 |         33 |        191 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\multiplayerSettingsOverlay\MultiplayerSettingsOverlay.tsx      | TypeScript JSX |        126 |          0 |         24 |        150 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.scss                           | SCSS           |         11 |          7 |          2 |         20 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\openShareDialog\OpenShareDialog.tsx                            | TypeScript JSX |          7 |          0 |          0 |          7 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\BGBorderDivType.tsx                                   | TypeScript JSX |         20 |         22 |          7 |         49 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelButton.scss                                      | SCSS           |        -27 |         12 |         -2 |        -17 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelButton.tsx                                       | TypeScript JSX |         -9 |          0 |         -3 |        -12 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelDiv.scss                                         | SCSS           |        106 |        119 |         54 |        279 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelDiv.tsx                                          | TypeScript JSX |        -12 |          0 |         -3 |        -15 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelDivWBorder.tsx                                   | TypeScript JSX |         27 |         16 |          9 |         52 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelImage.tsx                                        | TypeScript JSX |        -12 |          0 |         -2 |        -14 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelInput.tsx                                        | TypeScript JSX |         -9 |          0 |         -3 |        -12 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelLI.tsx                                           | TypeScript JSX |        -12 |          0 |         -3 |        -15 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\pixelDiv\PixelTextArea.tsx                                     | TypeScript JSX |         -9 |          0 |         -3 |        -12 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\restaurant\Restaurant.scss                                     | SCSS           |         -2 |          2 |          0 |          0 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\shareDialog\ShareDialog.scss                                   | SCSS           |         10 |         17 |          5 |         32 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\custom\Custom.scss                        | SCSS           |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\image\Image.scss                          | SCSS           |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\components\tutorials\components\text\Text.scss                            | SCSS           |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CurrentInterPlayerDragContext.ts                                 | TypeScript     |          1 |          0 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\CustomFlavors.ts                                                 | TypeScript     |         16 |          0 |          3 |         19 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\MultiplayerContext.ts                                            | TypeScript     |          8 |          0 |          0 |          8 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\contexts\SynthSelectorContext.ts                                          | TypeScript     |          4 |          0 |          0 |          4 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\download\DownloadManager.ts                                               | TypeScript     |        -33 |         93 |         18 |         78 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\download\ImageDownloadManager.ts                                          | TypeScript     |          0 |          1 |          0 |          1 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\hooks\Debounce.ts                                                         | TypeScript     |          9 |          0 |          1 |         10 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\serverCommunication\ServerCommunication.ts                                | TypeScript     |        118 |         31 |         19 |        168 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Images.scss                                                         | SCSS           |          8 |          0 |          2 |         10 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Network.ts                                                          | TypeScript     |         41 |          0 |         11 |         52 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Utils.ts                                                            | TypeScript     |         12 |          0 |          1 |         13 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\src\utils\Variables.scss                                                      | SCSS           |          0 |         26 |          8 |         34 |
+| c:\Users\dariu\Desktop\programming\flavorSynthesizer\test.html                                                                     | HTML           |        -39 |          0 |         -1 |        -40 |
+| Total                                                                                                                              |                |      2,810 |        401 |        629 |      3,840 |
++------------------------------------------------------------------------------------------------------------------------------------+----------------+------------+------------+------------+------------+

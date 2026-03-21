@@ -2,29 +2,36 @@ import type { CustomFlavor } from "../addCustomFlavor/CustomFlavorManager";
 import PixelDiv from "../pixelDiv/PixelDiv";
 import PixelImage from "../pixelDiv/PixelImage";
 import PixelLI from "../pixelDiv/PixelLI";
+import Toggle from "../toggle/Toggle";
 
-export default function CustomFlavorItem({ flavor, onEdit, onDelete }: { flavor: CustomFlavor, onEdit: () => void; onDelete: () => void }) {
+export default function CustomFlavorItem({ flavor, onEdit, onDelete, onChangeVisibility, isPublic, preview }: { flavor: CustomFlavor, onEdit: () => void; onDelete: () => void; isPublic: boolean; onChangeVisibility: (is: boolean) => void; preview: () => void }) {
 
     return <PixelLI max-pixel-width={20} className="custom-flavor-item">
 
-        <PixelImage max-pixel-width={10} src={flavor.image} alt={"image of " + flavor.flavorName} className="image" />
+        <PixelImage max-pixel-width={10} src={flavor.image} alt={"image of " + flavor.name} className="image" />
 
-        <span className="name">{flavor.flavorName}</span>
+        <span className="name">{flavor.name}</span>
 
         <div className="colors">
             {
-                flavor.colors.map(color => {
-                    return <PixelDiv max-pixel-width={20} className="color" style={{ "--color": color } as any}>{rgbStringToHex(color)}</PixelDiv>
+                flavor.colors.map((color, i) => {
+                    return <PixelDiv key={i} max-pixel-width={20} className="color" style={{ "--color": color } as any}>{rgbStringToHex(color)}</PixelDiv>
                 })
             }
         </div>
 
+        <Toggle onToggleChange={(s) => onChangeVisibility(s)} checked={isPublic} className="public">Public</Toggle>
+
+        <button className="preview" onClick={preview}>
+            <img src="./imgs/actionButtons/preview.png" alt="Preview" />
+        </button>
+
         <button className="edit" onClick={onEdit}>
-            <img src="./imgs/actionButtons/dishList/open.png" alt="edit button" />
+            <img src="./imgs/actionButtons/dishList/open.png" alt="Edit" />
         </button>
 
         <button className="delete" onClick={onDelete}>
-            <img src="./imgs/actionButtons/dishList/delete.png" alt="delete button" />
+            <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete" />
         </button>
 
     </PixelLI>

@@ -33,6 +33,7 @@
 Flavor Synthesizer is a browser-based music sandbox game where players compose playable “dishes” by arranging flavors on a timeline.
 Each flavor represents a musical element that can be positioned and resized using drag & drop.
 A selected main flavor (Spicy / Sweet / Salty / Savory / Bitter / Sour) defines the harmonic identity of the dish.
+By now there are about 35,000 lines of code and about 230 files which makes it a bit more difficult to find some files.
 
 Dishes can be:
 - Shared via code

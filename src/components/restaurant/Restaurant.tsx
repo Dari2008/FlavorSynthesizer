@@ -16,6 +16,7 @@ import { useGameState } from "../../contexts/GameStateContext";
 import Utils from "../../utils/Utils";
 import { DATE_FORMAT, DISPLAY_DATE_FORMAT } from "../../utils/Statics";
 import withTutorialStarter from "../../hooks/TutorialStarter";
+import { useCustomFlavors } from "../../contexts/CustomFlavors";
 
 dayjs.extend(customFormat);
 export default function Restaurant() {
@@ -188,7 +189,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
 
     const containsSolo = dish.tracks.filter(e => e.solo).length > 0;
     const elements = dish.tracks.filter(e => (e.solo && containsSolo) || !containsSolo).filter(e => e.volume != 0).filter(e => !e.muted).flatMap(line => line.elements.map(el => ({ ...el, lineUuid: Utils.uuidv4() })));
-
+    const customFlavors = useCustomFlavors();
 
     const updateProgresssBar = () => {
 
@@ -262,7 +263,7 @@ function RestaurantDish({ dish, stopPlaybackRef, startedPlayback }: { dish: Rest
         playerRef.current.stop();
         playerRef.current.disposeAll();
         playerRef.current.setVolumes(dish.volumes);
-        playerRef.current.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })));
+        playerRef.current.loadElements(elements.map(e => ({ ...createElementForFlavor(e.flavor, e.from, e.to), lineUuid: e.lineUuid })), customFlavors);
 
         if (!containsSolo) {
             mainFlavorsPlayer?.stop();

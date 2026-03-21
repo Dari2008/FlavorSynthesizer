@@ -101,9 +101,9 @@ export default function App() {
         const toAdd: CustomFlavorMusic[] = [];
 
         for (const flavor of data as CustomFlavor[]) {
-            const found = musicPlayers.find(e => e.NAME == flavor.flavorName);
+            const found = musicPlayers.find(e => e.NAME == flavor.name);
             if (found) continue;
-            toAdd.push(new CustomFlavorMusic(flavor.audio, flavor.flavorName as Flavor, flavor.colors, flavor.image));
+            toAdd.push(new CustomFlavorMusic(flavor.audio, flavor.name as Flavor, flavor.colors, flavor.image));
         }
         if (toAdd.length == 0) return;
         setMusicPlayers(m => [...m, ...toAdd]);
@@ -323,7 +323,7 @@ export default function App() {
         await initLoadingAnimation();
         await intitializeAllAudios();
         await initCurrentPosImages();
-        await loadAllCustomFlavorsAsMusicPlayer(setCustomFlavors);
+        await loadAllCustomFlavorsAsMusicPlayer(userLoggedIn, setCustomFlavors);
         stopLoading("loadingAll");
         startTutorial.current?.("home");
     };

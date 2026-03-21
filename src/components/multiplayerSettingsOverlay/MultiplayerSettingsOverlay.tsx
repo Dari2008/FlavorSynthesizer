@@ -14,7 +14,7 @@ export default function MultiplayerSettingsOverlay() {
     const usersJoined = multiplayer.playersJoined;
 
     const copyCodeRef = useRef<HTMLButtonElement>(null);
-    const timeoutRef = useRef<number>(-1);
+    const timeoutRef = useRef<NodeJS.Timeout>(null);
 
     return multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <>
         <div className="multiplayer-settings-overlay" data-visible={multiplayer.isMultiplayerOverlayOpen ? true : undefined}>
@@ -37,7 +37,7 @@ export default function MultiplayerSettingsOverlay() {
                             copyCode(code);
                             if (!copyCodeRef.current) return;
 
-                            if (timeoutRef.current != -1) {
+                            if (timeoutRef.current != null) {
                                 clearTimeout(timeoutRef.current);
                             }
                             timeoutRef.current = setTimeout(() => {

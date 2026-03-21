@@ -4,14 +4,16 @@ import PixelInput from "../pixelDiv/PixelInput";
 import "./AddCustomFlavorDialog.scss";
 import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
 import Utils from "../../utils/Utils";
-import { RgbaColorPicker, RgbStringColorPicker, type RgbaColor } from "react-colorful";
+import { HexColorPicker, RgbaColorPicker, RgbStringColorPicker, type RgbaColor } from "react-colorful";
 import { addCustomFlavor, type CustomFlavor } from "./CustomFlavorManager";
 import { useCustomFlavors } from "../../contexts/CustomFlavors";
+import CustomFlavorServerManager from "../customFlavorMenu/CustomFlavorServerManager";
+import { useUser } from "../../contexts/UserContext";
 
 export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { onClose: () => void; flavor?: CustomFlavor | undefined | null; onUpdate?: (audio: string, image: string, colors: [string, string, string], flavorName: string) => void; }) {
     const imageSize = 64;
 
-    const [audioCreationState, setAudioCreationState] = useState<"upload" | "synthesize">("synthesize");
+    const [audioCreationState, setAudioCreationState] = useState<"upload" | "synthesize">(flavor ? "upload" : "synthesize");
     const [imageCreationState, setImageCreationState] = useState<"upload" | "draw">("draw");
     const uplaodedImageRef = useRef<string>(null);
     const uploadedAudioRef = useRef<string>(null);
@@ -19,15 +21,17 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
     const drewnImageRef = useRef<string[]>(Array.from({ length: imageSize * imageSize }).map(() => "transparent"));
     const [currentColorIndex, setCurrentColorIndex] = useState<number>(0);
     const [colors, setColors] = useState<string[]>(["rgb(255, 255, 0)", "rgb(0, 255, 0)"]);
-    const [currentUploadFileNameAudio, setCurrentUploadFileNameAudio] = useState<string>("");
+    const [currentUploadFileNameAudio, setCurrentUploadFileNameAudio] = useState<string>(flavor ? "Stored audio" : "");
     const [currentUploadFileNameImage, setCurrentUploadFileNameImage] = useState<string>("");
-    const [flavorColors, setFlavorColors] = useState<[string, string, string]>(["#FFF", "#FFF", "#FFF"]);
+    const [flavorColors, setFlavorColors] = useState<[string, string, string]>(flavor ? flavor.colors : ["#FFF", "#FFF", "#FFF"]);
 
     const [currentToolSelected, setToolSelected] = useState<"brush" | "eraser" | "fill">("brush");
 
     const openFileRef = useRef<HTMLInputElement>(document.createElement("input"));
 
     const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
+
+    const user = useUser();
 
     const customFlavors = useCustomFlavors();
     document.body.appendChild(openFileRef.current);
@@ -56,13 +60,8 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
             setColors(allColors);
 
             uploadedAudioRef.current = flavor.audio;
-            setCurrentUploadFileNameAudio("Stored audio");
-            setFlavorColors(flavor.colors);
-            setCurrentColorIndex(0);
-            setAudioCreationState("upload");
-            setImageCreationState("draw");
 
-            if (nameInputRef.current) nameInputRef.current.value = flavor.flavorName;
+            if (nameInputRef.current) nameInputRef.current.value = flavor.name;
 
             render();
 
@@ -322,7 +321,7 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
     const setColorAt = (index: number, color: string) => {
         setFlavorColors(colors => {
             colors[index] = color;
-            return colors;
+            return [...colors];
         });
     };
 
@@ -347,7 +346,7 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
             return;
         }
 
-        if (customFlavors.customFlavors.map(e => e.flavorName).includes(flavorName) && !onUpdate) {
+        if (customFlavors.customFlavors.map(e => e.name).includes(flavorName) && !onUpdate) {
             Utils.error("Name already used");
             return;
         }
@@ -360,12 +359,15 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
 
         const newFlavor: CustomFlavor = {
             audio: audio,
-            flavorName: flavorName,
+            name: flavorName,
             image: image,
-            colors: colors
+            colors: colors,
+            isPublic: false,
+            uuid: Utils.uuidv4Exclude(customFlavors.customFlavors.map(e => e.uuid))
         };
 
-        addCustomFlavor(newFlavor, customFlavors);
+        if (user.user) CustomFlavorServerManager.addCustomFlavor(user.user, newFlavor);
+        addCustomFlavor(user.user, newFlavor, customFlavors);
         onClose();
     }
 
@@ -475,9 +477,9 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
                     <h2>Image / Colors</h2>
                     <span className="subtitle">Choose 3 colors that are used the most in your flavor (if you only have 2 choose one multiple times)</span>
                     <div className="colors">
-                        <RgbStringColorPicker onChange={(e) => setColorAt(0, e)}></RgbStringColorPicker>
-                        <RgbStringColorPicker onChange={(e) => setColorAt(1, e)}></RgbStringColorPicker>
-                        <RgbStringColorPicker onChange={(e) => setColorAt(2, e)}></RgbStringColorPicker>
+                        <HexColorPicker defaultValue={flavorColors[0]} color={flavorColors[0]} onChange={(e) => setColorAt(0, e)}></HexColorPicker>
+                        <HexColorPicker defaultValue={flavorColors[1]} color={flavorColors[1]} onChange={(e) => setColorAt(1, e)}></HexColorPicker>
+                        <HexColorPicker defaultValue={flavorColors[2]} color={flavorColors[2]} onChange={(e) => setColorAt(2, e)}></HexColorPicker>
                     </div>
                 </div>
 
@@ -586,3 +588,19 @@ type ImageDataGetter = {
     width: number;
     height: number;
 };
+
+function rgbToHex(rgb: string): string {
+    const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    if (!match) throw new Error("Invalid RGB(A) format");
+
+    const r = parseInt(match[1], 10);
+    const g = parseInt(match[2], 10);
+    const b = parseInt(match[3], 10);
+
+    const toHex = (n: number) => {
+        const hex = n.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}

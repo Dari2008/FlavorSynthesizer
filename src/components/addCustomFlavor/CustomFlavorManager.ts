@@ -1,19 +1,25 @@
+import type { UUID } from "crypto";
 import type { CustomFlavorsType } from "../../contexts/CustomFlavors";
 import { starMask, type FlavorRenderer } from "../FlavorUtils";
 import { deleteResourceWithName, getAllResources, saveResourceWithName } from "../ResourceSaver";
+import CustomFlavorServerManager from "../customFlavorMenu/CustomFlavorServerManager";
+import type { User } from "../../@types/User";
 
-export async function loadAllCustomFlavorsAsMusicPlayer(setCustomFlavors: (v: CustomFlavor[] | ((s: CustomFlavor[]) => CustomFlavor[])) => void) {
+export async function loadAllCustomFlavorsAsMusicPlayer(user: User | null, setCustomFlavors: (v: CustomFlavor[] | ((s: CustomFlavor[]) => CustomFlavor[])) => void) {
     const allFlavors = await getAllResources("customFlavors") as CustomFlavor[];
-    setCustomFlavors(allFlavors);
 
-    for (const flavor of allFlavors) {
+    const serversideFlavors = !!user ? await CustomFlavorServerManager.getAllCustomFlavors(user, allFlavors) : allFlavors;
+    setCustomFlavors(serversideFlavors);
+
+    for (const flavor of serversideFlavors) {
         CUSTOM_FLAVORS_RENDERERS.push({
             colors: flavor.colors,
             imageObj: loadImage(flavor.image),
             image: flavor.image,
-            name: flavor.flavorName,
+            name: flavor.name,
             contrastColor: contrastColor(darkenIfBright(flavor.colors[0])),
             bgColor: darkenIfBright(flavor.colors[0]),
+            uuid: flavor.uuid,
             renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
                 if (!starMask.complete) return;
 
@@ -52,17 +58,16 @@ export async function loadAllCustomFlavorsAsMusicPlayer(setCustomFlavors: (v: Cu
 
 }
 
-export async function addCustomFlavor(flavor: CustomFlavor, customFlavors: CustomFlavorsType) {
-    await saveResourceWithName("customFlavors", flavor.flavorName, flavor);
+export async function addCustomFlavor(user: User | null, flavor: CustomFlavor, customFlavors: CustomFlavorsType) {
     customFlavors.setCustomFlavors(flavors => [...flavors, flavor]);
-    saveResourceWithName("customFlavors", flavor.flavorName, flavor);
-
+    if (!user) await saveResourceWithName("customFlavors", flavor.name, flavor);
 
     CUSTOM_FLAVORS_RENDERERS.push({
         colors: flavor.colors,
         imageObj: loadImage(flavor.image),
         image: flavor.image,
-        name: flavor.flavorName,
+        name: flavor.name,
+        uuid: flavor.uuid,
         contrastColor: contrastColor(darkenIfBright(flavor.colors[0])),
         bgColor: darkenIfBright(flavor.colors[0]),
         renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
@@ -103,19 +108,20 @@ export async function addCustomFlavor(flavor: CustomFlavor, customFlavors: Custo
 }
 
 export async function deleteCustomFlavor(flavor: CustomFlavor, customFlavors: CustomFlavorsType) {
-    CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS.filter(e => e.name !== flavor.flavorName);
-    customFlavors.setCustomFlavors(flavors => flavors.filter(e => e.flavorName !== flavor.flavorName));
-    await deleteResourceWithName("customFlavors", flavor.flavorName);
+    CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS.filter(e => e.name !== flavor.name);
+    customFlavors.setCustomFlavors(flavors => flavors.filter(e => e.name !== flavor.name));
+    await deleteResourceWithName("customFlavors", flavor.name);
 }
 
-export async function updateCustomFlavor(flavorNameOriginal: string, newCustomFlavor: CustomFlavor, customFlavors: CustomFlavorsType) {
+export async function updateCustomFlavor(user: User | null, newCustomFlavor: CustomFlavor, customFlavors: CustomFlavorsType) {
     CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS.map(e => {
-        if (e.name !== flavorNameOriginal) return e;
+        if (e.uuid !== newCustomFlavor.uuid) return e;
         return {
             colors: newCustomFlavor.colors,
             imageObj: loadImage(newCustomFlavor.image),
             image: newCustomFlavor.image,
-            name: newCustomFlavor.flavorName,
+            name: newCustomFlavor.name,
+            uuid: newCustomFlavor.uuid,
             contrastColor: contrastColor(darkenIfBright(newCustomFlavor.colors[0])),
             bgColor: darkenIfBright(newCustomFlavor.colors[0]),
             renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
@@ -153,22 +159,28 @@ export async function updateCustomFlavor(flavorNameOriginal: string, newCustomFl
             }
         };
     });
-    await saveResourceWithName("customFlavors", newCustomFlavor.flavorName, newCustomFlavor);
+    if (!user) await saveResourceWithName("customFlavors", newCustomFlavor.name, newCustomFlavor);
 
-    customFlavors.setCustomFlavors(flavors => flavors.map(e => {
-        if (e.flavorName !== flavorNameOriginal) return e;
-        return newCustomFlavor;
-    }));
+    customFlavors.setCustomFlavors(flavors => [...flavors.map(e => {
+        if (e.uuid !== newCustomFlavor.uuid) return e;
+        console.log("Found", e, newCustomFlavor);
+        return { ...newCustomFlavor };
+    })]);
 }
 
 export type CustomFlavor = {
-    flavorName: string;
+    name: string;
     audio: string;
     image: string;
     colors: [string, string, string];
+    isPublic: boolean;
+    uuid: UUID;
 }
 
-export let CUSTOM_FLAVORS_RENDERERS: FlavorRenderer[] = [];
+let CUSTOM_FLAVORS_RENDERERS: FlavorRenderer[] = (window as any).CUSTOM_FLAVORS_RENDERERS ?? [];
+(window as any).CUSTOM_FLAVORS_RENDERERS = CUSTOM_FLAVORS_RENDERERS;
+
+export { CUSTOM_FLAVORS_RENDERERS };
 
 function loadImage(src: string): HTMLImageElement {
     const img = new Image();

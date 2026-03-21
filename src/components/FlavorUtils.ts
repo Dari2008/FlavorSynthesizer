@@ -168,6 +168,13 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number,
 }
 
 export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false, isSelectedByOtherUser: boolean = false): boolean {
+    let FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
+    if (!FLAVOR_RENDERER) FLAVOR_RENDERER = CUSTOM_FLAVORS_RENDERERS.find(e => e.name == element.flavor);
+    if (!FLAVOR_RENDERER) return false;
+    return _drawElement(element, FLAVOR_RENDERER, ctx, pixelsPerSecond, xOffset, offsetY, isSelected, isSelectedByOtherUser);
+}
+
+export function _drawElement(element: FlavorElement, renderer: FlavorRenderer, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, pixelsPerSecond: number, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false, isSelectedByOtherUser: boolean = false): boolean {
     const fromPos = element.from * pixelsPerSecond;
     const toPos = element.to * pixelsPerSecond;
     const width = toPos - fromPos;
@@ -176,9 +183,6 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     const y = offsetY;
     const imageSize = Math.min(width - imageMargin * 2, rectHeight - imageMargin * 2);
 
-    let FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
-    if (!FLAVOR_RENDERER) FLAVOR_RENDERER = CUSTOM_FLAVORS_RENDERERS.find(e => e.name == element.flavor);
-    if (!FLAVOR_RENDERER) return false;
 
     drawBackgroundImage();
 
@@ -190,7 +194,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.closePath();
     ctx.fill();
 
-    ctx.drawImage(FLAVOR_RENDERER.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
+    ctx.drawImage(renderer.imageObj, fromPos + imageMargin - xOffset, y + imageMargin, imageSize, imageSize);
 
 
     if (isSelected && !isSelectedByOtherUser) {
@@ -202,7 +206,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
         ctx.stroke();
     }
 
-    if (ctx.measureText(FLAVOR_RENDERER.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
+    if (ctx.measureText(renderer.name.toUpperCase()).width + imageSize + imageMargin * 2 + 10 > width) {
         if (isSelectedByOtherUser) {
             ctx.beginPath();
             ctx.roundRect(fromPos - xOffset, y, width, rectHeight, 10);
@@ -217,8 +221,8 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     ctx.textBaseline = "middle";
     ctx.textAlign = "left";
     ctx.font = "500 15px Arial";
-    ctx.fillStyle = FLAVOR_RENDERER.contrastColor;
-    ctx.fillText(FLAVOR_RENDERER.name.toUpperCase(), textX + 5 - xOffset, y + rectHeight / 2);
+    ctx.fillStyle = renderer.contrastColor;
+    ctx.fillText(renderer.name.toUpperCase(), textX + 5 - xOffset, y + rectHeight / 2);
 
     if (isSelectedByOtherUser) {
         ctx.beginPath();
@@ -231,8 +235,7 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     return true;
 
     function drawBorder() {
-        if (!FLAVOR_RENDERER) return;
-        drawGradientBorder(fromPos - xOffset, y, width, rectHeight, 10, 2, FLAVOR_RENDERER.colors[0], FLAVOR_RENDERER.colors[1])
+        drawGradientBorder(fromPos - xOffset, y, width, rectHeight, 10, 2, renderer.colors[0], renderer.colors[1])
         function drawGradientBorder(
             x: number,
             y: number,
@@ -307,8 +310,8 @@ export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2
     }
 
     function drawBackgroundImage() {
-        if (!FLAVOR_RENDERER) return;
-        FLAVOR_RENDERER.renderBackgroundMask(ctx, fromPos - xOffset, y, width, rectHeight);
+        if (!renderer) return;
+        renderer.renderBackgroundMask(ctx, fromPos - xOffset, y, width, rectHeight);
     }
 
 }
@@ -439,4 +442,5 @@ export type FlavorRenderer = {
     contrastColor: string;
     bgColor: string;
     renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
+    uuid?: UUID;
 }

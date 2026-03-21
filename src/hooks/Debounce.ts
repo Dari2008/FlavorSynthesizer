@@ -11,9 +11,9 @@ export default function withDebounce<T extends unknown[], E>(func: (...t: T) => 
 }
 
 export function withTimeoutDebounce<T extends unknown[]>(func: (...t: T) => void, time: number): (...t: T) => void {
-    let timeout = -1;
+    let timeout: NodeJS.Timeout | null = null;
     return (...t: T) => {
-        if (timeout != -1) clearTimeout(timeout);
+        if (timeout != null) clearTimeout(timeout);
         timeout = setTimeout(() => {
             func(...t)
         }, time);

@@ -52,6 +52,22 @@ export async function deleteResourceWithName(
     });
 }
 
+export async function deleteAllResources(
+    dbName: string
+): Promise<void> {
+    const db = await openDB(dbName);
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
+        const store = tx.objectStore(storeName);
+
+        store.clear();
+
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
 export async function getAllResources(
     dbName: string
 ): Promise<any[]> {
