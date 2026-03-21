@@ -4,7 +4,7 @@ import PixelInput from "../pixelDiv/PixelInput";
 import "./AddCustomFlavorDialog.scss";
 import PixelDivWBorder from "../pixelDiv/PixelDivWBorder";
 import Utils from "../../utils/Utils";
-import { HexColorPicker, RgbaColorPicker, RgbStringColorPicker, type RgbaColor } from "react-colorful";
+import { HexColorPicker, RgbaColorPicker, type RgbaColor } from "react-colorful";
 import { addCustomFlavor, type CustomFlavor } from "./CustomFlavorManager";
 import { useCustomFlavors } from "../../contexts/CustomFlavors";
 import CustomFlavorServerManager from "../customFlavorMenu/CustomFlavorServerManager";
@@ -13,7 +13,7 @@ import { useUser } from "../../contexts/UserContext";
 export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { onClose: () => void; flavor?: CustomFlavor | undefined | null; onUpdate?: (audio: string, image: string, colors: [string, string, string], flavorName: string) => void; }) {
     const imageSize = 64;
 
-    const [audioCreationState, setAudioCreationState] = useState<"upload" | "synthesize">(flavor ? "upload" : "synthesize");
+    const [audioCreationState, _setAudioCreationState] = useState<"upload" | "synthesize">(flavor ? "upload" : "upload");
     const [imageCreationState, setImageCreationState] = useState<"upload" | "draw">("draw");
     const uplaodedImageRef = useRef<string>(null);
     const uploadedAudioRef = useRef<string>(null);
@@ -385,10 +385,10 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
 
                 <div className="audio input-wrapper-div">
                     <h2>Audio</h2>
-                    <PixelDivWBorder max-pixel-width={20} className="tabs">
+                    {/* <PixelDivWBorder max-pixel-width={20} className="tabs">
                         <PixelButton max-pixel-width={15} data-selected={audioCreationState == "upload" ? true : undefined} className="upload" onClick={() => setAudioCreationState("upload")}>Upload Flavor</PixelButton>
                         <PixelButton max-pixel-width={15} data-selected={audioCreationState == "synthesize" ? true : undefined} className="synthesize" onClick={() => setAudioCreationState("synthesize")}>Synthesize Flavor</PixelButton>
-                    </PixelDivWBorder>
+                    </PixelDivWBorder> */}
 
                     {
                         audioCreationState == "upload" && <div className="upload-flavor">
@@ -400,11 +400,11 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
                         </div>
                     }
 
-                    {
+                    {/* {
                         audioCreationState == "synthesize" && <div className="synthesize-flavor">
                             <h3>Synthesize Flavor</h3>
                         </div>
-                    }
+                    } */}
 
                 </div>
 
@@ -522,6 +522,9 @@ const fill = (data: React.RefObject<string[]>, x: number, y: number, fillColor: 
     }
 
     fill(x, y);
+    if (data.current[index] === selectedColor) {
+        data.current[index] = fillColor;
+    }
 }
 
 const fillEverything = (data: React.RefObject<string[]>, x: number, y: number, fillColor: string, imageSize: number) => {
@@ -588,19 +591,3 @@ type ImageDataGetter = {
     width: number;
     height: number;
 };
-
-function rgbToHex(rgb: string): string {
-    const match = rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-    if (!match) throw new Error("Invalid RGB(A) format");
-
-    const r = parseInt(match[1], 10);
-    const g = parseInt(match[2], 10);
-    const b = parseInt(match[3], 10);
-
-    const toHex = (n: number) => {
-        const hex = n.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    };
-
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}

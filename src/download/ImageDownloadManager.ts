@@ -1,4 +1,4 @@
-import { getResourceByName, loadAndSaveResource } from "../components/ResourceSaver";
+import { getResourceByName } from "../components/ResourceSaver";
 
 export const IMAGES_TO_LOAD: {
     [key in ImageName]: {

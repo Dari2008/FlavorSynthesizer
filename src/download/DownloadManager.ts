@@ -1,16 +1,14 @@
-import FILE_SIZES_RAW from "../@types/downloadSizes.json";
-import type { BPM } from "../audio/FlavorMusic";
-import { FLAVORS, MAIN_FLAVORS } from "../audio/Flavors";
-import { LOADING_ANIMATION_IMAGE_COUNT, setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
-import { loadAndSaveResource, saveResourceWithName } from "../components/ResourceSaver";
-import { ROTATE_NOTICE_ANIMATION_IMAGE_COUNT, setLoadingFrameRotateNotice } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
+// import FILE_SIZES_RAW from "../@types/downloadSizes.json";
+import { setLoadingFrame } from "../components/loading/LoadingAnimationDownloads";
+import { saveResourceWithName } from "../components/ResourceSaver";
+import { setLoadingFrameRotateNotice } from "../components/errorInfoComponents/rotateDevice/RotateDeviceNoticeDownload";
 import { Network } from "../utils/Network";
 import type JSZip from "jszip";
 import Utils from "../utils/Utils";
-const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
+// const FILE_SIZES = FILE_SIZES_RAW as FileSizes;
 
-let startTime = 0;
-let timeTaken = 0;
+// let startTime = 0;
+// let timeTaken = 0;
 
 export const DOWNLOAD_GROUP_COUNT = 4;
 
@@ -18,21 +16,21 @@ export const DOWNLOAD_PROGRESS_KEY = "downloadProgress";
 
 
 
-function downloadStart() {
-    startTime = performance.now();
-}
+// function downloadStart() {
+//     startTime = performance.now();
+// }
 
-function downloadEnd(downloadSize: number): number {
-    timeTaken = performance.now() - startTime;
-    return downloadSize / (timeTaken / 1000);
-}
-var CURRENT_POS_ANIMATION_FRAME_COUNT = 99;
+// function downloadEnd(downloadSize: number): number {
+//     timeTaken = performance.now() - startTime;
+//     return downloadSize / (timeTaken / 1000);
+// }
+// var CURRENT_POS_ANIMATION_FRAME_COUNT = 99;
 
 
-async function downloadCurrentPosAnimationFrame(frame: number) {
-    // var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
-    // await loadAndSaveResource("currentCursorPositionAnimation", "image_" + frame, ROOT_PATH + frame.toString().padStart(4, "0") + ".png");
-}
+// async function downloadCurrentPosAnimationFrame(frame: number) {
+//     // var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
+//     // await loadAndSaveResource("currentCursorPositionAnimation", "image_" + frame, ROOT_PATH + frame.toString().padStart(4, "0") + ".png");
+// }
 
 async function downloadLoadingAnimationFrame(base64: string, number: number) {
     setLoadingFrame(base64, number);
@@ -236,46 +234,46 @@ export async function downloadAll(onProgress: (max: number, curr: number, downlo
     // localStorage.removeItem(DOWNLOAD_PROGRESS_KEY);
 }
 
-function calculateMaxDownloadSize() {
-    let size = 0;
-    for (const mainFlavor of MAIN_FLAVORS) {
-        size += getSizeOf("audio_mainFlavors", mainFlavor.NAME.toLowerCase() + "");
-    }
+// function calculateMaxDownloadSize() {
+//     let size = 0;
+//     for (const mainFlavor of MAIN_FLAVORS) {
+//         size += getSizeOf("audio_mainFlavors", mainFlavor.NAME.toLowerCase() + "");
+//     }
 
 
-    for (let i = 0; i < LOADING_ANIMATION_IMAGE_COUNT; i++) {
-        size += getSizeOf("pot-animation", "image_" + i);
-    }
+//     for (let i = 0; i < LOADING_ANIMATION_IMAGE_COUNT; i++) {
+//         size += getSizeOf("pot-animation", "image_" + i);
+//     }
 
 
-    for (let i = 0; i < ROTATE_NOTICE_ANIMATION_IMAGE_COUNT; i++) {
-        size += getSizeOf("rotateDevice", "" + i);
-    }
+//     for (let i = 0; i < ROTATE_NOTICE_ANIMATION_IMAGE_COUNT; i++) {
+//         size += getSizeOf("rotateDevice", "" + i);
+//     }
 
-    for (const flavor of FLAVORS) {
-        // for (const bpm of BPM_VALS) {
-        size += getSizeOf("audio_" + 110, flavor.index + "");
-        // }
-    }
+//     for (const flavor of FLAVORS) {
+//         // for (const bpm of BPM_VALS) {
+//         size += getSizeOf("audio_" + 110, flavor.index + "");
+//         // }
+//     }
 
-    for (let i = 0; i < CURRENT_POS_ANIMATION_FRAME_COUNT; i++) {
-        size += getSizeOf("currentPosFrames", (i + "").padStart(4, "0"));
-    }
-    return size;
-}
+//     for (let i = 0; i < CURRENT_POS_ANIMATION_FRAME_COUNT; i++) {
+//         size += getSizeOf("currentPosFrames", (i + "").padStart(4, "0"));
+//     }
+//     return size;
+// }
 
-function getSizeOf(mainGroup: string, fileName: string): number {
-    if (!FILE_SIZES[mainGroup]) {
-        console.error(mainGroup, fileName);
-        return 0;
-    }
-    if (!FILE_SIZES[mainGroup][fileName]) {
-        console.error(mainGroup, fileName);
-        return 0;
-    }
-    console.log(mainGroup, fileName);
-    return FILE_SIZES[mainGroup][fileName];
-}
+// function getSizeOf(mainGroup: string, fileName: string): number {
+//     if (!FILE_SIZES[mainGroup]) {
+//         console.error(mainGroup, fileName);
+//         return 0;
+//     }
+//     if (!FILE_SIZES[mainGroup][fileName]) {
+//         console.error(mainGroup, fileName);
+//         return 0;
+//     }
+//     console.log(mainGroup, fileName);
+//     return FILE_SIZES[mainGroup][fileName];
+// }
 
 // const BPM_VALS = [
 //     81,

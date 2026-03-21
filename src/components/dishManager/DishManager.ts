@@ -1,4 +1,4 @@
-import type { AddDishResponse, APIResponse, DishLoadResponse } from "../../@types/Api";
+import type { AddDishResponse, DishLoadResponse } from "../../@types/Api";
 import type { MainFlavor } from "../../@types/Flavors";
 import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynthLine, User, UUID } from "../../@types/User";
 import { Network } from "../../utils/Network";

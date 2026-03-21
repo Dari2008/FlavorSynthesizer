@@ -20,6 +20,7 @@ import Utils from "../../utils/Utils";
 import ScrollingBackgrundImage from "../scroollingBackgroundImage/ScrollingBackgroundImage";
 import DishListItem from "./DishListItem";
 import withTutorialStarter from "../../hooks/TutorialStarter";
+import { useCustomFlavors } from "../../contexts/CustomFlavors";
 
 dayjs.extend(customFormat);
 
@@ -41,6 +42,7 @@ export default function DishList() {
     const setPublicToggleRef = useRef<(val: boolean) => void>(() => 0);
 
     const user = useUser();
+    const customFlavors = useCustomFlavors();
 
     withTutorialStarter("openedDishList");
 
@@ -259,7 +261,7 @@ export default function DishList() {
         player.stop();
         player.disposeAll();
         player.setVolumes(dish.volumes);
-        player.loadElements(elements);
+        player.loadElements(elements, customFlavors);
 
         if (!containsSolo) {
             mainFlavorsPlayer?.stop();

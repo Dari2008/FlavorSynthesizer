@@ -3,7 +3,7 @@ import { getResourceByName } from "../ResourceSaver";
 var currentPosAnimationImages = (window as any).CURRENT_ANIMATIONS_IMAGES;
 
 var imageCount = 99;
-var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
+// var ROOT_PATH = "./blender/outputs/CurrentPositionPlayer/";
 
 
 export async function initCurrentPosImages() {

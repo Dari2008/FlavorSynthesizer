@@ -699,7 +699,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     });
                     server?.updateFlavors([
                         ...selectedFlavors.map((track, iTracks) => {
-                            return track.flavors.map((flavor, iFlavor) => ({
+                            return track.flavors.map((_, iFlavor) => ({
                                 ...selectedFlavors[iTracks].flavors[iFlavor],
                                 trackUUID: track.trackUUID
                             } as MovedFlavor))

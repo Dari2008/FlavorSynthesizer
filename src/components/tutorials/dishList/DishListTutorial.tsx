@@ -60,6 +60,7 @@ export default function DishListTutorial() {
                                                         volume: 100
                                                     }
                                                 ],
+                                                customFlavors: [],
                                                 mainFlavor: "Salty",
                                                 name: "Test",
                                                 publishState: "private",

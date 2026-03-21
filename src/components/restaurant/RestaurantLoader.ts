@@ -1,4 +1,4 @@
-import { type APIResponse, type LoadRestaurantData, type LoadRestaurantPageCount } from "../../@types/Api";
+import { type LoadRestaurantData, type LoadRestaurantPageCount } from "../../@types/Api";
 import type { RestaurantDish } from "../../@types/User";
 import { Network } from "../../utils/Network";
 import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";

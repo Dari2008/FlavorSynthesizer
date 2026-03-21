@@ -1,10 +1,10 @@
 import { Player, } from "tone";
 import * as Tone from "tone";
-import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type FlavorColors, type MainFlavor } from "../@types/Flavors";
+import { FLAVOR_COLOR, FLAVOR_IMAGES, MAIN_FLAVOR_IMAGES, type Flavor, type MainFlavor } from "../@types/Flavors";
 import { getResourceByName } from "../components/ResourceSaver";
 import type { DishVolumes } from "../@types/User";
 
-const ROOT_FILE_DIR = "./flavors/audio/"
+// const ROOT_FILE_DIR = "./flavors/audio/"
 
 const FADE_TIME = 0.1;
 
@@ -102,7 +102,7 @@ export class FlavorFileMusic {
         return clone;
     }
 
-    public async playSegment(start: number, offset: number, duration: number, bpm: BPM) {
+    public async playSegment(start: number, offset: number, duration: number) {
         this.stopAllBpms();
         if (this.loadedAllPromise)
             await this.loadedAllPromise;
@@ -215,7 +215,7 @@ export class CustomFlavorMusic {
         return clone;
     }
 
-    public async playSegment(start: number, offset: number, duration: number, bpm: BPM) {
+    public async playSegment(start: number, offset: number, duration: number) {
         this.stopAllBpms();
         if (this.loadedAllPromise)
             await this.loadedAllPromise;
@@ -382,19 +382,6 @@ export class MainFlavorFileMusic {
     }
 
 }
-
-
-export type BPM = 81 |
-    110 |
-    124 |
-    130;
-
-const BPM_VALS = [
-    81,
-    110,
-    124,
-    130
-]
 
 async function base64ToArrayBuffer(base64: string) {
     const binary = atob(base64);

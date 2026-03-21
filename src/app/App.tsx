@@ -15,7 +15,7 @@ import { BASE_URL, DATE_FORMAT, URL_EXTENSION } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu from "../components/initialMenu/InitialMenu";
-import type { Dish, DishVolumes, LocalDish, MultiplayerServerDish, ServerDish, User } from "../@types/User";
+import type { Dish, DishVolumes, LocalDish, MultiplayerServerDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 import { UserContext } from "../contexts/UserContext";
@@ -260,6 +260,7 @@ export default function App() {
             mainFlavor: 100,
             master: 100
         },
+        customFlavors: [],
         type: "dish"
     }, setCurrent: boolean = true, indexToInsertAt?: number, uploadToServer: boolean = true) {
         if (indexToInsertAt != undefined) {
@@ -553,7 +554,8 @@ export default function App() {
             tracks: currentDish.data,
             type: "dish",
             uuid: currentDish.uuid,
-            volumes: currentDish.volumes
+            volumes: currentDish.volumes,
+            customFlavors: []
         }, name, userLoggedIn?.jwt);
 
         if (!response) return false;
@@ -649,6 +651,7 @@ export default function App() {
             uuid: dish.uuid,
             volumes: dish.volumes,
             type: "dish",
+            customFlavors: [],
             temporary: true
         }, true, 0, false);
     }

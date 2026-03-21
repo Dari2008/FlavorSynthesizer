@@ -3,7 +3,7 @@ import { FLAVOR_COLOR, FLAVOR_IMAGES, type Flavor } from "../../@types/Flavors";
 import "./ShareDialog.scss";
 import { FLAVORS } from "../../audio/Flavors";
 import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
-import type { APIResponse, Digit, FlavorsSelected, ShareErrorResponse, ShareFlavors, ShareResponse } from "../../@types/Api";
+import type { Digit, FlavorsSelected, ShareErrorResponse, ShareFlavors, ShareResponse } from "../../@types/Api";
 import Utils from "../../utils/Utils";
 import { loginUser, registerUser } from "../../utils/UserUtils";
 import { useUser } from "../../contexts/UserContext";

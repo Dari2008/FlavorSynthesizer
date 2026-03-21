@@ -24,6 +24,7 @@ export type Dish = {
         flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
         aiImage: string;
     } | undefined;
+    customFlavors: UUID[];
     temporary?: true;
 }
 

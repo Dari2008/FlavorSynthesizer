@@ -1,9 +1,8 @@
 import type { APIResponse, ShareDigits, MultiplayerJoinResponse, MultiplayerCreateResponse } from "../@types/Api";
-import type { Flavor } from "../@types/Flavors";
 import type { Dish, DishVolumes, ServerDish, UUID } from "../@types/User";
 import type { FlavorElement } from "../components/flavorSynth/PlayerTrack";
 import type { ChatMessage } from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";
-import withDebounce, { withTimeoutDebounce } from "../hooks/Debounce";
+import { withTimeoutDebounce } from "../hooks/Debounce";
 import { Network } from "../utils/Network";
 import { BASE_URL } from "../utils/Statics";
 import Utils from "../utils/Utils";

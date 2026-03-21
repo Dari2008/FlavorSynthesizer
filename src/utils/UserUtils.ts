@@ -1,4 +1,4 @@
-import type { APIResponse, LoginResponse } from "../@types/Api";
+import type { LoginResponse } from "../@types/Api";
 import type { User } from "../@types/User";
 import { Network } from "./Network";
 import { BASE_URL, URL_EXTENSION } from "./Statics";

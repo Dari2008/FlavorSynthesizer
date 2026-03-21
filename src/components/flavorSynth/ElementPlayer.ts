@@ -45,7 +45,7 @@ export class ElementPlayer {
                 player: clonedPlayer,
                 playAt: (start: number, offset: number, duration: number) => {
                     clonedPlayer.stopAllBpms();
-                    clonedPlayer.playSegment(start, offset, duration, 110);
+                    clonedPlayer.playSegment(start, offset, duration);
                 }
             });
         }));
