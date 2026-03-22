@@ -385,19 +385,19 @@ export default function DishList() {
                 <tbody>
                     <tr>
                         <td>
-                            <PixelButton className="delete" onClick={deleteCurrentSelected}>
+                            <PixelButton max-pixel-width={10} className="delete" onClick={deleteCurrentSelected}>
                                 <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete Button" className="action-btn" />
                                 {/* {"\uf1f8"} */}
                             </PixelButton>
                         </td>
                         <td>
-                            <PixelButton className="share" onClick={shareCurrentSelected}>
+                            <PixelButton max-pixel-width={10} className="share" onClick={shareCurrentSelected}>
                                 <img src="./imgs/actionButtons/dishList/share.png" alt="Share Button" className="action-btn" />
                                 {/* {"\uf064"} */}
                             </PixelButton>
                         </td>
                         <td>
-                            <PixelButton className="open" onClick={openCurrentSelected}>
+                            <PixelButton max-pixel-width={10} className="open" onClick={openCurrentSelected}>
                                 <img src="./imgs/actionButtons/dishList/open.png" alt="Open button" className="action-btn" />
                             </PixelButton>
                         </td>
@@ -405,13 +405,13 @@ export default function DishList() {
                     <tr>
                         <td></td>
                         <td>
-                            <PixelButton className="duplicate" onClick={exportAsAudio}>
+                            <PixelButton max-pixel-width={10} className="duplicate" onClick={exportAsAudio}>
                                 <img src="./imgs/actionButtons/dishList/download.png" alt="Export as Audio button" className="action-btn" />
                                 {/* {"\uf24d"} */}
                             </PixelButton>
                         </td>
                         <td>
-                            <PixelButton className="duplicate" onClick={duplicateCurrentSelected}>
+                            <PixelButton max-pixel-width={10} className="duplicate" onClick={duplicateCurrentSelected}>
                                 <img src="./imgs/actionButtons/dishList/duplicate.png" alt="Duplicate button" className="action-btn" />
                                 {/* {"\uf24d"} */}
                             </PixelButton></td>

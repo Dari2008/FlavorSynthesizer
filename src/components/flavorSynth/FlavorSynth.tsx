@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, getSpan, setSpan, setSpanFirstTime } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, contrastColor, convertCustomFlavorToRenderer, darkenIfBright, getSpan, loadImage, setSpan, setSpanFirstTime, starMask, type FlavorRenderer } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
@@ -29,6 +29,7 @@ import { useTutorials } from "../tutorials/context/TutorialContext";
 import { useMultiplayer } from "../../contexts/MultiplayerContext";
 import type { UUID } from "../../@types/User";
 import { useCustomFlavors } from "../../contexts/CustomFlavors";
+import type { CustomFlavor } from "../addCustomFlavor/CustomFlavorManager";
 
 
 type EventListWithUUID<T> = {
@@ -106,12 +107,41 @@ export default function FlavorSynth() {
 
     const tutorials = useTutorials();
 
-    const server = multiplayer.managerRef.current?.getServerCommunication();
+    const tempRenderersRef = useRef<FlavorRenderer[]>([]);
+
+
+    const addRenderer = (flavor: CustomFlavor) => {
+        tempRenderersRef.current.push(convertCustomFlavorToRenderer(flavor));
+    };
+
+    useEffect(() => {
+
+        if (!currentDish) return;
+
+        const uuidsRemaining = currentDish.customFlavors.map(e => e.uuid);
+        tempRenderersRef.current = tempRenderersRef.current.filter(e => !uuidsRemaining.includes(e.uuid as any));
+
+        const currentUUIds = tempRenderersRef.current.map(e => e.uuid!);
+
+        const newFlavors = currentDish.customFlavors.filter(e => !currentUUIds.includes(e.uuid));
+
+        for (const flavor of newFlavors) {
+            addRenderer(flavor);
+        }
+
+    }, [currentDish?.customFlavors]);
+
+    const server = multiplayer.manager?.getServerCommunication();
     if (server) {
 
         const getTrack = (uuid: UUID) => {
             return synthLines.find(e => e.uuid == uuid);
         }
+
+        server.onPlayerLeft.add("FlavorSynth", (playerLeft) => {
+            otherUserSelectedRef.current[playerLeft.endpointUUID] = [];
+            delete otherUserSelectedRef.current[playerLeft.endpointUUID];
+        });
 
         server.onFlavorAdded.add("FlavorSynth", (trackUUID, flavorData) => {
             const track = getTrack(trackUUID);
@@ -212,6 +242,17 @@ export default function FlavorSynth() {
                 }
             }
             repaintAllElements();
+        });
+
+        server.onAddCustomFlavor.add("FlavorSynth", (customFlavor) => {
+            addRenderer(customFlavor);
+            dishes.setDishes(dishes => dishes.map(dish => {
+                if (dish.uuid !== currentDish?.uuid) return dish;
+                return {
+                    ...dish,
+                    customFlavors: [...dish.customFlavors, customFlavor]
+                }
+            }));
         });
 
     }
@@ -580,7 +621,7 @@ export default function FlavorSynth() {
         });
         change.changed();
 
-        server?.changeMainFlavorVolume(volume);
+        multiplayer.manager?.getServerCommunication()?.changeMainFlavorVolume(volume);
     };
 
 
@@ -593,7 +634,7 @@ export default function FlavorSynth() {
         });
         change.changed();
 
-        server?.changeMasterVolume(volume);
+        multiplayer.manager?.getServerCommunication()?.changeMasterVolume(volume);
     };
 
 
@@ -607,7 +648,7 @@ export default function FlavorSynth() {
         change.changed();
 
 
-        server?.changeFlavorVolume(volume);
+        multiplayer.manager?.getServerCommunication()?.changeFlavorVolume(volume);
     };
 
 
@@ -798,7 +839,8 @@ export default function FlavorSynth() {
             synthLines,
             setSynthLines,
             zoomed,
-            getSynthLineByUUID
+            getSynthLineByUUID,
+            tempRenderersRef
         }}>
             <FlavorSynthContextMenu.Provider value={{ openContextMenu }}>
                 <SynthSelectorContext.Provider value={{ setSelectedSynthLine, focusedSynthRef, selectedElementsRef, addSynthSelectionChange, otherUserSelectedRef }}>
@@ -814,7 +856,7 @@ export default function FlavorSynth() {
                                     !isReadonly && <button className="addLine" onClick={() => {
                                         const uuid = addSynth();
                                         if (!uuid) return;
-                                        server?.addSynthLine(uuid);
+                                        multiplayer.manager?.getServerCommunication()?.addSynthLine(uuid);
                                     }}>
                                         <img src="./imgs/plus/plus.png" alt="+" className="plus" />
                                     </button>
@@ -823,7 +865,7 @@ export default function FlavorSynth() {
                                     isTouch && <PixelDiv className="context-menu-touch" ref={touchContextMenuRef}>
                                         <button className="delete" onClick={() => {
                                             clickedTouchContextMenu().delete();
-                                            server?.removeFlavors();
+                                            multiplayer.manager?.getServerCommunication()?.removeFlavors();
                                         }}>
                                             <img src="./imgs/actionButtons/dishList/delete.png" alt="Delete image" />
                                         </button>
@@ -851,14 +893,16 @@ export default function FlavorSynth() {
                                         </button>
                                     }
                                     {
-                                        multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                        multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
                                             <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
                                         </button>
                                     }
                                     <button className="save" title="Save Dish" onClick={() => {
-                                        server?.save();
-                                        if (!multiplayer.managerRef.current?.isOwner()) {
-                                            return;
+                                        if (multiplayer.manager) {
+                                            multiplayer.manager.getServerCommunication()?.save();
+                                            if (!multiplayer.manager.isOwner()) {
+                                                return;
+                                            }
                                         }
                                         dishes.saveCurrentDish();
                                     }}>
@@ -924,7 +968,7 @@ export default function FlavorSynth() {
                                         </button>
                                     }
                                     {
-                                        multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                        multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
                                             <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
                                         </button>
                                     }

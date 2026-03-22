@@ -172,8 +172,8 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
             {
                 shareJoin == "none" && <div className="content-wrapper choose">
-                    <PixelButton className="join" onClick={() => setShareJoin("join")}>Join a Multiplayer dish</PixelButton>
-                    <PixelButton className="share" onClick={() => setShareJoin("share")}>Open a shared dish</PixelButton>
+                    <PixelButton max-pixel-width={10} className="join" onClick={() => setShareJoin("join")}>Join a Multiplayer dish</PixelButton>
+                    <PixelButton max-pixel-width={10} className="share" onClick={() => setShareJoin("share")}>Open a shared dish</PixelButton>
                 </div>
             }
 
@@ -205,7 +205,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                         }
                     </div>
                     <div className="buttons">
-                        <button className="ok" disabled={isOkButtonFlavorsIsDisabled} onClick={() => openFlavors()}>Open</button>
+                        <PixelButton max-pixel-width={10} className="ok" disabled={isOkButtonFlavorsIsDisabled} onClick={() => openFlavors()}>Open</PixelButton>
                     </div>
                 </PixelDivWBorder>
 
@@ -213,7 +213,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     <h2>Open Shared Image</h2>
                     <span>Open a shared dish with an AI generated Image.</span>
                     <div className="content">
-                        <button className="upload" onClick={() => uploadedImageInputRef.current?.click()}>Upload Image</button>
+                        <PixelButton max-pixel-width={20} className="upload" onClick={() => uploadedImageInputRef.current?.click()}>Upload Image</PixelButton>
                         <span className="uploadedImageName" ref={currentUploadedFileNameDisplayRef}></span>
                         <input type="file" name="image" className="imageUpload" accept="image/png, image/jpg, image/jpeg" onInput={() => {
                             if (currentUploadedFileNameDisplayRef.current) {
@@ -253,7 +253,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                         }} ref={uploadedImageInputRef} />
                     </div>
                     <div className="buttons">
-                        <button className="ok" disabled={isOkButtonUploadedIsDisabled} onClick={() => openImage()} >Open</button>
+                        <PixelButton max-pixel-width={10} className="ok" disabled={isOkButtonUploadedIsDisabled} onClick={() => openImage()} >Open</PixelButton>
                     </div>
                 </PixelDivWBorder>
                 <PixelDivWBorder max-pixel-width={30} className="open-share-code open-share-default-layout">
@@ -269,7 +269,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                     </div>
 
                     <div className="buttons">
-                        <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => openCode()}>Open</button>
+                        <PixelButton max-pixel-width={10} className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => openCode()}>Open</PixelButton>
                     </div>
 
                 </PixelDivWBorder>
@@ -289,7 +289,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
                         </div>
 
                         <div className="buttons">
-                            <button className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => joinCode()}>Open</button>
+                            <PixelButton max-pixel-width={10} className="ok" disabled={isOkButtonCodeIsDisabled} onClick={() => joinCode()}>Open</PixelButton>
                         </div>
 
                     </PixelDivWBorder>
@@ -306,7 +306,7 @@ export default function OpenShareDialog({ open }: { open: (openData: OpenData) =
 
 function DigitItem({ i, digitsRef, setOkButtonCodeIsDisabled }: { i: number, digitsRef: React.RefObject<HTMLDivElement | null>, setOkButtonCodeIsDisabled: React.Dispatch<React.SetStateAction<boolean>> }) {
     const ref = useRef<HTMLInputElement>(null);
-    return <PixelInput className="digit .pixel-div" data-index={i} ref={(r) => {
+    return <PixelInput max-pixel-width={10} className="digit .pixel-div" data-index={i} ref={(r) => {
         ref.current = r;
         if (r) {
             const parentDiv = r.parentElement;

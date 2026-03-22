@@ -3,7 +3,7 @@ import type { UUID } from "../@types/User";
 import { FLAVORS } from "../audio/Flavors";
 import { STAR_MASK_IMAGE } from "../Images";
 import Utils from "../utils/Utils";
-import { CUSTOM_FLAVORS_RENDERERS } from "./addCustomFlavor/CustomFlavorManager";
+import { CUSTOM_FLAVORS_RENDERERS, type CustomFlavor } from "./addCustomFlavor/CustomFlavorManager";
 import type { FlavorElement } from "./flavorSynth/PlayerTrack";
 
 export const STROKES_COLORS = "white";
@@ -167,9 +167,10 @@ export function createElementForFlavor(flavor: Flavor, from: number, to: number,
     return d;
 }
 
-export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false, isSelectedByOtherUser: boolean = false): boolean {
+export function drawElement(element: FlavorElement, ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, xOffset: number = 0, offsetY: number = 0, isSelected: boolean = false, isSelectedByOtherUser: boolean = false, customTempRenderer: FlavorRenderer[] = []): boolean {
     let FLAVOR_RENDERER = FLAVOR_RENDERS.find(e => e.name == element.flavor);
     if (!FLAVOR_RENDERER) FLAVOR_RENDERER = CUSTOM_FLAVORS_RENDERERS.find(e => e.name == element.flavor);
+    if (!FLAVOR_RENDERER) FLAVOR_RENDERER = customTempRenderer.find(e => e.name == element.flavor);
     if (!FLAVOR_RENDERER) return false;
     return _drawElement(element, FLAVOR_RENDERER, ctx, pixelsPerSecond, xOffset, offsetY, isSelected, isSelectedByOtherUser);
 }
@@ -316,7 +317,7 @@ export function _drawElement(element: FlavorElement, renderer: FlavorRenderer, c
 
 }
 
-function mixColor(a: string, b: string, ratio: number): string {
+export function mixColor(a: string, b: string, ratio: number): string {
     const c1 = parseColor(a);
     const c2 = parseColor(b);
 
@@ -327,7 +328,7 @@ function mixColor(a: string, b: string, ratio: number): string {
     return `rgb(${r}, ${g}, ${b2})`;
 }
 
-function parseColor(color: string) {
+export function parseColor(color: string) {
     color = color.trim();
 
     // HEX #RRGGBB or #RGB
@@ -359,7 +360,7 @@ function parseColor(color: string) {
 }
 
 
-function loadImage(src: string): HTMLImageElement {
+export function loadImage(src: string): HTMLImageElement {
     const img = new Image();
     img.src = src;
     return img
@@ -379,7 +380,7 @@ function loadImage(src: string): HTMLImageElement {
 // }
 
 
-function contrastColor(hex: string): string {
+export function contrastColor(hex: string): string {
     // Remove leading '#'
     hex = hex.replace("#", "");
 
@@ -404,7 +405,7 @@ function contrastColor(hex: string): string {
 }
 
 
-function darkenIfBright(hex: string, amount: number = 0.6): string {
+export function darkenIfBright(hex: string, amount: number = 0.6): string {
     hex = hex.replace("#", "");
 
     if (hex.length === 3) {
@@ -443,4 +444,47 @@ export type FlavorRenderer = {
     bgColor: string;
     renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => void;
     uuid?: UUID;
+}
+
+export function convertCustomFlavorToRenderer(flavor: CustomFlavor): FlavorRenderer {
+    return {
+        colors: flavor.colors,
+        imageObj: loadImage(flavor.image),
+        image: flavor.image,
+        name: flavor.name,
+        contrastColor: contrastColor(darkenIfBright(flavor.colors[0])),
+        bgColor: darkenIfBright(flavor.colors[0]),
+        uuid: flavor.uuid,
+        renderBackgroundMask: (ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, x: number, y: number, w: number, h: number) => {
+            if (!starMask.complete) return;
+
+            if (!isFinite(w) || !isFinite(h)) return;
+
+            const off = new OffscreenCanvas(w, h);
+
+            const octx = off.getContext("2d");
+            if (!octx || w == 0) return;
+            octx.save();
+
+
+            octx.fillStyle = flavor.colors[0];
+            octx.fillRect(0, 0, w, h);
+
+            octx.globalCompositeOperation = "destination-in";
+
+            const pattern = octx.createPattern(starMask, "repeat");
+            if (pattern) {
+                octx.fillStyle = pattern;
+                ctx.beginPath();
+                octx.roundRect(0, 0, w, h, 10);
+                octx.fill();
+                ctx.closePath();
+            }
+
+            octx.restore();
+
+            ctx.drawImage(off, x, y);
+
+        }
+    };
 }

@@ -4,11 +4,12 @@ import type { Dish, LocalDish, ServerDish, ServerFlavorElement, ServerFlavorSynt
 import { Network } from "../../utils/Network";
 import { BASE_URL, URL_EXTENSION } from "../../utils/Statics";
 import Utils from "../../utils/Utils";
+import type { CustomFlavor } from "../addCustomFlavor/CustomFlavorManager";
 import { createElementForFlavor } from "../FlavorUtils";
 
 export default class DishManager {
 
-    public static async loadDishesFromServer(user: User, integDishes: (LocalDish[]) | undefined = undefined): Promise<Dish[] | false> {
+    public static async loadDishesFromServer(user: User, integDishes: (LocalDish[]) | undefined = undefined, customFlavors: CustomFlavor[]): Promise<Dish[] | false> {
         const jwt = user.jwt;
         const response = await Network.loadJson<DishLoadResponse>(BASE_URL + "/dishes/loadDishes" + URL_EXTENSION, {
             method: "POST",
@@ -26,7 +27,8 @@ export default class DishManager {
             return false;
         }
 
-        const dishes = response.dishes.map(DishManager.convertServerDishToDish);
+        const dishes = response.dishes.map(e => DishManager.convertServerDishToDish(e, customFlavors));
+        console.log(dishes, customFlavors);
         return dishes;
     }
 
@@ -93,8 +95,9 @@ export default class DishManager {
         return changedUUids[dish.uuid] as UUID;
     }
 
-    public static convertServerDishToDish(dish: ServerDish): Dish {
+    public static convertServerDishToDish(dish: ServerDish, customFlavors: CustomFlavor[]): Dish {
         return {
+            ...dish as any,
             data: dish.tracks.map(e => {
                 return {
                     uuid: Utils.uuidv4(),
@@ -106,12 +109,20 @@ export default class DishManager {
                     })
                 }
             }),
-            ...dish as any,
+            customFlavors: (dish.customFlavors || []).map(e => customFlavors.find(s => s.uuid == e)).filter(e => !!e),
             temporary: undefined
         } as Dish;
     }
 
     public static convertDishToServerDish(dish: Dish | LocalDish): ServerDish {
+
+        const customFlavors: UUID[] = [];
+
+        for (const flavor of dish.customFlavors) {
+            if (customFlavors.includes(flavor.uuid)) continue;
+            customFlavors.push(flavor.uuid);
+        }
+
         return {
             tracks: dish.data.map(e => ({
                 elements: e.elements.map(el => ({
@@ -126,7 +137,8 @@ export default class DishManager {
             uuid: dish.uuid,
             mainFlavor: dish.mainFlavor,
             name: dish.name,
-            volumes: dish.volumes
+            volumes: dish.volumes,
+            customFlavors: customFlavors
         } as ServerDish;
     }
 }

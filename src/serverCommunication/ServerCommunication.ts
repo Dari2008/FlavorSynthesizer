@@ -1,5 +1,6 @@
 import type { APIResponse, ShareDigits, MultiplayerJoinResponse, MultiplayerCreateResponse } from "../@types/Api";
-import type { Dish, DishVolumes, ServerDish, UUID } from "../@types/User";
+import type { Dish, DishVolumes, MultiplayerCreateServerDish, ServerDish, UUID } from "../@types/User";
+import type { CustomFlavor } from "../components/addCustomFlavor/CustomFlavorManager";
 import type { FlavorElement } from "../components/flavorSynth/PlayerTrack";
 import type { ChatMessage } from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";
 import { withTimeoutDebounce } from "../hooks/Debounce";
@@ -79,7 +80,7 @@ export class MultiplayerServer {
         return this.code;
     }
 
-    public async create(dish: UUID | ServerDish, name: string, jwt?: string) {
+    public async create(dish: UUID | MultiplayerCreateServerDish, name: string, jwt?: string) {
         const response = await Network.loadJson<APIResponse<MultiplayerCreateResponse>>(BASE_URL + "/multiplayer/create", {
             method: "POST",
             headers: [
@@ -119,7 +120,6 @@ export class BasicServerCommunication {
     private currentReqId: number = 0;
     private gameUUID: UUID;
     private endpointUUID: UUID;
-    public onClose: ((ev: CloseEvent | null) => void) | undefined;
     protected onUnprocessedMessage: ((data: any) => void) | undefined;
     protected isOwner: boolean = false;
     protected onInitialSetting: ((isMuted: boolean, isViewOnly: boolean) => void) | undefined;
@@ -180,8 +180,8 @@ export class BasicServerCommunication {
         this.onUnprocessedMessage?.(data);
     }
 
-    private _onClose(ev: CloseEvent) {
-        this.onClose?.(ev);
+    private _onClose() {
+        console.log("Connection lost");
     }
 
 
@@ -225,11 +225,15 @@ export class ServerCommunication extends BasicServerCommunication {
     public onFlavorsDeselected = withEventList<((endpointUUID: UUID, flavorUUIDs: UUID[]) => void), [UUID, UUID[]]>();
     public onAllFlavorsDeselected = withEventList<((endpointUUID: UUID) => void), [UUID]>();
     public onUpdatedFlavors = withEventList<((flavors: (FlavorElement & { trackUUID: UUID })[]) => void), [(FlavorElement & { trackUUID: UUID })[]]>();
+    public onAddCustomFlavor = withEventList<((customFlavor: CustomFlavor) => void), [CustomFlavor]>();
     public onRename = withEventList<((newName: string) => void), [string]>();
     public onSave = withEventList<(() => void), []>();
     public onMute = withEventList<((is: boolean) => void), [boolean]>();
     public onViewOnly = withEventList<((is: boolean) => void), [boolean]>();
     public onKick = withEventList<(() => void), []>();
+    public onPlayerLeft = withEventList<((playerLeft: { name: string, endpointUUID: UUID }) => void), [{ name: string, endpointUUID: UUID }]>();
+    public onClose = withEventList<((reason: string) => void), [string]>();
+
     private onInitalSettingsSet(isMuted: boolean, isViewOnly: boolean) {
         if (isMuted) this.onMute.call(isMuted);
         if (isViewOnly) this.onViewOnly.call(isViewOnly);
@@ -295,6 +299,9 @@ export class ServerCommunication extends BasicServerCommunication {
             case "updateFlavors":
                 this.onUpdatedFlavors.call(data.flavors);
                 break;
+            case "addCustomFlavor":
+                this.onAddCustomFlavor.call(data.newCustomFlavor);
+                break;
             case "rename":
                 this.onRename.call(data.newName);
                 break;
@@ -302,7 +309,11 @@ export class ServerCommunication extends BasicServerCommunication {
                 this.onSave.call();
                 break;
             case "close":
-                this.onClose?.(null);
+                this.onClose.call(data.reason);
+                break;
+            case "playerLeft":
+                console.log(data, data.leftPlayer);
+                this.onPlayerLeft.call(data.leftPlayer);
                 break;
             case "kick":
                 this.onKick.call();
@@ -325,6 +336,18 @@ export class ServerCommunication extends BasicServerCommunication {
             type: "addFlavor",
             ...flavorElement,
             trackUUID
+        });
+        if (response.status == "error") {
+            Utils.error(response.message);
+            return;
+        }
+        return true;
+    }
+
+    public async addCustomFlavor(customFlavor: CustomFlavor) {
+        const response = await this.send({
+            type: "addCustomFlavor",
+            ...customFlavor
         });
         if (response.status == "error") {
             Utils.error(response.message);

@@ -1,3 +1,4 @@
+import type { CustomFlavor } from "../components/addCustomFlavor/CustomFlavorManager";
 import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
 import type { FlavorElement } from "../components/flavorSynth/PlayerTrack";
 import type { Digit } from "./Api";
@@ -24,7 +25,7 @@ export type Dish = {
         flavors: [Flavor, Flavor, Flavor, Flavor, Flavor, Flavor];
         aiImage: string;
     } | undefined;
-    customFlavors: UUID[];
+    customFlavors: CustomFlavor[];
     temporary?: true;
 }
 
@@ -42,11 +43,22 @@ export type DishVolumes = {
     flavors: number;
 };
 
+export type RawLocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage" | "temporary" | "createdAt" | "createdBy" | "customFlavors"> & {
+    type: "localDish";
+    customFlavors: UUID[];
+};
+
+
 export type LocalDish = Omit<Dish, "type" | "share" | "publishState" | "aiImage" | "temporary" | "createdAt" | "createdBy"> & {
     type: "localDish";
 };
 
-export type ServerDish = Omit<Dish, "data" | "createdAt" | "createdBy"> & {
+export type ServerDish = Omit<Dish, "data" | "createdAt" | "createdBy" | "customFlavors"> & {
+    tracks: ServerFlavorSynthLine[];
+    customFlavors: UUID[];
+}
+
+export type MultiplayerCreateServerDish = Omit<Dish, "data" | "createdAt" | "createdBy"> & {
     tracks: ServerFlavorSynthLine[];
 }
 

@@ -28,12 +28,10 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
     const multiplayer = useMultiplayer();
     const gameState = useGameState();
 
-    const server = multiplayer.managerRef.current?.getServerCommunication();
-
     const isReadonly = gameState.gameState == "createDish-create-viewonly";
 
 
-    server?.onChangeTrackVolume.add(synthLineUUID, (newVolume, trackUUID) => {
+    multiplayer.manager?.getServerCommunication()?.onChangeTrackVolume.add(synthLineUUID, (newVolume, trackUUID) => {
         if (trackUUID != synthLineUUID) return;
         if (!flavorSynthLine) return;
         flavorSynthLine.volume = newVolume;
@@ -79,7 +77,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
 
         currentPlaying.updateElements();
 
-        server?.changeTrackVolume(synthLineUUID, vol);
+        multiplayer.manager?.getServerCommunication()?.changeTrackVolume(synthLineUUID, vol);
     }
 
     const deleteSynth = async () => {
@@ -91,7 +89,7 @@ export default function SynthLine({ widthRef, synthLineUUID }: { widthRef: React
         change.changed();
         currentPlaying.updateElements();
 
-        server?.removeSynthLine(synthLineUUID);
+        multiplayer.manager?.getServerCommunication()?.removeSynthLine(synthLineUUID);
     };
 
     return <TooltipContext.Provider value={tooltipRef}>

@@ -1,7 +1,7 @@
 // export const BASE_URL = "http://localhost:2222/flavorSynth";
 // export const BASE_URL = "https://flavorsynth.frobeen.com/php";
-// export const BASE_URL = "http://localhost:2223";
-export const BASE_URL = "https://flavorsynth.frobeen.com/server";
+export const BASE_URL = "http://localhost:2223";
+// export const BASE_URL = "https://flavorsynth.frobeen.com/server";
 // export const URL_EXTENSION = ".php";
 export const URL_EXTENSION = "";
 

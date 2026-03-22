@@ -35,7 +35,7 @@ export default function MultiplayerChatOverlay() {
         if (!messageContent) return;
         if (messageContent.trim().length == 0) return;
 
-        if (multiplayer.managerRef.current) {
+        if (multiplayer.manager) {
 
             const time = Date.now();
             const uuid = Utils.uuidv4();
@@ -51,7 +51,7 @@ export default function MultiplayerChatOverlay() {
             }]);
             if (inputRef.current) inputRef.current.value = "";
 
-            const success = await multiplayer.managerRef.current.getServerCommunication().sendMessage(messageContent, time, uuid);
+            const success = await multiplayer.manager.getServerCommunication().sendMessage(messageContent, time, uuid);
             if (!success) return;
 
             setCurrentlySending(sending => sending.filter(e => e !== uuid));
@@ -76,15 +76,15 @@ export default function MultiplayerChatOverlay() {
             </div>
             <div className="message-bg"></div>
             <PixelDiv max-pixel-width={40} className="sendMessage" data-is-muted={multiplayer.isMultiplayerMuted ? true : undefined}>
-                <PixelTextArea ref={inputRef} placeholder="Write a message..." onInput={checkCanSend} onChange={checkCanSend} className="input"></PixelTextArea>
-                <PixelButton onClick={sendMessage} disabled={!canSend}>Send</PixelButton>
+                <PixelTextArea max-pixel-width={20} ref={inputRef} placeholder="Write a message..." onInput={checkCanSend} onChange={checkCanSend} className="input"></PixelTextArea>
+                <PixelButton max-pixel-width={10} onClick={sendMessage} disabled={!canSend}>Send</PixelButton>
             </PixelDiv>
         </PixelDivWBorder>
     </div>
 }
 
 function Message({ message, isCurrentlySending }: { message: ChatMessage; isCurrentlySending: boolean }) {
-    return <PixelDiv max-pixel-width={40} className={"message" + (message.own ? " own" : "") + (isCurrentlySending ? " currently-sending" : "")}>
+    return <PixelDiv max-pixel-width={20} className={"message" + (message.own ? " own" : "") + (isCurrentlySending ? " currently-sending" : "")}>
         <div className="bg"></div>
         <span className="sender">{message.sender}</span>
         <span className="message">{message.message}</span>

@@ -18,6 +18,7 @@ import { getCurrentDragging } from "./CurrentDraggingReference";
 import type { UUID } from "../../@types/User";
 import { useMultiplayer } from "../../contexts/MultiplayerContext";
 import type { MovedFlavor } from "../../serverCommunication/ServerCommunication";
+import { useCustomFlavors } from "../../contexts/CustomFlavors";
 
 // var currentPosAnimationImages = ;
 var currentAnimationPosition = 0;
@@ -53,8 +54,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const allElementsOffCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, FLAVOR_HEIGHT));
     const currentPositionCursorCanvasRef = useRef<OffscreenCanvas>(new OffscreenCanvas(widthRef.current, TOTAL_SYNTH_HEIGHT));
 
-    const multipler = useMultiplayer();
-    const server = multipler.managerRef.current?.getServerCommunication();
+    const multiplayer = useMultiplayer();
 
     const startDraggedPositionTouch = useRef<Pos>({ x: -1, y: -1 });
     const currentlyResizingElement = useRef<string | null>(null);
@@ -65,6 +65,9 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
     const startedDragAtTimeline = useRef<boolean>(false);
 
     const currentDish = useCurrentDish();
+    const customFlavors = useCustomFlavors();
+
+    const customFlavorRenderesRef = synthLines.tempRenderersRef;
 
     const flavorSynthLine = (currentDish?.data ?? []).filter(e => e.uuid == synthLineUUID).at(0) ?? {
         elements: [],
@@ -177,7 +180,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             const isSelectedByOtherUser = Object.values(synthSelector.otherUserSelectedRef.current).flat().includes(element.uuid);
 
             const isSelected = synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == element.uuid) != -1;
-            const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected, isSelectedByOtherUser);
+            const drewTitle = drawElement(element, ctx, getOffsetX(), 0, isSelected, isSelectedByOtherUser, customFlavorRenderesRef.current);
             if (!drewTitle) {
                 if (tooSmallToDisplayUUIDs.current.indexOf(element.uuid) == -1) {
                     tooSmallToDisplayUUIDs.current.push(element.uuid);
@@ -514,8 +517,8 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 interPlayerDrag.originalStartPos.current = [targetElement.from, targetElement.to];
 
                 (async () => {
-                    // await server?.deselectAllFlavors();
-                    server?.selectFlavors([targetElement.uuid]);
+                    // await multiplayer.manager?.getServerCommunication()?.deselectAllFlavors();
+                    multiplayer.manager?.getServerCommunication()?.selectFlavors([targetElement.uuid]);
                 })();
 
             }
@@ -673,16 +676,18 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             }).filter(e => !!e).flat();
 
             if (targetElement) {
-                console.log(targetElement.uuid, clickSelectedFlavors);
                 if (!clickSelectedFlavors.includes(targetElement.uuid)) {
-                    server?.deselectFlavors([targetElement.uuid]);
+                    multiplayer.manager?.getServerCommunication()?.deselectFlavors([targetElement.uuid]);
                 }
             }
 
             if (startPosses !== undefined && startPosses[0] != undefined && selectedFlavors[0] != undefined) {
                 const offset = selectedFlavors[0].flavors[0].from - startPosses[0].flavors[0].from;
                 const keptSize = (startPosses[0].flavors[0].to - startPosses[0].flavors[0].from) == (selectedFlavors[0].flavors[0].to - selectedFlavors[0].flavors[0].from);
-                if (keptSize && offset == 0) return;
+                if (keptSize && offset == 0) {
+                    multiplayer.manager?.getServerCommunication()?.deselectAllFlavors();
+                    return;
+                }
                 if (keptSize) {
                     ActionHistoryManager.didAction({
                         type: "move",
@@ -697,7 +702,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                             }))
                         }))
                     });
-                    server?.updateFlavors([
+                    multiplayer.manager?.getServerCommunication()?.updateFlavors([
                         ...selectedFlavors.map((track, iTracks) => {
                             return track.flavors.map((_, iFlavor) => ({
                                 ...selectedFlavors[iTracks].flavors[iFlavor],
@@ -731,7 +736,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                                 }))
                         )
                     });
-                    server?.updateFlavors([
+                    multiplayer.manager?.getServerCommunication()?.updateFlavors([
                         ...selectedFlavors.map((track) => {
                             return track.flavors.map((flavor) => ({
                                 ...flavor,
@@ -783,18 +788,18 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
                 if (synthSelector.selectedElementsRef.current == null) {
                     synthSelector.selectedElementsRef.current = [];
-                    server?.deselectAllFlavors();
+                    multiplayer.manager?.getServerCommunication()?.deselectAllFlavors();
                 }
                 if (synthSelector.selectedElementsRef.current.findIndex(elUUID => elUUID == foundElement!.uuid) == -1) {
                     synthSelector.selectedElementsRef.current.push(foundElement.uuid);
                 } else if (isTouch) {
                     synthSelector.selectedElementsRef.current = [foundElement.uuid];
-                    server?.selectOnly(foundElement.uuid);
+                    multiplayer.manager?.getServerCommunication()?.selectOnly(foundElement.uuid);
                 }
 
                 (async () => {
-                    await server?.deselectAllFlavors();
-                    server?.selectFlavors([foundElement.uuid]);
+                    await multiplayer.manager?.getServerCommunication()?.deselectAllFlavors();
+                    multiplayer.manager?.getServerCommunication()?.selectFlavors([foundElement.uuid]);
                 })();
 
                 // synthLines.repaintAll();
@@ -820,7 +825,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     //     }
                     // }
                     // synthSelector.selectedElementsRef.current = [];
-                    server?.removeFlavors();
+                    multiplayer.manager?.getServerCommunication()?.removeFlavors();
                     synthLines.deleteSelectedElements();
                     change.changed();
                     renderElementsWDebounce();
@@ -828,7 +833,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                     break;
                 case "Escape":
                     synthSelector.selectedElementsRef.current = [];
-                    server?.deselectAllFlavors();
+                    multiplayer.manager?.getServerCommunication()?.deselectAllFlavors();
                     renderElementsWDebounce();
                     // synthLines.repaintAll();
                     break;
@@ -912,7 +917,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
 
             if (interPlayerDrag.ref.current != null) {
                 if (!clickSelectedFlavors.includes(interPlayerDrag.ref.current)) {
-                    server?.deselectFlavors([interPlayerDrag.ref.current]);
+                    multiplayer.manager?.getServerCommunication()?.deselectFlavors([interPlayerDrag.ref.current]);
                 }
                 const canvasBox = canvasRef.current?.getBoundingClientRect();
                 if (!canvasBox) return;
@@ -960,7 +965,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 });
 
 
-                server?.updateFlavors([
+                multiplayer.manager?.getServerCommunication()?.updateFlavors([
                     {
                         ...element,
                         trackUUID: synthLineUUID,
@@ -1096,7 +1101,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                         flavorSynthLine.elements = [...flavorSynthLine.elements, currentDraggingElementRef.current];
 
                     if (currentDraggingElementRef.current) {
-                        server?.addFlavor(synthLineUUID, currentDraggingElementRef.current);
+                        multiplayer.manager?.getServerCommunication()?.addFlavor(synthLineUUID, currentDraggingElementRef.current);
                     }
 
                     synthLines.repaintAllElements();
@@ -1121,7 +1126,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
                 } else if (currentlyResizingElement.current) {
                     const flavor = flavorSynthLine.elements.find(e => e.uuid == currentlyResizingElement.current);
                     if (flavor) {
-                        server?.updateFlavors([
+                        multiplayer.manager?.getServerCommunication()?.updateFlavors([
                             {
                                 ...flavor,
                                 trackUUID: synthLineUUID
@@ -1362,7 +1367,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             window.removeEventListener("keydown", onKeyPress);
         };
 
-    }, [canvasRef.current, flavorSynthLine.elements]);
+    }, [canvasRef.current, flavorSynthLine.elements, multiplayer.manager]);
 
 
 
@@ -1390,6 +1395,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         const offsetImageRaw = e.dataTransfer.getData("flavor/offsetImage");
         const elementLengthRaw = e.dataTransfer.getData("flavor/elementLength");
         const flavorNameRaw = e.dataTransfer.getData("flavor/plain");
+        const isCustomFlavor = e.dataTransfer.getData("flavor/isCustom") == "1";
 
 
         if (!offsetImageRaw || !elementLengthRaw) {
@@ -1421,7 +1427,7 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
             if (startPos != -1 && endPos != -1 && startPos != endPos) {
                 const element = createElementForFlavor(flavorName, startPos, endPos);
                 flavorSynthLine.elements.push(element);
-                droppedNewFlavor(element)
+                droppedNewFlavor(element, isCustomFlavor)
                 change.changed();
             }
             currentDraggingElementRef.current = null;
@@ -1433,14 +1439,14 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         const element = createElementForFlavor(flavorName, currentPos, currentPos + elementLength);
         flavorSynthLine.elements.push(element);
         change.changed();
-        droppedNewFlavor(element);
+        droppedNewFlavor(element, isCustomFlavor);
         currentDraggingElementRef.current = null;
         renderElementsWDebounce();
         synthLines.updateTotalStatistic();
         currentPlaying.updateElements();
     };
 
-    const droppedNewFlavor = (element: FlavorElement) => {
+    const droppedNewFlavor = async (element: FlavorElement, isCustomFlavor: boolean) => {
         if (isReadonly) return;
         ActionHistoryManager.didAction({
             type: "insert",
@@ -1449,7 +1455,20 @@ export default function PlayerTrack({ widthRef, synthLineUUID }: { widthRef: Rea
         });
 
 
-        server?.addFlavor(synthLineUUID, element);
+        if (isCustomFlavor) {
+            const name = element.flavor;
+            const customFlavor = customFlavors.customFlavors.find(e => e.name == name);
+            if (customFlavor && !currentDish?.customFlavors.map(e => e.uuid).includes(customFlavor.uuid)) {
+                currentDish?.customFlavors.push(customFlavor);
+
+                if (!synthLines.tempRenderersRef.current.map(e => e.uuid).includes(customFlavor.uuid)) {
+                    await multiplayer.manager?.getServerCommunication()?.addCustomFlavor(customFlavor);
+                }
+            }
+        }
+
+        multiplayer.manager?.getServerCommunication()?.addFlavor(synthLineUUID, element);
+
     }
 
     const onDragOver = (e: React.DragEvent<HTMLCanvasElement>) => {

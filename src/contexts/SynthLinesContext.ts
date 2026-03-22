@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
 import type { FlavorSynthLine } from "../components/flavorSynth/FlavorSynth";
+import type { FlavorRenderer } from "../components/FlavorUtils";
 
 type SynthLines = {
     delete: (uuid: string) => void;
@@ -26,6 +27,7 @@ type SynthLines = {
     setSynthLines: React.Dispatch<React.SetStateAction<FlavorSynthLine[]>>;
     zoomed: (posX: number, delta: number) => void;
     getSynthLineByUUID: (uuid: string) => FlavorSynthLine | null;
+    tempRenderersRef: React.RefObject<FlavorRenderer[]>;
 }
 
 export const SynthLinesContext = createContext<SynthLines>(undefined as any);

@@ -70,12 +70,12 @@ It’s a machine where glass tubes at the top filled with flavors are placed the
 
 Tutorials are everywhere in the game.
 
-#### Main Menu
+### Main Menu
 ![Main Menu](./readmeImgs/mainMenu.png)
 
 Entry point of the application.
 
-#### Dish List
+### Dish List
 ![Dish List](./readmeImgs/dishList.png)
 
 Overview of locally and remotely stored dishes.
@@ -85,27 +85,32 @@ Overview of locally and remotely stored dishes.
 
 List of all public dishes.
 
-#### Open a Shared Dish
+#### Loading Animation
+![Restaurant Dish loading animation](./readmeImgs/restaurantLoadingAnimation.png)
+
+This is the loading animation for the dishes.
+
+### Open a Shared Dish
 ![Open Shared Dish](./readmeImgs/openSharedDish.png)
 
 Interface for loading shared dishes.
 
-#### Sharing a Dish
+### Sharing a Dish
 ![Share a Dish](./readmeImgs/sharingDish.png)
 
 Step 1 of the sharing workflow. The second step allows authenticated or anonymous publishing.
 
-#### Creating a Dish / Main Flavor Selector
+### Creating a Dish / Main Flavor Selector
 ![Creating a Dish - Main Flavor Selector](./readmeImgs/creatingDish-mainFlavor.png)
 
 Main flavor selection screen.
 
-#### Creating a Dish / Editor
+### Creating a Dish / Editor
 ![Creating a Dish - Editor](./readmeImgs/creatingDish-editor.png)
 
 Timeline editor interface.
 
-#### Downloading a Dish
+### Downloading a Dish
 ![Downloading a Dish](./readmeImgs/downloadingDish.png)
 
 Download progress indicator for remote dishes.

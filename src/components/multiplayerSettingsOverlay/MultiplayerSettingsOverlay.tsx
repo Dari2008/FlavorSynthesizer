@@ -16,7 +16,11 @@ export default function MultiplayerSettingsOverlay() {
     const copyCodeRef = useRef<HTMLButtonElement>(null);
     const timeoutRef = useRef<NodeJS.Timeout>(null);
 
-    return multiplayer.isMultiplayer && multiplayer.managerRef.current?.isOwner() && <>
+    multiplayer.manager?.getServerCommunication().onPlayerLeft.add("MultiplayerSettingsOverlay", (player) => {
+        multiplayer.setPlayersJoined(players => players.filter(e => e.endpointUUID !== player.endpointUUID));
+    });
+
+    return multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <>
         <div className="multiplayer-settings-overlay" data-visible={multiplayer.isMultiplayerOverlayOpen ? true : undefined}>
             <div className="bg"></div>
             <PixelDivWBorder max-pixel-width={40} className="dialog" role="dialog">
@@ -30,10 +34,10 @@ export default function MultiplayerSettingsOverlay() {
                     <div className="code-preview">
                         <div className="digits">
                             {
-                                code.map((digit, i) => <PixelDiv key={i} max-pixel-width={30} className="digit">{digit}</PixelDiv>)
+                                code.map((digit, i) => <PixelDiv key={i} max-pixel-width={20} className="digit">{digit}</PixelDiv>)
                             }
                         </div>
-                        <PixelButton className="copy" ref={copyCodeRef} onClick={() => {
+                        <PixelButton max-pixel-width={15} className="copy" ref={copyCodeRef} onClick={() => {
                             copyCode(code);
                             if (!copyCodeRef.current) return;
 
@@ -52,14 +56,14 @@ export default function MultiplayerSettingsOverlay() {
                         {
                             usersJoined.map(player => {
                                 const kick = () => {
-                                    multiplayer.managerRef.current?.getServerCommunication().kick(player.endpointUUID);
+                                    multiplayer.manager?.getServerCommunication().kick(player.endpointUUID);
                                     multiplayer.setPlayersJoined(playerJoined => {
                                         return playerJoined.filter(e => e.endpointUUID !== player.endpointUUID);
                                     })
                                 };
 
                                 const mute = (is: boolean) => {
-                                    multiplayer.managerRef.current?.getServerCommunication().mute(player.endpointUUID, is);
+                                    multiplayer.manager?.getServerCommunication().mute(player.endpointUUID, is);
                                     multiplayer.setPlayersJoined(playerJoined => {
                                         return playerJoined.map(lPlayer => {
                                             if (lPlayer.endpointUUID !== player.endpointUUID) return lPlayer;
@@ -72,7 +76,7 @@ export default function MultiplayerSettingsOverlay() {
                                 }
 
                                 const viewOnly = (is: boolean) => {
-                                    multiplayer.managerRef.current?.getServerCommunication().viewOnly(player.endpointUUID, is);
+                                    multiplayer.manager?.getServerCommunication().viewOnly(player.endpointUUID, is);
                                     multiplayer.setPlayersJoined(playerJoined => {
                                         return playerJoined.map(lPlayer => {
                                             if (lPlayer.endpointUUID !== player.endpointUUID) return lPlayer;
@@ -87,10 +91,10 @@ export default function MultiplayerSettingsOverlay() {
                                 return <li className="player-item" key={player.endpointUUID}>
                                     <span className="name">{player.name}</span>
                                     {
-                                        multiplayer.managerRef.current?.isOwner() && <>
+                                        multiplayer.manager?.isOwner() && <>
                                             <Toggle className="mute" onToggleChange={mute}>Mute</Toggle>
                                             <Toggle className="viewOnly" onToggleChange={viewOnly}>View Only</Toggle>
-                                            <PixelButton className="kick" onClick={kick}>Kick</PixelButton>
+                                            <PixelButton max-pixel-width={10} className="kick" onClick={kick}>Kick</PixelButton>
                                         </>
                                     }
                                 </li>
@@ -118,9 +122,9 @@ function PlayerJoinNotification() {
 
     const [userJoined, setUserJoined] = useState<PlayerJoined | null>(null);
 
-    if (!multiplayer.managerRef.current) return <></>;
+    if (!multiplayer.manager) return <></>;
 
-    multiplayer.managerRef.current.getServerCommunication().onPlayerJoin = async (_: number, playerJoined: PlayerJoined) => {
+    multiplayer.manager.getServerCommunication().onPlayerJoin = async (_: number, playerJoined: PlayerJoined) => {
         return await new Promise<PlayJoinScope>(async (res) => {
             setUserJoined(playerJoined);
 
@@ -188,8 +192,8 @@ function PlayerJoinNotification() {
             </div>
 
             <div className="buttons">
-                <PixelButton className="deny" onClick={deny}>Deny</PixelButton>
-                <PixelButton className="allow" onClick={allow}>Allow</PixelButton>
+                <PixelButton max-pixel-width={10} className="deny" onClick={deny}>Deny</PixelButton>
+                <PixelButton max-pixel-width={10} className="allow" onClick={allow}>Allow</PixelButton>
             </div>
         </PixelDivWBorder>
     </>

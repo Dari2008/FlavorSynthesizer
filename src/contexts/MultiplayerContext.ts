@@ -6,7 +6,7 @@ import type { ChatMessage } from "../components/multiplayerChatOverlay/Multiplay
 type MultiplayerContextType = {
     isMultiplayer: boolean;
     startMultiplayer: () => void;
-    managerRef: React.RefObject<MultiplayerServer | null>;
+    manager: MultiplayerServer | null;
     playersJoined: PlayerJoined[];
     multiplayerCode: ShareDigits;
     setMultiplayerOverlayOpen: (open: boolean) => void;

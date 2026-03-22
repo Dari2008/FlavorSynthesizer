@@ -8,9 +8,10 @@ import setCurrentDragging from "../flavorSynth/CurrentDraggingReference";
 type Props = {
     player: FlavorFileMusic | CustomFlavorMusic;
     hasDownloaded: boolean;
+    isCustomFlavor: boolean;
 }
 
-export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props) {
+export default function FlavorDragNDropListItem({ player, hasDownloaded, isCustomFlavor }: Props) {
 
     const [isPlaying, setPl] = useState<boolean>(false);
     const [isCurrentlySelectedElement, setIsCurrentlySelectedElement] = useState<boolean>(false);
@@ -74,7 +75,7 @@ export default function FlavorDragNDropListItem({ player, hasDownloaded }: Props
 
         e.dataTransfer.setData("flavor/offsetImage", JSON.stringify({ offsetX, offsetY }));
         e.dataTransfer.setData("flavor/elementLength", DRAG_DEFAULT_LENGTH.toString());
-        e.dataTransfer.setData("text/plain", "Hi");
+        e.dataTransfer.setData("flavor/isCustom", (isCustomFlavor ? 1 : 0) + "");
         e.dataTransfer.setDragImage(image, offsetX, offsetY);
 
         setCurrentDragging(player.NAME, { offsetX, offsetY }, DRAG_DEFAULT_LENGTH);
@@ -109,7 +110,7 @@ function createDragImageFor(flavorName: Flavor): HTMLImageElement {
     if (ctx == null) {
         return new Image();
     }
-    drawElement(createElementForFlavor(flavorName, 0, 10), ctx, 0);
+    drawElement(createElementForFlavor(flavorName, 0, 10), ctx);
 
     const img = new Image();
     img.src = canvas.toDataURL();

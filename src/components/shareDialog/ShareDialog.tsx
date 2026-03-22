@@ -327,16 +327,16 @@ export default function ShareDialog() {
 
                             <div className="login-div">
                                 <h3>{isLogin ? "Login" : "Register"}</h3>
-                                {!isLogin && <PixelInput placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
-                                <PixelInput placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
-                                <PixelInput placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
-                                <PixelButton className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
+                                {!isLogin && <PixelInput max-pixel-width={10} placeholder="E-Mail" type="email" className="email" ref={loginEmailRef} />}
+                                <PixelInput max-pixel-width={10} placeholder="Username" type="text" className="username" ref={loginUsernameRef} />
+                                <PixelInput max-pixel-width={10} placeholder="Password" type="password" className="password" ref={loginPasswordRef} />
+                                <PixelButton max-pixel-width={10} className="login" onClick={() => isLogin ? login() : register()}>{isLogin ? "Login" : "Register"}</PixelButton>
                                 <span className="dontHaveAccount">{isLogin ? "Don't have an Account?" : "Already have an Account?"} <a onClick={() => setIsLogin(!isLogin)}>{isLogin ? "Register here" : "Login here"}</a></span>
                             </div>
                             <span className="microcopy">Edit later · Track stats · Keep ownership · 1x AI Image for Sharing</span>
 
                             <div className="buttons-below-first-share">
-                                <PixelButton className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</PixelButton>
+                                <PixelButton max-pixel-width={10} className="share-anyways" onClick={() => shareAnyways()}>Share Anyways</PixelButton>
                                 <div className="microcopy">One-time share · No edits later · No AI Image</div>
                             </div>
                         </div>
@@ -380,7 +380,7 @@ export default function ShareDialog() {
                             }
                         </div>
                         {
-                            !isPublished && <PixelButton className="publish" onClick={publish}>Publish</PixelButton>
+                            !isPublished && <PixelButton max-pixel-width={10} className="publish" onClick={publish}>Publish</PixelButton>
                         }
                     </PixelDivWBorder>
                 }
@@ -390,8 +390,8 @@ export default function ShareDialog() {
 
                         <PixelDivWBorder max-pixel-width={30} className="share-flavors share-default-layout">
 
-                            <h2>Set Flavor For Sharing</h2>
-                            <span>Share your dish with a flavor combo to match. Drag and drop flavors from the list to the side.</span>
+                            <h2>Flavor combo for Sharing</h2>
+                            <span>This is your flavor combo to share with friends.</span>
 
                             <div className="combo content" ref={comboBoxRef}>
                                 {
@@ -415,8 +415,8 @@ export default function ShareDialog() {
                                 }
                             </div>
 
-                            <PixelDivWBorder max-pixel-width={30} className="buttons">
-                                <PixelButton className="copy-as-text" onClick={(e) => {
+                            <div className="buttons">
+                                <PixelButton max-pixel-width={10} className="copy-as-text" onClick={(e) => {
                                     copyTextOfFlavors(currentFlavorsSelected);
                                     if (e.target instanceof HTMLButtonElement) {
                                         (e.target as HTMLButtonElement).textContent = "Copied!";
@@ -425,7 +425,7 @@ export default function ShareDialog() {
                                         }, 2000);
                                     }
                                 }}>Copy as Text</PixelButton>
-                                <PixelButton className="copy-as-image" onClick={(e) => {
+                                <PixelButton max-pixel-width={10} className="copy-as-image" onClick={(e) => {
                                     copyImageOfFlavors(currentFlavorsSelected);
                                     if (e.target instanceof HTMLButtonElement) {
                                         (e.target as HTMLButtonElement).textContent = "Copied!";
@@ -434,7 +434,7 @@ export default function ShareDialog() {
                                         }, 2000);
                                     }
                                 }}>Copy as image</PixelButton>
-                            </PixelDivWBorder>
+                            </div>
 
                         </PixelDivWBorder>
 
@@ -492,7 +492,7 @@ export default function ShareDialog() {
                             {
                                 shareDigits.filter(e => e != 0).length > 0 && <>
                                     <div className="buttons">
-                                        <PixelButton className="copy-code" onClick={(e) => {
+                                        <PixelButton max-pixel-width={10} className="copy-code" onClick={(e) => {
                                             copyCode(shareDigits);
                                             if (e.target instanceof HTMLButtonElement) {
                                                 (e.target as HTMLButtonElement).textContent = "Copied!";
@@ -511,7 +511,7 @@ export default function ShareDialog() {
                             <span>Share your dish with a url.</span>
                             <div className="content">
                                 <span className="url">{shareURL}</span>
-                                <PixelButton className="copy" onClick={(e) => {
+                                <PixelButton max-pixel-width={10} className="copy" onClick={(e) => {
                                     copyShareUrl(shareURL)
                                     if (e.target instanceof HTMLButtonElement) {
                                         (e.target as HTMLButtonElement).textContent = "Copied!";

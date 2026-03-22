@@ -15,7 +15,7 @@ import { BASE_URL, DATE_FORMAT, URL_EXTENSION } from "../utils/Statics";
 import Utils from "../utils/Utils";
 import { createElementForFlavor } from "../components/FlavorUtils";
 import InitialMenu from "../components/initialMenu/InitialMenu";
-import type { Dish, DishVolumes, LocalDish, MultiplayerServerDish, User } from "../@types/User";
+import type { Dish, DishVolumes, LocalDish, MultiplayerServerDish, RawLocalDish, User } from "../@types/User";
 import DishList from "../components/dishList/DishList";
 import { initCurrentPosImages } from "../components/flavorSynth/CurrentPosimageInit";
 import { UserContext } from "../contexts/UserContext";
@@ -51,6 +51,7 @@ import { loadAllCustomFlavorsAsMusicPlayer, type CustomFlavor } from "../compone
 import { CustomFlavors } from "../contexts/CustomFlavors";
 import { CustomFlavorMusic } from "../audio/FlavorMusic";
 import CustomFlavorMenu from "../components/customFlavorMenu/CustomFlavorMenu";
+import CustomFlavorServerManager from "../components/customFlavorMenu/CustomFlavorServerManager";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -64,7 +65,7 @@ export default function App() {
     const [dishes, setDishes] = useState<(Dish | LocalDish)[]>([]);
     const [currentDishIndex, setCurrentDishIndex] = useState<number>(-1);
 
-    const multiplayerManagerRef = useRef<MultiplayerServer>(null);
+    const [multiplayerManager, setMultiplayerManager] = useState<MultiplayerServer | null>(null);
     const [isMultiplayer, setIsMultiplayer] = useState<boolean>(false);
     const [playersJoined, setPlayersJoined] = useState<PlayerJoined[]>([]);
     const [multiplayerCode, setMultiplayerCode] = useState<ShareDigits>([0, 0, 0, 0, 0, 0]);
@@ -75,7 +76,9 @@ export default function App() {
     const [multiplayerName, setMultiplayerName] = useState<string | null>(null);
     const [isMultiplayerMuted, setMultiplayerMuted] = useState<boolean>(false);
 
-    const server = multiplayerManagerRef.current?.getServerCommunication();
+    const hasLoadedUserInfoOnce = useRef<boolean>(false);
+
+    const server = multiplayerManager?.getServerCommunication();
 
     const [gameState, _setGameState] = useState<GameState>("mainMenu");
     const [oldGameStates, setOldGameStates] = useState<GameState[]>(["mainMenu"]);
@@ -164,50 +167,62 @@ export default function App() {
             setOldGameStates([...oldGameStates, gameState]);
         }
         _setGameState(state);
+        if (state !== "createDish-create") {
+            multiplayerManager?.close();
+            setMultiplayerManager(null);
+        }
     }
 
     useEffect(() => {
-        if (userLoggedIn) {
-            (async () => {
-                startLoading("loadingDishes");
-                const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
-                const v = localStorage.getItem("overwriteLocalDishesToServer");
-                let integrateDishes = v == null ? null : v == "true";
+        if (!hasLoadedUserInfoOnce.current) {
+            hasLoadedUserInfoOnce.current = true;
+            if (userLoggedIn) {
+                (async () => {
+                    startLoading("loadingDishes");
+                    const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
+                    const v = localStorage.getItem("overwriteLocalDishesToServer");
+                    let integrateDishes = v == null ? null : v == "true";
 
-                if (integrateDishes == null && localDishes != null) {
-                    integrateDishes = await confirm("Do you want to upload all your local Dishes to the server?", "noYes");
-                    localStorage.setItem("overwriteLocalDishesToServer", integrateDishes + "");
-                }
+                    if (integrateDishes == null && localDishes != null) {
+                        integrateDishes = await confirm("Do you want to upload all your local Dishes to the server?", "noYes");
+                        localStorage.setItem("overwriteLocalDishesToServer", integrateDishes + "");
+                    }
 
-                let dishes = null;
-                if (integrateDishes && localDishes) {
-                    dishes = await DishManager.loadDishesFromServer(userLoggedIn, localDishes);
-                } else {
-                    dishes = await DishManager.loadDishesFromServer(userLoggedIn);
-                }
-                stopLoading("loadingDishes");
-                if (!dishes) {
-                    return;
-                }
-                localStorage.removeItem("dishes");
-                localStorage.removeItem("overwriteLocalDishesToServer");
-                setDishes(dishes);
-            })();
-        } else {
-            const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as LocalDish[] | null;
-            if (localDishes) {
-                setDishes(localDishes.map(e => ({ ...e, type: "localDish" })));
+                    let dishes = null;
+                    const customFlavors = await loadAllCustomFlavorsAsMusicPlayer(userLoggedIn, setCustomFlavors);
+                    if (integrateDishes && localDishes) {
+                        dishes = await DishManager.loadDishesFromServer(userLoggedIn, localDishes, customFlavors);
+                    } else {
+                        dishes = await DishManager.loadDishesFromServer(userLoggedIn, undefined, customFlavors);
+                    }
+
+                    stopLoading("loadingDishes");
+                    if (!dishes) {
+                        return;
+                    }
+                    localStorage.removeItem("dishes");
+                    localStorage.removeItem("overwriteLocalDishesToServer");
+                    setDishes(dishes);
+                })();
+            } else {
+                (async () => {
+                    const customFlavors = await loadAllCustomFlavorsAsMusicPlayer(userLoggedIn, setCustomFlavors);
+                    const localDishes = JSON.parse(localStorage.getItem("dishes") ?? "null") as RawLocalDish[] | null;
+                    if (localDishes) {
+                        setDishes(localDishes.map(e => ({ ...e, type: "localDish" })).map(e => ({ ...e, customFlavors: e.customFlavors.map(e => customFlavors.find(s => s.uuid == e)).filter(e => !!e) } as LocalDish)));
+                    }
+                })();
             }
-        }
 
-        const saveDishAutomatically = async () => {
-            if (!currentDish) return;
-            await saveCurrentDish();
+            const saveDishAutomatically = async () => {
+                if (!currentDish) return;
+                await saveCurrentDish();
+                setTimeout(saveDishAutomatically, 1 * 60 * 1000);
+            };
+
             setTimeout(saveDishAutomatically, 1 * 60 * 1000);
-        };
 
-        setTimeout(saveDishAutomatically, 1 * 60 * 1000);
-
+        }
     }, [""]);
 
     const saveCurrentDish = async () => {
@@ -218,7 +233,7 @@ export default function App() {
             }
             await DishManager.updateEntireDish(userLoggedIn, currentDish as Dish);
         } else {
-            const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary).map(e => ({ ...e, type: "localDish" })));
+            const jsonData = JSON.stringify(dishes.filter(e => !(e as any).temporary).map(e => ({ ...e, type: "localDish" })).map(e => ({ ...e, customFlavors: e.customFlavors.map(e => e.uuid) })));
             localStorage.setItem("dishes", jsonData);
         }
 
@@ -275,7 +290,7 @@ export default function App() {
             // setCurrentDishName(newDish.name)
             currentDishName.current = newDish.name;
             setCurrentDishTitleToElement(newDish.name);
-            setSynthLines(newDish.data);
+            // setSynthLines(newDish.data);
             setMainFlavor(newDish.mainFlavor);
         }
 
@@ -324,7 +339,7 @@ export default function App() {
         await initLoadingAnimation();
         await intitializeAllAudios();
         await initCurrentPosImages();
-        await loadAllCustomFlavorsAsMusicPlayer(userLoggedIn, setCustomFlavors);
+        // await loadAllCustomFlavorsAsMusicPlayer(userLoggedIn, setCustomFlavors);
         stopLoading("loadingAll");
         startTutorial.current?.("home");
     };
@@ -377,6 +392,7 @@ export default function App() {
                     })
                 }
             }),
+            customFlavors: response.dish.customFlavors.map(e => customFlavors.find(s => s.uuid == e)).filter(e => !!e),
             temporary: true
         };
         delete (dish as any).tracks;
@@ -397,12 +413,14 @@ export default function App() {
         if (index == -1) return;
         setCurrentDishIndex(index);
 
+        console.log(dish);
+
         setCurrentDishTitleToElement(dish.name);
         currentDishName.current = dish.name;
         setMainFlavor(dish.mainFlavor);
 
-        setVolumes(dish.volumes);
-        setSynthLines(dish.data);
+        // setVolumes(dish.volumes);
+        // setSynthLines(dish.data);
     }
 
     useEffect(() => {
@@ -527,8 +545,8 @@ export default function App() {
     };
 
     const startMultiplayer = async () => {
-        if (multiplayerManagerRef.current) return;
-        multiplayerManagerRef.current = new MultiplayerServer();
+        if (multiplayerManager) return;
+        const tempMultiplayerManager = new MultiplayerServer();
         if (!currentDish) {
             Utils.error("You dont have a dish open");
             return;
@@ -546,7 +564,7 @@ export default function App() {
             return;
         }
 
-        let response = await multiplayerManagerRef.current.create({
+        let response = await tempMultiplayerManager.create({
             mainFlavor: currentDish.mainFlavor,
             name: currentDish.name,
             publishState: "private",
@@ -555,19 +573,12 @@ export default function App() {
             type: "dish",
             uuid: currentDish.uuid,
             volumes: currentDish.volumes,
-            customFlavors: []
+            customFlavors: currentDish.customFlavors
         }, name, userLoggedIn?.jwt);
 
         if (!response) return false;
 
-
-        multiplayerManagerRef.current.getServerCommunication().onChatMessageReceive = (message: ChatMessage) => {
-            setUnreadChatMessageCount(count => count + 1);
-            setChatMessages(messages => [...messages, message]);
-            Utils.notification("You have a new Chat message");
-        };
-
-        const code = multiplayerManagerRef.current.getCode();
+        const code = tempMultiplayerManager.getCode();
         if (!code) {
             Utils.error("Failed to get code to share! Try again later");
             return;
@@ -577,40 +588,37 @@ export default function App() {
         setMultiplayerCode(code);
         setMultiplayerOverlayOpen(true);
         setMultiplayerName(name);
+        setMultiplayerManager(tempMultiplayerManager);
 
-        initDefaultsMultiplayer();
+        initDefaultsMultiplayer(tempMultiplayerManager);
     };
 
     const joinGame = async (digits: ShareDigits) => {
-        if (multiplayerManagerRef.current) return;
-        multiplayerManagerRef.current = new MultiplayerServer();
+        if (multiplayerManager) return;
+        const tempMultiplayerManager = new MultiplayerServer();
+
         let name: string | undefined | false = userLoggedIn?.displayName
         if (!userLoggedIn || !name) {
             name = await input("Type a name with wich you want to join the meeting:", "cancelOk", "text");
         }
 
         if (!name) {
-            multiplayerManagerRef.current?.close();
-            multiplayerManagerRef.current = null;
+            tempMultiplayerManager.close();
+            setMultiplayerManager(null);
             return;
         }
 
-        let response = await multiplayerManagerRef.current.join(digits, name, userLoggedIn?.jwt);
+        let response = await tempMultiplayerManager.join(digits, name, userLoggedIn?.jwt);
         if (!response) {
-            multiplayerManagerRef.current?.close();
-            multiplayerManagerRef.current = null;
+            tempMultiplayerManager.close();
+            setMultiplayerManager(null);
             return false;
         }
 
-        const server = multiplayerManagerRef.current.getServerCommunication();
+        const server = tempMultiplayerManager.getServerCommunication();
 
-        server.onChatMessageReceive = (message: ChatMessage) => {
-            setUnreadChatMessageCount(count => count + 1);
-            setChatMessages(messages => [...messages, message]);
-            Utils.notification("You have a new Chat message");
-        };
 
-        // multiplayerManagerRef.current.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
+        // multiplayerManager.getServerCommunication().onPlayerJoin = (_: number, playerJoined: PlayerJoined) => {
         //     setPlayersJoined(players => [...players, playerJoined]);
         //     return true;
         // };
@@ -621,10 +629,11 @@ export default function App() {
         // setMultiplayerCode(code);
         setMultiplayerOverlayOpen(true);
         setMultiplayerName(name);
+        setMultiplayerManager(tempMultiplayerManager);
 
         setGameState("createDish-create");
 
-        initDefaultsMultiplayer();
+        initDefaultsMultiplayer(tempMultiplayerManager);
     }
 
     async function reloadMultiplayerDish(server: ServerCommunication) {
@@ -638,7 +647,6 @@ export default function App() {
         }
 
         const dish = dishLoadResponse.dish;
-        console.log(dish);
 
         createNewActiveDish({
             createdAt: dayjs().format("DD/MM/YYYY HH:mm:ss"),
@@ -651,14 +659,13 @@ export default function App() {
             uuid: dish.uuid,
             volumes: dish.volumes,
             type: "dish",
-            customFlavors: [],
+            customFlavors: dish.customFlavors,
             temporary: true
         }, true, 0, false);
     }
 
-    async function initDefaultsMultiplayer() {
-        if (!multiplayerManagerRef.current) return;
-        const server = multiplayerManagerRef.current.getServerCommunication();
+    async function initDefaultsMultiplayer(multiplayerManager: MultiplayerServer) {
+        const server = multiplayerManager.getServerCommunication();
 
         server.onRename.add("main", (newName) => {
             setCurrentDishTitleToElement(newName);
@@ -666,19 +673,25 @@ export default function App() {
         });
 
         server.onSave.add("main", () => {
-            if (!multiplayerManagerRef.current?.isOwner()) return;
+            if (!multiplayerManager?.isOwner()) return;
             saveCurrentDish();
         });
 
-        server.onClose = () => {
-            multiplayerManagerRef.current?.close();
-            multiplayerManagerRef.current = null;
+        server.onClose.add("main", (reason) => {
+            multiplayerManager?.close();
+            setMultiplayerManager(null);
             setGameState("mainMenu");
-        };
+            Utils.error(reason);
+        });
+
+        server.onPlayerLeft.add("main", (playerLeft) => {
+            console.log(`Player ${playerLeft.name} left the game`);
+            Utils.notification(`Player ${playerLeft.name} left the game`);
+        });
 
         server.onKick.add("main", () => {
-            multiplayerManagerRef.current?.close();
-            multiplayerManagerRef.current = null;
+            multiplayerManager?.close();
+            setMultiplayerManager(null);
             setGameState("mainMenu");
             Utils.error("You got kicked!");
         });
@@ -703,6 +716,13 @@ export default function App() {
             }
         });
 
+
+        server.onChatMessageReceive = (message: ChatMessage) => {
+            setUnreadChatMessageCount(count => count + 1);
+            setChatMessages(messages => [...messages, message]);
+            Utils.notification("You have a new Chat message");
+        };
+
         // server.onVolumeChanged = (newVolume, volumeSlot) => {
         //     setVolumes(volumes => {
         //         const v = {
@@ -724,7 +744,7 @@ export default function App() {
         }}>
             <MultiplayerContext.Provider value={{
                 isMultiplayer,
-                managerRef: multiplayerManagerRef,
+                manager: multiplayerManager,
                 startMultiplayer,
                 playersJoined,
                 multiplayerCode,
@@ -762,7 +782,7 @@ export default function App() {
                                                                 !isDeviceSupported && <DeviceNotSupported />
                                                             }
 
-                                                            <Activity mode={gameState == "customFlavors" ? "visible" : "hidden"}>
+                                                            {/* <Activity mode={gameState == "customFlavors" ? "visible" : "hidden"}>
                                                                 <CustomFlavorMenu />
                                                             </Activity>
 
@@ -780,7 +800,28 @@ export default function App() {
 
                                                             <Activity mode={gameState == "createDish-mainFlavor" ? "visible" : "hidden"}>
                                                                 <MainFlavorSelectionDialog />
-                                                            </Activity>
+                                                            </Activity> */}
+
+                                                            {
+                                                                gameState == "customFlavors" && <CustomFlavorMenu />
+                                                            }
+
+                                                            {
+                                                                gameState == "mainMenu" && <InitialMenu />
+                                                            }
+
+                                                            {
+                                                                gameState == "restaurant" && <Restaurant />
+                                                            }
+
+                                                            {
+                                                                !hasDownloadedData || currentlyLoading.includes("downloadData") && <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
+                                                            }
+
+                                                            {
+                                                                gameState == "createDish-mainFlavor" && <MainFlavorSelectionDialog />
+                                                            }
+
 
                                                             {
                                                                 (gameState == "createDish-create" || gameState == "createDish-create-viewonly") && <>
@@ -795,7 +836,7 @@ export default function App() {
                                                                                 if (currentDishTitleRef.current && !isReadonly) {
                                                                                     const newName = currentDishTitleRef.current.value == undefined || currentDishTitleRef.current.value == null ? "Unnamed" : currentDishTitleRef.current.value;
                                                                                     setCurrentDishName(newName);
-                                                                                    server?.rename(newName);
+                                                                                    multiplayerManager?.getServerCommunication()?.rename(newName);
                                                                                 }
                                                                             }} ref={(e) => { currentDishTitleRef.current = e; e && (e.value = currentDishName.current) }}></input>
                                                                         </div>
@@ -824,7 +865,24 @@ export default function App() {
                                                             {/* <Activity mode={gameState == "createDish-create" || gameState == "createDish-create-viewonly" ? "visible" : "hidden"}>
                             </Activity> */}
 
-                                                            <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
+
+                                                            {
+                                                                gameState == "createDish-share" && <ShareDialog></ShareDialog>
+                                                            }
+
+                                                            {
+                                                                (gameState == "createDish-create" || gameState == "openShared" || gameState == "createDish-share") && <FlavorDragNDropList hasDownloaded={hasDownloadedData}></FlavorDragNDropList>
+                                                            }
+
+                                                            {
+                                                                gameState == "openShared" && <OpenShareDialog open={open}></OpenShareDialog>
+                                                            }
+
+                                                            {
+                                                                gameState == "dishList" && <DishList />
+                                                            }
+
+                                                            {/* <Activity mode={gameState == "createDish-share" ? "visible" : "hidden"}>
                                                                 <ShareDialog></ShareDialog>
                                                             </Activity>
 
@@ -838,7 +896,7 @@ export default function App() {
 
                                                             <Activity mode={gameState == "dishList" ? "visible" : "hidden"}>
                                                                 <DishList />
-                                                            </Activity>
+                                                            </Activity> */}
 
                                                             {gameState == "loading" && <Loading />}
 
