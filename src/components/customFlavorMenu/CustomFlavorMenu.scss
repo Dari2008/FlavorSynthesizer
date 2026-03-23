@@ -33,6 +33,26 @@
         }
     }
 
+    .custom-flavor-shop-button {
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        width: 50px;
+        aspect-ratio: 1 / 1;
+        background-color: transparent;
+        border: none !important;
+        transition: scale 0.3s ease-in-out;
+
+        img {
+            width: 100%;
+            height: 100%;
+        }
+
+        &:hover {
+            scale: 1.1;
+        }
+    }
+
     .add-custom-flavor {
         position: fixed;
         bottom: 30px;
@@ -68,11 +88,11 @@
 
             background: url(./bgs/customFlavors/listBg.png);
             background-repeat: repeat-x;
-            background-size: 10% auto;
+            background-size: 10% 100%;
             background-position: 0 0;
 
             display: grid;
-            grid-template-columns: 20% auto 30% max-content minmax(5%, 30px) minmax(5%, 30px) minmax(5%, 30px);
+            grid-template-columns: max-content auto max-content max-content max-content max-content max-content;
             grid-template-rows: 100%;
             grid-column-gap: 0px;
             grid-row-gap: 0px;
@@ -84,6 +104,7 @@
                 backdrop-filter: blur(2px) brightness(50%);
                 justify-self: start;
                 margin-left: 10px;
+                max-height: 95%;
             }
 
             .name {
@@ -91,6 +112,12 @@
                 grid-area: 1 / 2 / 2 / 3;
                 font-size: clampDef(3em);
                 filter: drop-shadow(0 0 10px black);
+                text-overflow: ellipsis;
+                overflow: hidden;
+                text-wrap: nowrap;
+                white-space: nowrap;
+                display: block;
+                max-width: 90%;
             }
 
             .colors {
@@ -98,11 +125,26 @@
                 display: flex;
                 flex-direction: row;
                 gap: 10px;
+                height: 80%;
+                justify-self: center;
+                align-self: center;
+                margin-block: auto;
+
+                @media (width < 1300px) {
+                    .color {
+                        font-size: 0 !important;
+                        line-height: 0 !important;
+                        width: 30px !important;
+                        aspect-ratio: 1 / 1;
+                    }
+                }
 
                 .color {
                     background-color: var(--color);
                     width: 100px;
                     font-size: clampDef(1.4em);
+                    line-height: clampDef(1em);
+                    height: calc(90% - 10px);
                     padding: 5px;
                     margin: 5px;
                     color: black;
@@ -218,5 +260,177 @@
             height: 20%;
         }
 
+    }
+}
+
+.custom-flavor-shop-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    .bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        backdrop-filter: blur(10px) brightness(60%);
+    }
+
+    .custom-flavor-shop {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 50%;
+        height: 50%;
+        padding: 20px;
+        backdrop-filter: blur(10px) brightness(60%);
+        transform: translate(-50%, -50%);
+
+        h2 {
+            width: 100%;
+            font-size: clampDef(3em);
+            line-height: clampDef(1em);
+            margin-block: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 5%;
+        }
+
+        .flavors {
+            width: calc(100% - 10px);
+            display: grid;
+            grid-template-columns: calc(33.333% - 10px) calc(33.333% - 10px) calc(33.333% - 10px);
+            gap: 20px;
+            height: calc(95% - 10px);
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            .loading {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-color: rgba(0, 0, 0, 0.3);
+                z-index: 100000;
+
+                &::after {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    content: "Loading";
+                    font-size: clampDef(3em);
+
+                    animation: loading-after 5s linear 0ms infinite forwards;
+                }
+            }
+
+            .custom-flavor {
+                // height: 200px;
+                aspect-ratio: 1 / 1.2;
+                // display: flex;
+                // flex-direction: column;
+                position: relative;
+                --border-color: var(--flavor-color);
+                --border-size: 2px;
+                display: grid;
+                grid-template-columns: 100%;
+                grid-template-rows: 1fr 0.5fr 0.5fr;
+                grid-column-gap: 0px;
+                grid-row-gap: 0px;
+
+                &.skeleton {
+                    border: 2px solid white;
+                    border-radius: 20px;
+                }
+
+                .image {
+                    grid-area: 1 / 1 / 2 / 2;
+                    max-width: 90%;
+                    max-height: 90%;
+                    width: calc(100% - 30px);
+                    justify-self: center;
+                    align-self: center;
+                }
+
+                .name {
+                    grid-area: 2 / 1 / 3 / 2;
+                    width: 100%;
+                    font-size: clampDef(2em);
+                    line-height: clampDef(1em);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 10px;
+                    justify-self: center;
+                    align-self: center;
+                }
+
+                .download {
+                    background-color: transparent;
+                    border: none !important;
+                    transition: scale 0.3s ease-in-out;
+
+                    &:hover {
+                        scale: 1.1;
+                    }
+                }
+
+                .already-installed {
+                    font-size: clampDef(1.4em);
+                    line-height: clampDef(1em);
+                    width: 100%;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    opacity: 0.3;
+                }
+
+                .play {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background-color: transparent;
+                    border: none !important;
+                    transition: scale 0.3s ease-in-out;
+
+                    img {
+                        filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.4));
+                    }
+
+                    &:hover {
+                        scale: 1.1;
+                    }
+                }
+            }
+        }
+
+    }
+
+}
+
+@keyframes loading-after {
+    0% {
+        content: "Loading";
+    }
+
+    25% {
+        content: "Loading.";
+    }
+
+    50% {
+        content: "Loading..";
+    }
+
+    75% {
+        content: "Loading...";
     }
 }

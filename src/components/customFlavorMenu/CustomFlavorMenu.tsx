@@ -10,6 +10,7 @@ import CustomFlavorServerManager from "./CustomFlavorServerManager";
 import { useUser } from "../../contexts/UserContext";
 import Utils from "../../utils/Utils";
 import CustomFlavorPreview from "./CustomFlavorPreview";
+import CustomFlavorShop from "./CustomFlavorShop";
 
 export default function CustomFlavorMenu() {
 
@@ -18,6 +19,7 @@ export default function CustomFlavorMenu() {
     const [isAddDialogOpen, setAddDialogOpen] = useState<boolean>(false);
     const [openCustomFlavor, setOpenCustomFlavor] = useState<CustomFlavor | null>(null);
     const [currentPreviewing, setCurrentPreviewing] = useState<CustomFlavor | null>(null);
+    const [isShopOpen, setShopOpen] = useState<boolean>(false);
     const user = useUser();
 
     const onEdit = (customFlavor: CustomFlavor) => {
@@ -53,6 +55,8 @@ export default function CustomFlavorMenu() {
         setCurrentPreviewing(flavor);
     }
 
+    console.log(customFlavors.customFlavors.map(e => e.isPublic));
+
     return <div className="custom-flavor-menu">
         <h1>Custom Flavors</h1>
         <button className="close" onClick={() => gameState.goBack()}>x</button>
@@ -66,6 +70,14 @@ export default function CustomFlavorMenu() {
         <PixelButton max-pixel-width={10} onClick={() => setAddDialogOpen(true)} className="add-custom-flavor">
             +
         </PixelButton>
+
+        <button className="custom-flavor-shop-button" onClick={() => setShopOpen(true)}>
+            <img src="./imgs/actionButtons/customFlavors/shop.png" alt="Shop" />
+        </button>
+
+        {
+            isShopOpen && <CustomFlavorShop onClose={() => setShopOpen(false)} />
+        }
 
         {
             currentPreviewing && <CustomFlavorPreview flavor={currentPreviewing} onClose={() => setCurrentPreviewing(null)}></CustomFlavorPreview>

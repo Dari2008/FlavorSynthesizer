@@ -1,5 +1,5 @@
 const storeName = "resources";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 function openDB(dbName: string): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
@@ -7,6 +7,9 @@ function openDB(dbName: string): Promise<IDBDatabase> {
 
         request.onupgradeneeded = () => {
             const db = request.result;
+            if (db.objectStoreNames.contains(storeName)) {
+                db.deleteObjectStore(storeName);
+            }
             if (!db.objectStoreNames.contains(storeName)) {
                 db.createObjectStore(storeName, { keyPath: "name" });
             }
@@ -108,7 +111,6 @@ export async function getResourceByName(
         request.onerror = () => reject(request.error);
     });
 }
-
 
 export async function hasResource(dbName: string, name: string): Promise<boolean> {
     const db = await openDB(dbName);

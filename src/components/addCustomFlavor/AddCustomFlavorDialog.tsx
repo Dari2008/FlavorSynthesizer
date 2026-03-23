@@ -27,14 +27,16 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
 
     const [currentToolSelected, setToolSelected] = useState<"brush" | "eraser" | "fill">("brush");
 
-    const openFileRef = useRef<HTMLInputElement>(document.createElement("input"));
+    const openFileAudioRef = useRef<HTMLInputElement>(document.createElement("input"));
+    const openFileImageRef = useRef<HTMLInputElement>(document.createElement("input"));
 
     const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
 
     const user = useUser();
 
     const customFlavors = useCustomFlavors();
-    document.body.appendChild(openFileRef.current);
+    document.body.appendChild(openFileAudioRef.current);
+    document.body.appendChild(openFileImageRef.current);
 
     useEffect(() => {
 
@@ -72,10 +74,10 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
 
 
     const uploadImage = () => {
-        openFileRef.current.type = "file";
-        openFileRef.current.accept = "image/png, image/jpeg, image/bpm, image/webp, .png, .jpeg, .jpg, .bpm, .webp";
-        openFileRef.current.addEventListener("change", async () => {
-            const files = openFileRef.current.files;
+        openFileImageRef.current.type = "file";
+        openFileImageRef.current.accept = "image/png, image/jpeg, image/bpm, image/webp, .png, .jpeg, .jpg, .bpm, .webp";
+        openFileImageRef.current.addEventListener("change", async () => {
+            const files = openFileImageRef.current.files;
             if (files?.length == 1) {
                 const file = files[0];
                 const base64 = await fileToBase64(file);
@@ -88,19 +90,19 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
             }
         });
 
-        openFileRef.current.style.opacity = "0";
-        openFileRef.current.style.visibility = "hidden";
+        openFileImageRef.current.style.opacity = "0";
+        openFileImageRef.current.style.visibility = "hidden";
 
 
-        openFileRef.current.click();
+        openFileImageRef.current.click();
     };
 
 
     const uploadAudio = () => {
-        openFileRef.current.type = "file";
-        openFileRef.current.accept = "audio/wav, audio/mp3, .mp3, .wav";
-        openFileRef.current.addEventListener("change", async () => {
-            const files = openFileRef.current.files;
+        openFileAudioRef.current.type = "file";
+        openFileAudioRef.current.accept = "audio/wav, audio/mp3, .mp3, .wav";
+        openFileAudioRef.current.addEventListener("change", async () => {
+            const files = openFileAudioRef.current.files;
             if (files?.length == 1) {
                 const file = files[0];
                 setCurrentUploadFileNameAudio(file.name);
@@ -113,7 +115,7 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
                 uploadedAudioRef.current = base64;
             }
         });
-        openFileRef.current.click();
+        openFileAudioRef.current.click();
     };
 
     useEffect(() => {
@@ -483,7 +485,7 @@ export default function AddCustomFlavorDialog({ onClose, flavor, onUpdate }: { o
                     </div>
                 </div>
 
-                <PixelButton max-pixel-width={20} className="create" onClick={createFlavor}>{!!onUpdate ? "Update" : "Create"}</PixelButton>
+                <PixelButton max-pixel-width={20} className="create" onClick={createFlavor}>{!!flavor ? "Update" : "Create"}</PixelButton>
             </div>
         </PixelDivWBorder>
     </div>;

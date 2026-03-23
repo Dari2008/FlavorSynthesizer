@@ -71,6 +71,7 @@ export class FlavorFileMusic {
         this.file.autostart = false;
         this.file.toDestination();
         this.loadedAllPromise = Promise.all(this.promises);
+
     }
 
 

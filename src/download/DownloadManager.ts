@@ -10,7 +10,7 @@ import Utils from "../utils/Utils";
 // let startTime = 0;
 // let timeTaken = 0;
 
-export const DOWNLOAD_GROUP_COUNT = 4;
+export const DOWNLOAD_GROUP_COUNT = 6;
 
 export const DOWNLOAD_PROGRESS_KEY = "downloadProgress";
 

@@ -52,6 +52,7 @@ import { CustomFlavors } from "../contexts/CustomFlavors";
 import { CustomFlavorMusic } from "../audio/FlavorMusic";
 import CustomFlavorMenu from "../components/customFlavorMenu/CustomFlavorMenu";
 import CustomFlavorServerManager from "../components/customFlavorMenu/CustomFlavorServerManager";
+import { hasResource } from "../components/ResourceSaver";
 
 export default function App() {
     // const synthLinesWrapped = useState<FlavorSynthLine[]>([]);
@@ -815,7 +816,7 @@ export default function App() {
                                                             }
 
                                                             {
-                                                                !hasDownloadedData || currentlyLoading.includes("downloadData") && <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
+                                                                (!hasDownloadedData || currentlyLoading.includes("downloadData")) && <Download hasLoaded={hasLoaded} downloadFinished={async () => { await initializeAllDownloadedResources(); setHasDD(true); }} hasDownloadedAssets={hasDownloadedData}></Download>
                                                             }
 
                                                             {
@@ -961,7 +962,34 @@ async function checkIfDataDownloaded() {
     if (val != null) return false;
 
     const dbs = await indexedDB.databases();
-    return dbs.length >= DOWNLOAD_GROUP_COUNT;
+
+    const isValid = await new Promise<boolean>(async (res) => {
+        const all: Promise<boolean>[] = [];
+        for (let i = 0; i <= 99; i++) {
+            all.push(hasResource("currentCursorPositionAnimation", "image_" + i + ".png"));
+        }
+
+        for (let i = 0; i <= 42; i++) {
+            all.push(hasResource("flavors", i + ".wav"));
+        }
+
+        for (let i = 0; i <= 21; i++) {
+            all.push(hasResource("pot-animation", "image_" + i + ".png"));
+        }
+
+        for (const i of ["bitter", "salty", "savory", "sour", "spicy", "sweet"]) {
+            all.push(hasResource("mainFlavors", i + "_finished.mp3"));
+        }
+
+        for (let i = 0; i <= 9; i++) {
+            all.push(hasResource("rotateDevice", i + ".png"));
+        }
+        const allPromises = await Promise.all(all);
+        const hasFoundFalse = allPromises.some(e => !e);
+        res(!hasFoundFalse);
+    });
+
+    return dbs.length >= DOWNLOAD_GROUP_COUNT && isValid;
 }
 
 function getLoggedInUser(): User | null {

@@ -888,12 +888,12 @@ export default function FlavorSynth() {
                                         <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                     </button>
                                     {
-                                        !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
+                                        !isReadonly && !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
                                             <img src="./imgs/actionButtons/multiplayer.png" alt="Multiplayer btn" className="multiplayer-action action-btn" />
                                         </button>
                                     }
                                     {
-                                        multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                        !isReadonly && multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
                                             <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
                                         </button>
                                     }
@@ -909,7 +909,7 @@ export default function FlavorSynth() {
                                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                     {
-                                        multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
+                                        !isReadonly && multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
                                             <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
                                             <span className="chat-message-count" data-message-count={multiplayer.unreadChatMessageCount}>{multiplayer.unreadChatMessageCount}</span>
                                         </button>
@@ -963,12 +963,12 @@ export default function FlavorSynth() {
                                         <img src="./imgs/actionButtons/share.png" alt="Share btn" className="share-action action-btn" />
                                     </button>
                                     {
-                                        !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
+                                        !isReadonly && !multiplayer.isMultiplayer && <button className="multiplayer" title="Open the Dish as a multiplayer" onClick={multiplayer.startMultiplayer}>
                                             <img src="./imgs/actionButtons/multiplayer.png" alt="Multiplayer btn" className="multiplayer-action action-btn" />
                                         </button>
                                     }
                                     {
-                                        multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
+                                        !isReadonly && multiplayer.isMultiplayer && multiplayer.manager?.isOwner() && <button className="settings" title="Open the multiplayer Settings" onClick={() => multiplayer.setMultiplayerOverlayOpen(true)}>
                                             <img src="./imgs/actionButtons/settings.png" alt="Settings btn" className="settings-action action-btn" />
                                         </button>
                                     }
@@ -976,7 +976,7 @@ export default function FlavorSynth() {
                                         <img src="./imgs/actionButtons/save.png" alt="Save btn" className="save-action action-btn" />
                                     </button>
                                     {
-                                        multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
+                                        !isReadonly && multiplayer.isMultiplayer && <button className="chat" title="Open the Chat" onClick={() => multiplayer.setMultiplayerChatOpen(true)}>
                                             <img src="./imgs/actionButtons/chat.png" alt="Chat btn" className="chat-action action-btn" />
                                             <span className="chat-message-count" data-message-count={multiplayer.unreadChatMessageCount}>{multiplayer.unreadChatMessageCount}</span>
                                         </button>

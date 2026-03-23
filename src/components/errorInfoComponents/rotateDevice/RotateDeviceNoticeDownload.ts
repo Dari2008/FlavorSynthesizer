@@ -1,6 +1,7 @@
 import { getResourceByName } from "../../ResourceSaver";
 
-export const ROTATE_NOTICE_ANIMATION_IMAGES: HTMLImageElement[] = [];
+export const ROTATE_NOTICE_ANIMATION_IMAGES: HTMLImageElement[] = (window as any).ROTATE_NOTICE_ANIMATION_IMAGES ?? [];
+(window as any).ROTATE_NOTICE_ANIMATION_IMAGES = ROTATE_NOTICE_ANIMATION_IMAGES;
 
 export const ROTATE_NOTICE_ANIMATION_IMAGE_COUNT = 10;
 
@@ -11,7 +12,7 @@ export async function initRotateNotice() {
         all.push(new Promise<void>(async (res, rej) => {
             const image = new Image();
             // , "./animations/phone/Rotation/" + i + ".png"
-            image.src = await getResourceByName("rotateDevice", "image_" + i + ".png");
+            image.src = await getResourceByName("rotateDevice", "" + i + ".png");
             image.onload = () => res();
             image.onerror = () => rej();
             ROTATE_NOTICE_ANIMATION_IMAGES.push(image);
