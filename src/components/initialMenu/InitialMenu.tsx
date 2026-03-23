@@ -106,24 +106,24 @@ export default function InitialMenu() {
             <img src="./mainMenu/user-profile.png" onClick={() => setDropDownOpen(!isDropDownOpen)} className="user-icon" alt="Image of chefs hat" />
             {
                 user.user != null && <>
-                    <PixelDiv className="dropdown">
+                    <PixelDiv max-pixel-width={30} className="dropdown">
                         <span className="label user-name">{user.user.displayName}</span>
                         {/* <button className="settings" onClick={() => 0}>
                             <img src="./mainMenu/user-dropdown/settings.png" alt="Settings Icon" />
                             <span className="label">Setting</span>
                         </button> */}
-                        <PixelButton className="logout" onClick={logout}>Logout</PixelButton>
+                        <PixelButton max-pixel-width={10} className="logout" onClick={logout}>Logout</PixelButton>
                     </PixelDiv>
                 </>
                 ||
                 <>
-                    <PixelDiv className="dropdown login-dropdown">
+                    <PixelDiv max-pixel-width={30} className="dropdown login-dropdown">
                         <img src="./mainMenu/user-dropdown/login.png" alt="" className="login-icon" />
                         <h3>{isLoginOrRegister == "login" ? "Login" : "Register"}</h3>
-                        <PixelInput type="text" placeholder={isLoginOrRegister == "login" ? "Username / E-Mail" : "Username"} className="username" ref={usernameRef} />
-                        <PixelInput type="password" placeholder="Password" className="password" ref={passwordRef} />
+                        <PixelInput max-pixel-width={10} type="text" placeholder={isLoginOrRegister == "login" ? "Username / E-Mail" : "Username"} className="username" ref={usernameRef} />
+                        <PixelInput max-pixel-width={10} type="password" placeholder="Password" className="password" ref={passwordRef} />
                         {isLoginOrRegister == "register" && <PixelInput type="email" placeholder="E-Mail" className="email" ref={emailRef} />}
-                        <PixelButton className="action" onClick={() => (isLoginOrRegister == "login" ? login : register)()}>{isLoginOrRegister == "login" ? "Login" : "Register"}</PixelButton>
+                        <PixelButton max-pixel-width={10} className="action" onClick={() => (isLoginOrRegister == "login" ? login : register)()}>{isLoginOrRegister == "login" ? "Login" : "Register"}</PixelButton>
                         {
                             isLoginOrRegister == "login" && <>
                                 <span className="below">

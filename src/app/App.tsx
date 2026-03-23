@@ -1,4 +1,4 @@
-import { Activity, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { intitializeAllAudios } from "../audio/Flavors";
 import CurrentMainThemeSelector from "../components/currentMainTheme/CurrentMainThemeSelector";
 import FlavorDragNDropList from "../components/flavor-dragn-drop-list/FlavorDragNDropList";
@@ -51,7 +51,6 @@ import { loadAllCustomFlavorsAsMusicPlayer, type CustomFlavor } from "../compone
 import { CustomFlavors } from "../contexts/CustomFlavors";
 import { CustomFlavorMusic } from "../audio/FlavorMusic";
 import CustomFlavorMenu from "../components/customFlavorMenu/CustomFlavorMenu";
-import CustomFlavorServerManager from "../components/customFlavorMenu/CustomFlavorServerManager";
 import { hasResource } from "../components/ResourceSaver";
 
 export default function App() {
@@ -78,8 +77,6 @@ export default function App() {
     const [isMultiplayerMuted, setMultiplayerMuted] = useState<boolean>(false);
 
     const hasLoadedUserInfoOnce = useRef<boolean>(false);
-
-    const server = multiplayerManager?.getServerCommunication();
 
     const [gameState, _setGameState] = useState<GameState>("mainMenu");
     const [oldGameStates, setOldGameStates] = useState<GameState[]>(["mainMenu"]);

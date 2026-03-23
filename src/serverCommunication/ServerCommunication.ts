@@ -1,5 +1,5 @@
 import type { APIResponse, ShareDigits, MultiplayerJoinResponse, MultiplayerCreateResponse } from "../@types/Api";
-import type { Dish, DishVolumes, MultiplayerCreateServerDish, ServerDish, UUID } from "../@types/User";
+import type { Dish, DishVolumes, MultiplayerCreateServerDish, UUID } from "../@types/User";
 import type { CustomFlavor } from "../components/addCustomFlavor/CustomFlavorManager";
 import type { FlavorElement } from "../components/flavorSynth/PlayerTrack";
 import type { ChatMessage } from "../components/multiplayerChatOverlay/MultiplayerChatOverlay";

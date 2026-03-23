@@ -13,7 +13,7 @@ export default function CustomFlavorShop({ onClose }: { onClose: () => void }) {
 
     const [isLoading, setLoading] = useState<boolean>(true);
     const [customFlavors, setCustomFlavors] = useState<CustomFlavor[]>([]);
-    const [currentPage, setCurrentPage] = useState<number>(0);
+    const [currentPage, _setCurrentPage] = useState<number>(0);
     const user = useUser();
     const customFlavorsOptions = useCustomFlavors();
 

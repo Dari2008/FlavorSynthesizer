@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { SynthLinesContext } from "../../contexts/SynthLinesContext";
-import { calculateCurrentPosSeconds, constrainSpan, contrastColor, convertCustomFlavorToRenderer, darkenIfBright, getSpan, loadImage, setSpan, setSpanFirstTime, starMask, type FlavorRenderer } from "../FlavorUtils";
+import { calculateCurrentPosSeconds, constrainSpan, convertCustomFlavorToRenderer, getSpan, setSpan, setSpanFirstTime, type FlavorRenderer } from "../FlavorUtils";
 import type { FlavorElement } from "./PlayerTrack";
 import { ElementPlayer } from "./ElementPlayer";
 import * as Tone from "tone";
